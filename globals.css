@@ -1,0 +1,654 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  body {
+    background-color: #ffffff;
+    background-image: none;
+    color: #000000;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── Global Link Theme: Green, never purple, no black background ── */
+  a {
+    color: #16a34a;
+    background: none;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #15803d;
+    background: none;
+    text-decoration: underline;
+  }
+
+  a:visited {
+    color: #16a34a;
+    background: none;
+  }
+
+  a:active {
+    color: #15803d;
+    background: none;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 3px; }
+}
+
+/* ============================================================
+   GLASSMORPHISM UTILITIES
+   ============================================================ */
+@layer utilities {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  /* Frosted dark-glass overlay override for premium dashboards floating over light gradient wallpaper */
+  .theme-dashboard .glass-panel {
+    background: rgba(4, 25, 18, 0.75) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35) !important;
+  }
+
+  /* Hover transition base — add this alongside glass-panel */
+  .glass-panel-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-panel-hover:hover {
+    border-color: rgba(22, 163, 74, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.06), 0 0 20px rgba(22, 163, 74, 0.08);
+    transform: translateY(-4px);
+  }
+
+  .glass-panel-hover-blue {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-panel-hover-blue:hover {
+    border-color: rgba(14, 165, 233, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.06), 0 0 20px rgba(14, 165, 233, 0.08);
+    transform: translateY(-4px);
+  }
+
+  .glass-panel-hover-purple {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-panel-hover-purple:hover {
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.06), 0 0 20px rgba(139, 92, 246, 0.08);
+    transform: translateY(-4px);
+  }
+
+  .glass-panel-hover-amber {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-panel-hover-amber:hover {
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.06), 0 0 20px rgba(245, 158, 11, 0.08);
+    transform: translateY(-4px);
+  }
+
+  .glass-input {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: #0f172a;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    width: 100%;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .glass-input::placeholder {
+    color: rgba(15, 23, 42, 0.4);
+  }
+
+  .glass-input:focus {
+    background: #ffffff;
+    border-color: rgba(22, 163, 74, 0.4);
+    box-shadow: 0 0 15px rgba(22, 163, 74, 0.15);
+    outline: none;
+  }
+
+  /* Dark-mode input override for dashboard contexts */
+  .theme-dashboard .glass-input {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+  }
+
+  .theme-dashboard .glass-input::placeholder {
+    color: rgba(255, 255, 255, 0.35) !important;
+  }
+
+  .theme-dashboard .glass-input:focus {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.15) !important;
+  }
+
+  /* ============================================================
+     GRADIENT TEXT UTILITIES
+     ============================================================ */
+  .gradient-text-green {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-blue {
+    background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-purple {
+    background: linear-gradient(135deg, #c084fc 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-amber {
+    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-rainbow {
+    background: linear-gradient(135deg, #34d399 0%, #38bdf8 50%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ============================================================
+     3D PAYMENT CARD
+     ============================================================ */
+  .payment-card-inner {
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+  }
+
+  .payment-card-inner.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .payment-card-front,
+  .payment-card-back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+}
+
+/* ============================================================
+   CSS KEYFRAME ANIMATIONS
+   ============================================================ */
+
+/* Scan-glow: for AI Crop Grader scan-line sweep */
+@keyframes scan-glow {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(220px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Audio pulse: for Voice AI button ripple circles */
+@keyframes audio-pulse {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  50%  { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0.6; }
+}
+
+/* Float: subtle levitation for hero elements */
+@keyframes float-up {
+  0%,  100% { transform: translateY(0px); }
+  50%        { transform: translateY(-8px); }
+}
+
+/* Neon flicker: for neon text effects */
+@keyframes neon-flicker {
+  0%, 100%  { opacity: 1; }
+  92%        { opacity: 1; }
+  93%        { opacity: 0.7; }
+  94%        { opacity: 1; }
+}
+
+/* Shimmer: skeleton loading states */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Spin slow: subtle rotation */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   ANIMATION UTILITY CLASSES
+   ============================================================ */
+
+/** AI Crop Grader scan line — uses .anim-scan-line class */
+.anim-scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #10b981, transparent);
+  box-shadow: 0 0 15px #10b981, 0 0 5px #10b981;
+  animation: scan-glow 2.5s ease-in-out infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/** Voice AI pulsing rings */
+.voice-wave-circle {
+  position: absolute;
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  border-radius: 50%;
+  animation: audio-pulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.voice-wave-circle:nth-child(2) { animation-delay: 0.4s; }
+.voice-wave-circle:nth-child(3) { animation-delay: 0.8s; }
+
+/** Float animation */
+.anim-float { animation: float-up 4s ease-in-out infinite; }
+
+/** Neon flicker */
+.anim-neon-flicker { animation: neon-flicker 5s ease-in-out infinite; }
+
+/** Shimmer skeleton */
+.anim-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* ============================================================
+   PHASE 7 — ACCESSIBILITY OVERRIDES
+   ============================================================ */
+
+/* ── Base font-size variable (default 16px, controlled by AccessibilityPanel) ── */
+:root {
+  --base-font-size: 16px;
+}
+
+body {
+  font-size: var(--base-font-size);
+}
+
+/* ── High Contrast Mode ───────────────────────────────────────────────────────
+   Activated by body.high-contrast (toggled by AccessibilityPanel)
+   Replaces glass backgrounds with solid dark panels for better readability. */
+body.high-contrast .glass-panel {
+  background: #0d1426 !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.high-contrast .glass-input {
+  background: #0d1426 !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+body.high-contrast .glass-panel-hover:hover,
+body.high-contrast .glass-panel-hover-blue:hover,
+body.high-contrast .glass-panel-hover-purple:hover,
+body.high-contrast .glass-panel-hover-amber:hover {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: none !important;
+}
+
+/* ── Reduced Motion Mode ──────────────────────────────────────────────────────
+   Activated by body.reduced-motion (also respects prefers-reduced-motion)
+   Sets all animation/transition durations to 0.01ms, effectively disabling them. */
+body.reduced-motion *,
+body.reduced-motion *::before,
+body.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Respect OS-level prefers-reduced-motion setting automatically */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Large Font Mode ──────────────────────────────────────────────────────────
+   Activated when AccessibilityPanel font size >= 18px.
+   Sets the CSS variable to 18px as a landmark. */
+body.large-font {
+  --base-font-size: 18px;
+}
+
+/* Ensure base UI text sizes scale with the variable */
+body.large-font p,
+body.large-font span,
+body.large-font label,
+body.large-font input,
+body.large-font textarea,
+body.large-font select {
+  font-size: max(var(--base-font-size), 1em);
+}
+
+/* ── Screen Reader Mode ───────────────────────────────────────────────────────
+   Activated by body.screen-reader-mode.
+   Ensures focus indicators are always visible. */
+body.screen-reader-mode *:focus {
+  outline: 2px solid #8b5cf6 !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Range input styling for AccessibilityPanel font slider ───────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #10b981;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  transition: box-shadow 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.7);
+}
+
+
+/* ============================================================
+   DASHBOARD LINK OVERRIDES
+   (Prevent global green link rules from breaking dark sidebar nav)
+   ============================================================ */
+
+/* In dark dashboards, sidebar/nav links use Tailwind text-* classes
+   applied directly. The global `a` rule must not override those. */
+.theme-dashboard nav a,
+.theme-dashboard aside a {
+  color: inherit;       /* Respect the Tailwind text-* class from the component */
+  background: none;
+  text-decoration: none;
+}
+
+.theme-dashboard nav a:visited,
+.theme-dashboard aside a:visited {
+  color: inherit;
+  background: none;
+}
+
+.theme-dashboard nav a:hover,
+.theme-dashboard aside a:hover {
+  background: none;
+  text-decoration: none;
+}
+
+/* Button-styled links should never be affected by link rules */
+a[style*="background"],
+a[class*="rounded"],
+a[class*="px-"],
+a[class*="py-"],
+a[class*="btn"] {
+  text-decoration: none;
+}
+
+a[style*="background"]:hover {
+  text-decoration: none;
+}
+
+/* ============================================================
+   LIGHT THEME — AUTH & MARKETING PAGES (Non-Dashboard)
+   Ensure clean white background and black text on pages that
+   do NOT use the .theme-dashboard class.
+   ============================================================ */
+
+/* Body default — white bg, black text, no gradient */
+body {
+  background-color: #ffffff !important;
+  color: #000000;
+}
+
+/* Glass panel on light pages (auth/marketing) — white card style */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Auth page inputs */
+.glass-input {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #000000;
+}
+
+.glass-input::placeholder {
+  color: #94a3b8;
+}
+
+.glass-input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+  outline: none;
+}
+
+
+/* ============================================================
+   WHITE THEME — CONSUMER LIGHT ONLY
+   ============================================================ */
+
+.theme-consumer-light {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+.theme-consumer-light > main {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+.theme-consumer-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.theme-consumer-light select,
+.theme-consumer-light textarea {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+.theme-consumer-light input::placeholder,
+.theme-consumer-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.theme-consumer-light .gradient-text-green,
+.theme-consumer-light .gradient-text-blue,
+.theme-consumer-light .gradient-text-purple,
+.theme-consumer-light .gradient-text-amber,
+.theme-consumer-light .gradient-text-rainbow,
+.theme-consumer-light .gradient-text {
+  background: none !important;
+  -webkit-text-fill-color: #1e293b !important;
+  color: #1e293b !important;
+}
+
+.theme-consumer-light .glass-panel {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+
+.theme-consumer-light .text-white {
+  color: #1e293b !important;
+}
+
+.theme-consumer-light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15) !important;
+}
+
+
+/* ============================================================
+   FARMER PLATFORM SPECIFIC STYLING OVERRIDES (.theme-dashboard)
+   ============================================================ */
+
+/* 1. Background color to white */
+.theme-dashboard,
+.theme-dashboard * {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border-color: #e2e8f0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. All text to black */
+.theme-dashboard,
+.theme-dashboard * {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+/* 3. Any heading to orange */
+.theme-dashboard h1,
+.theme-dashboard h1 *,
+.theme-dashboard h2,
+.theme-dashboard h2 *,
+.theme-dashboard h3,
+.theme-dashboard h3 *,
+.theme-dashboard h4,
+.theme-dashboard h4 *,
+.theme-dashboard h5,
+.theme-dashboard h5 *,
+.theme-dashboard h6,
+.theme-dashboard h6 * {
+  color: #f97316 !important; /* Orange */
+  -webkit-text-fill-color: #f97316 !important;
+}
+
+/* 4. Any navigation to green */
+.theme-dashboard nav,
+.theme-dashboard nav *,
+.theme-dashboard aside,
+.theme-dashboard aside *,
+.theme-dashboard [role="navigation"],
+.theme-dashboard [role="navigation"] * {
+  color: #10b981 !important; /* Green */
+  -webkit-text-fill-color: #10b981 !important;
+}
+
+/* 5. SVG stroke and fill color overrides */
+.theme-dashboard svg,
+.theme-dashboard svg * {
+  stroke: #000000 !important;
+}
+.theme-dashboard svg[fill]:not([fill="none"]),
+.theme-dashboard svg *[fill]:not([fill="none"]) {
+  fill: #000000 !important;
+}
+
+/* Navigation SVGs to Green */
+.theme-dashboard nav svg,
+.theme-dashboard nav svg *,
+.theme-dashboard aside svg,
+.theme-dashboard aside svg *,
+.theme-dashboard [role="navigation"] svg,
+.theme-dashboard [role="navigation"] svg * {
+  stroke: #10b981 !important;
+}
+.theme-dashboard nav svg[fill]:not([fill="none"]),
+.theme-dashboard nav svg *[fill]:not([fill="none"]),
+.theme-dashboard aside svg[fill]:not([fill="none"]),
+.theme-dashboard aside svg *[fill]:not([fill="none"]),
+.theme-dashboard [role="navigation"] svg[fill]:not([fill="none"]),
+.theme-dashboard [role="navigation"] svg *[fill]:not([fill="none"]) {
+  fill: #10b981 !important;
+}
+
+/* Heading SVGs to Orange */
+.theme-dashboard h1 svg,
+.theme-dashboard h1 svg *,
+.theme-dashboard h2 svg,
+.theme-dashboard h2 svg *,
+.theme-dashboard h3 svg,
+.theme-dashboard h3 svg *,
+.theme-dashboard h4 svg,
+.theme-dashboard h4 svg *,
+.theme-dashboard h5 svg,
+.theme-dashboard h5 svg *,
+.theme-dashboard h6 svg,
+.theme-dashboard h6 svg * {
+  stroke: #f97316 !important;
+}
+.theme-dashboard h1 svg[fill]:not([fill="none"]),
+.theme-dashboard h1 svg *[fill]:not([fill="none"]),
+.theme-dashboard h2 svg[fill]:not([fill="none"]),
+.theme-dashboard h2 svg *[fill]:not([fill="none"]),
+.theme-dashboard h3 svg[fill]:not([fill="none"]),
+.theme-dashboard h3 svg *[fill]:not([fill="none"]),
+.theme-dashboard h4 svg[fill]:not([fill="none"]),
+.theme-dashboard h4 svg *[fill]:not([fill="none"]),
+.theme-dashboard h5 svg[fill]:not([fill="none"]),
+.theme-dashboard h5 svg *[fill]:not([fill="none"]),
+.theme-dashboard h6 svg[fill]:not([fill="none"]),
+.theme-dashboard h6 svg *[fill]:not([fill="none"]) {
+  fill: #f97316 !important;
+}
+
+
+
