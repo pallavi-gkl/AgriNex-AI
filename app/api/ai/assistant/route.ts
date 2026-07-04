@@ -3,6 +3,15 @@ import { NextResponse } from "next/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  hi: "Hindi (हिन्दी)",
+  te: "Telugu (తెలుగు)",
+  ta: "Tamil (தமிழ்)",
+  kn: "Kannada (ಕನ್ನಡ)",
+  ml: "Malayalam (മലയാളം)",
+};
+
 export async function POST(req: Request) {
   try {
     const { messages, currentPath, role, language } = await req.json();
@@ -14,6 +23,9 @@ export async function POST(req: Request) {
       );
     }
 
+    const langCode = (language || "en").toLowerCase();
+    const langName = LANGUAGE_NAMES[langCode] || "English";
+
     // Determine context based on role and path
     let contextInstructions = "";
     if (role === "farmer") {
@@ -23,12 +35,12 @@ The user is a FARMER. You should help them with:
 - Fertilizer recommendations and irrigation planning
 - Weather-based farming advice and yield predictions
 - Market price analysis and recommendations on the best time to sell
-- Government scheme guidance and crop rotation suggestions
-- Inventory management and product listing assistance
+- Government scheme guidance (PM-KISAN, PMFBY, eNAM, etc.) and crop rotation suggestions
+- Inventory management and product listing assistance on the AgriNex platform
       `;
     } else if (role === "consumer" || role === "all") {
       contextInstructions = `
-The user is a CUSTOMER. You should help them with:
+The user is a CUSTOMER shopping on AgriNex. You should help them with:
 - Product recommendations and natural-language product search
 - Nutrition facts, calories, and recipe suggestions
 - Comparing products and checking price fairness/freshness
@@ -37,7 +49,7 @@ The user is a CUSTOMER. You should help them with:
       `;
     } else if (role === "admin") {
       contextInstructions = `
-The user is an ADMINISTRATOR. You should help them with:
+The user is an ADMINISTRATOR of AgriNex. You should help them with:
 - Platform analytics and user management insights
 - Fraud detection summaries and farmer verification assistance
 - Complaint analysis and revenue analytics
@@ -60,8 +72,12 @@ The user is an ADMINISTRATOR. You should help them with:
     }
 
     const systemPrompt = `
-You are AgriNex AI, a premium conversational AI agricultural assistant.
-You help farmers, consumers, and administrators with intelligent, real-time advice.
+You are AgriNex AI, a premium conversational AI agricultural assistant embedded in the AgriNex platform — an AI-powered marketplace connecting Indian farmers directly with consumers.
+
+SCOPE RESTRICTION (CRITICAL):
+- You ONLY answer questions related to agriculture, farming, food, crop science, weather (as it relates to farming), nutrition, market prices for agricultural products, government agricultural schemes, the AgriNex platform features, and anything relevant to the farming-to-consumer supply chain.
+- If a user asks a question UNRELATED to agriculture, food, farming, or the AgriNex platform, politely decline and redirect them. Say something like: "I am specialized in agriculture and the AgriNex platform. I can help you with crop advice, market prices, product recommendations, or platform features."
+- NEVER answer questions about politics, entertainment, sports, or general knowledge unrelated to agriculture.
 
 CURRENT CONTEXT:
 ${contextInstructions}
@@ -69,15 +85,17 @@ ${contextInstructions}
 PAGE CONTEXT:
 ${pageInstructions}
 
-LANGUAGE INSTRUCTIONS:
-- The user's selected language is: "${language || "en"}".
-- ALWAYS reply in the requested language (English, Hindi, Telugu, Tamil, Kannada, Marathi).
-- Use natural, fluent phrasing for the region.
+LANGUAGE INSTRUCTIONS (CRITICAL):
+- The user's selected language is: "${langCode}" (${langName}).
+- YOU MUST WRITE YOUR ENTIRE RESPONSE in ${langName}.
+- Do NOT mix in English words unless they are proper nouns, scientific crop names, or brand names (e.g., "AgriNex", "PM-KISAN").
+- Use natural, fluent, region-appropriate phrasing in the selected language.
+- If the language is Hindi, use Devanagari script. If Telugu, use Telugu script. If Tamil, use Tamil script. If Kannada, use Kannada script. If Malayalam, use Malayalam script.
 
-formatting GUIDELINES:
+RESPONSE FORMAT:
 - Respond in clean, elegant markdown with appropriate emojis.
-- Keep replies concise, friendly, and actionable. Max 150-200 words.
-- Never mention internal technical details.
+- Keep replies concise, friendly, and actionable. Max 150–200 words unless detail is essential.
+- Never mention internal technical details, API keys, or database references.
     `.trim();
 
     const model = genAI.getGenerativeModel({
@@ -91,7 +109,7 @@ formatting GUIDELINES:
       parts: [{ text: m.text }],
     }));
 
-    // Start chat with history
+    // Start chat with history (all but last message)
     const chat = model.startChat({
       history: contents.slice(0, -1),
     });

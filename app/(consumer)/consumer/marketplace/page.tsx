@@ -13,9 +13,9 @@ import Link from "next/link";
 import {
   Search, ShoppingCart, Star, MapPin, Leaf, Filter, X, Plus, Minus,
   Loader2, CheckCircle, AlertCircle, Truck, Package, Sparkles,
-  ChevronDown, Mic, Camera, Heart, TrendingUp, Zap, Shield,
+  ChevronDown, Camera, Heart, TrendingUp, Zap, Shield,
   Timer, ArrowRight, ChevronRight, Eye, BarChart2, Globe,
-  Sun, Wind, Droplets, Award, Clock, RefreshCw, Volume2, VolumeX,
+  Sun, Wind, Droplets, Award, Clock, RefreshCw,
 } from "lucide-react";
 import { useMarketplaceProducts } from "@/hooks/useProducts";
 import { useCreateOrder } from "@/hooks/useOrders";
@@ -549,7 +549,6 @@ export default function MarketplacePage() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [filterNearby, setFilterNearby] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [imageSearching, setImageSearching] = useState(false);
   const [imageSearchResult, setImageSearchResult] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -700,28 +699,6 @@ export default function MarketplacePage() {
     }
   }, [isInWishlist, addToWishlist, removeFromWishlist]);
 
-  // ── Voice Search ──────────────────────────────────────────────────────────
-  const handleVoiceSearch = useCallback(() => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-      alert("Voice search not supported in this browser. Please try Chrome.");
-      return;
-    }
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-IN";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setSearchInput(transcript);
-      setSearch(transcript);
-    };
-    recognition.onerror = () => setIsListening(false);
-    recognition.start();
-  }, []);
-
   // ── Image Search ──────────────────────────────────────────────────────────
   const handleImageSearch = useCallback(async (file: File) => {
     setImageSearching(true);
@@ -871,16 +848,6 @@ export default function MarketplacePage() {
                   <X className="w-4 h-4" />
                 </button>
               )}
-              {/* Voice search */}
-              <button id="voice-search-btn" onClick={handleVoiceSearch}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 ${isListening ? "animate-pulse" : ""}`}
-                style={{
-                  background: isListening ? "rgba(239,68,68,0.3)" : "rgba(139,92,246,0.2)",
-                  border: `1px solid ${isListening ? "rgba(239,68,68,0.5)" : "rgba(139,92,246,0.3)"}`,
-                }}
-                title="Voice Search">
-                <Mic className={`w-4 h-4 ${isListening ? "text-red-400" : "text-purple-400"}`} />
-              </button>
               {/* Image search */}
               <button id="image-search-btn" onClick={() => fileInputRef.current?.click()}
                 className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
@@ -928,16 +895,6 @@ export default function MarketplacePage() {
               className="mt-3 px-4 py-2 rounded-xl text-sm text-amber-300"
               style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
               {imageSearchResult}
-            </motion.div>
-          )}
-
-          {/* Voice listening indicator */}
-          {isListening && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="mt-3 px-4 py-2 rounded-xl text-sm text-purple-300 flex items-center gap-2"
-              style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)" }}>
-              <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-              Listening... speak your search
             </motion.div>
           )}
         </div>

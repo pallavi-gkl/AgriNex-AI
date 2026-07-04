@@ -6,12 +6,12 @@
  * Price field has an AI price recommendation button.
  * On submit: POST /api/products.
  */
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, MicOff, Sparkles, PackagePlus, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Sparkles, PackagePlus, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { useCreateProduct } from "@/hooks/useProducts";
 import type { CropGradeResult } from "@/types";
 
@@ -35,34 +35,10 @@ interface ProductListingFormProps {
   className?: string;
 }
 
-// ─── Speech recognition helper ────────────────────────────────────────────────
-function startSpeech(onResult: (text: string) => void, onEnd: () => void): (() => void) | null {
-  const SR =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  if (!SR) return null;
-
-  const recognition = new SR();
-  recognition.lang = "en-IN";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onresult = (e: any) => {
-    const transcript = e.results[0][0].transcript;
-    onResult(transcript);
-  };
-  recognition.onend = onEnd;
-  recognition.onerror = onEnd;
-  recognition.start();
-
-  return () => recognition.stop();
-}
-
 export default function ProductListingForm({ aiGradeResult, className = "" }: ProductListingFormProps) {
   const { mutate: createProduct, isPending, isSuccess, isError, reset: resetMutation } = useCreateProduct();
   const [aiRationale, setAiRationale] = useState<string | null>(null);
-  const [activeVoiceField, setActiveVoiceField] = useState<keyof ProductFormData | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const stopSpeechRef = useRef<(() => void) | null>(null);
 
   const {
     register,
@@ -80,35 +56,6 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
 
   const category = watch("category");
   const priceValue = watch("pricePerUnit");
-
-  // ── Voice input for a specific field ────────────────────────────────────────
-  const toggleVoice = (field: keyof ProductFormData) => {
-    // Stop any currently active voice session
-    if (stopSpeechRef.current) {
-      stopSpeechRef.current();
-      stopSpeechRef.current = null;
-      if (activeVoiceField === field) {
-        setActiveVoiceField(null);
-        return;
-      }
-    }
-
-    setActiveVoiceField(field);
-    const stop = startSpeech(
-      (text) => {
-        setValue(field, text as any, { shouldValidate: true });
-        setActiveVoiceField(null);
-      },
-      () => setActiveVoiceField(null)
-    );
-
-    if (!stop) {
-      alert("Voice input is not supported in this browser.");
-      setActiveVoiceField(null);
-      return;
-    }
-    stopSpeechRef.current = stop;
-  };
 
   // ── AI price recommendation ──────────────────────────────────────────────────
   const getAIPrice = async () => {
@@ -169,27 +116,6 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
     );
   };
 
-  // ── Field row helper ─────────────────────────────────────────────────────────
-  const VoiceMicButton = ({ field }: { field: keyof ProductFormData }) => (
-    <button
-      type="button"
-      onClick={() => toggleVoice(field)}
-      className={`absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-        activeVoiceField === field
-          ? "bg-purple-500/30 border border-purple-500/50 text-purple-300 animate-pulse"
-          : "bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20"
-      }`}
-      title={`Voice input for ${field}`}
-      aria-label={`Voice input for ${field}`}
-    >
-      {activeVoiceField === field ? (
-        <MicOff className="w-3.5 h-3.5" aria-hidden="true" />
-      ) : (
-        <Mic className="w-3.5 h-3.5" aria-hidden="true" />
-      )}
-    </button>
-  );
-
   return (
     <div className={`glass-panel rounded-2xl p-5 flex flex-col gap-4 ${className}`}>
       {/* Header */}
@@ -210,10 +136,9 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
           <div className="relative">
             <input
               {...register("title")}
-              className="glass-input pr-11 text-sm"
+              className="glass-input text-sm"
               placeholder="e.g. Organically Grown Potatoes"
             />
-            <VoiceMicButton field="title" />
           </div>
           {errors.title && <p className="text-red-400 text-xs">{errors.title.message}</p>}
         </div>
@@ -225,14 +150,13 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
             <div className="relative">
               <select
                 {...register("category")}
-                className="glass-input pr-11 text-sm appearance-none"
+                className="glass-input text-sm appearance-none"
               >
                 <option value="" disabled>Select category</option>
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c} className="bg-slate-900 text-white">{c}</option>
                 ))}
               </select>
-              <VoiceMicButton field="category" />
             </div>
             {errors.category && <p className="text-red-400 text-xs">{errors.category.message}</p>}
           </div>
@@ -242,14 +166,13 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
             <div className="relative">
               <select
                 {...register("unitType")}
-                className="glass-input pr-11 text-sm appearance-none"
+                className="glass-input text-sm appearance-none"
               >
                 <option value="" disabled>Select unit</option>
                 {UNIT_TYPES.map((u) => (
                   <option key={u} value={u} className="bg-slate-900 text-white">{u}</option>
                 ))}
               </select>
-              <VoiceMicButton field="unitType" />
             </div>
             {errors.unitType && <p className="text-red-400 text-xs">{errors.unitType.message}</p>}
           </div>
@@ -289,15 +212,14 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
           {/* Quantity */}
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-400 font-medium">Quantity Available</label>
-            <div className="relative">
+          <div className="relative">
               <input
                 {...register("quantityAvailable")}
                 type="number"
                 step="0.01"
-                className="glass-input pr-11 text-sm"
+                className="glass-input text-sm"
                 placeholder="e.g. 150"
               />
-              <VoiceMicButton field="quantityAvailable" />
             </div>
             {errors.quantityAvailable && (
               <p className="text-red-400 text-xs">{errors.quantityAvailable.message}</p>
@@ -312,20 +234,9 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
             <textarea
               {...register("description")}
               rows={3}
-              className="glass-input pr-11 text-sm resize-none"
+              className="glass-input text-sm resize-none"
               placeholder="Describe your produce — origin, farming method, freshness..."
             />
-            <button
-              type="button"
-              onClick={() => toggleVoice("description")}
-              className={`absolute right-3 top-3 w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-                activeVoiceField === "description"
-                  ? "bg-purple-500/30 border border-purple-500/50 text-purple-300 animate-pulse"
-                  : "bg-purple-500/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20"
-              }`}
-            >
-              <Mic className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
 

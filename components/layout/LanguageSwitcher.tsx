@@ -13,7 +13,25 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { LANGUAGE_CODES, LANGUAGE_LABELS } from "@/lib/speech";
+
+// Inline language code map (replaces deleted speech.ts)
+const LANGUAGE_CODES: Record<string, string> = {
+  en: "en-IN",
+  hi: "hi-IN",
+  te: "te-IN",
+  ta: "ta-IN",
+  kn: "kn-IN",
+  ml: "ml-IN",
+};
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  hi: "Hindi",
+  te: "Telugu",
+  ta: "Tamil",
+  kn: "Kannada",
+  ml: "Malayalam",
+};
 
 // ─── Language Options ─────────────────────────────────────────────────────────
 const LANGUAGE_OPTIONS = [
@@ -282,8 +300,8 @@ export default function LanguageSwitcher({ compact = false }: LanguageSwitcherPr
       </div>
 
       <p className="text-slate-600 text-[11px]">
-        Language preference is saved to your profile and persists across sessions. Voice
-        assistant will use the selected language for speech recognition and responses.
+        Language preference is saved to your profile and persists across sessions.
+        The entire platform will update to the selected language instantly.
       </p>
     </div>
   );

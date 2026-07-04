@@ -11,7 +11,6 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/types";
 import { useVoiceAssistant } from "@/context/VoiceAssistantContext";
-import VoiceAIButton from "@/components/layout/VoiceAIButton";
 import VoiceAssistantModal from "@/components/layout/VoiceAssistantModal";
 import { CartProvider } from "@/context/CartContext";
 import { useTranslation } from "@/hooks/useTranslation";

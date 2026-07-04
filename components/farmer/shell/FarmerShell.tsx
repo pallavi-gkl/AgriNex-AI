@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Mic } from "lucide-react";
+import { X } from "lucide-react";
 import FarmerSidebar from "./FarmerSidebar";
 import FarmerTopbar from "./FarmerTopbar";
 import NotificationsPanel from "@/components/layout/NotificationsPanel";
@@ -12,7 +12,6 @@ import { useDemoMode } from "@/context/DemoContext";
 import { useVoiceAssistant } from "@/context/VoiceAssistantContext";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/types";
-import VoiceAIButton from "@/components/layout/VoiceAIButton";
 import VoiceAssistantModal from "@/components/layout/VoiceAssistantModal";
 
 interface FarmerShellProps {
@@ -126,7 +125,7 @@ export default function FarmerShell({ children, profile: initialProfile }: Farme
         isDemoMode={isDemoMode}
         onMenuClick={() => setMobileMenuOpen(true)}
         onNotifClick={() => setNotifOpen(true)}
-        onVoiceClick={() => openModal()}
+        onAIChatClick={() => openModal()}
       />
 
       {/* Main Content Area */}
@@ -138,7 +137,6 @@ export default function FarmerShell({ children, profile: initialProfile }: Farme
 
       {/* Global Modals/Panels */}
       <NotificationsPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
-      <VoiceAIButton />
       <VoiceAssistantModal />
     </div>
   );

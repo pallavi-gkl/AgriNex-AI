@@ -2,22 +2,24 @@
 
 import React, { useState } from "react";
 import { TrendingUp, TrendingDown, RefreshCw, Search, Sparkles } from "lucide-react";
-import { DEMO_MARKET_PRICES } from "@/lib/demoData";
+import { useLocationWeather } from "@/context/LocationWeatherContext";
 
 export default function MarketPricesPage() {
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const { nearbyMandis, requestLocation, loading } = useLocationWeather();
 
-  const filteredPrices = DEMO_MARKET_PRICES.filter(
+  const filteredPrices = nearbyMandis.filter(
     (m) =>
       m.crop.toLowerCase().includes(search.toLowerCase()) ||
       m.mandi.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleRefresh = async () => {
-    setLoading(true);
+    setRefreshing(true);
+    requestLocation();
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLoading(false);
+    setRefreshing(false);
   };
 
   return (
@@ -34,13 +36,19 @@ export default function MarketPricesPage() {
           onClick={handleRefresh}
           className="flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 text-xs font-mono rounded-xl transition self-start sm:self-auto shrink-0"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading && "animate-spin"}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing && "animate-spin"}`} />
           Refresh Tickers
         </button>
       </div>
 
-      {/* Grid listing */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {loading && filteredPrices.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <RefreshCw className="w-8 h-8 text-emerald-500 animate-spin" />
+          <p className="text-slate-400 text-sm font-mono">Loading nearby mandi prices...</p>
+        </div>
+      ) : (
+        /* Grid listing */
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Mandi List Table (2/3 width) */}
         <div className="md:col-span-2 glass-panel p-5 rounded-2xl space-y-4">
           <div className="flex items-center w-full relative">
@@ -114,7 +122,8 @@ export default function MarketPricesPage() {
             <p className="text-slate-400">2. Mumbai direct transport yields best mango margins.</p>
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

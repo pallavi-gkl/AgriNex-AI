@@ -1,19 +1,17 @@
 "use client";
 
 /**
- * @fileoverview AgriNex AI Smart Assistant — Premium conversational AI chatbot.
- * Floating, bottom-right aligned layout with minimize/maximize and full text + voice conversational state.
- * Replaces the old voice modal layout with a powerful context-aware assistant.
+ * @fileoverview AgriNex AI Smart Assistant — Text-only conversational AI chatbot.
+ * Floating, bottom-right aligned layout with minimize/maximize and full text conversational state.
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mic, X, Loader2, CheckCircle, AlertCircle, Volume2, VolumeX,
-  Send, Bot, Sparkles, Minus, Maximize2, RefreshCw, User, MessageSquare,
-  Compass, ShieldAlert, FileText, CheckCircle2, Sprout, ShoppingCart, BarChart2
+  X, Loader2, AlertCircle,
+  Send, Bot, Sparkles, Minus, Maximize2, RefreshCw, User,
+  Compass,
 } from "lucide-react";
-import { SpeechController, LANGUAGE_CODES, speakText } from "@/lib/speech";
 import { useVoiceAssistant } from "@/context/VoiceAssistantContext";
 import { supabase } from "@/lib/supabase";
 
@@ -30,7 +28,7 @@ const LANGUAGES = [
   { code: "te", label: "తెలుగు" },
   { code: "ta", label: "தமிழ்" },
   { code: "kn", label: "ಕನ್ನಡ" },
-  { code: "mr", label: "मराठी" },
+  { code: "ml", label: "മലയാളം" },
 ];
 
 export default function VoiceAssistantModal() {
@@ -40,14 +38,11 @@ export default function VoiceAssistantModal() {
   const [input, setInput] = useState("");
   const [language, setLanguage] = useState("en");
   const [loading, setLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [ttsEnabled, setTtsEnabled] = useState(true);
   const [userRole, setUserRole] = useState<string>("all");
   const [currentPath, setCurrentPath] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const speechRef = useRef<SpeechController | null>(null);
 
   // Track page path and determine role context
   useEffect(() => {
@@ -104,17 +99,6 @@ export default function VoiceAssistantModal() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
-
-  // Clean up synthesis/recognition on close
-  useEffect(() => {
-    if (!isOpen) {
-      speechRef.current?.stopListening();
-      setIsListening(false);
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    }
-  }, [isOpen]);
 
   // ── Smart Context-based suggested prompts ──────────────────────────────────
   const getSuggestedPrompts = () => {
@@ -185,13 +169,8 @@ export default function VoiceAssistantModal() {
           timestamp: new Date()
         }
       ]);
-
-      // Speak if enabled
-      if (ttsEnabled) {
-        speakText(aiReply.replace(/[#*`_]/g, ""), LANGUAGE_CODES[language] ?? "en-IN");
-      }
     } catch (err: any) {
-      setError("AI service unavailable. Using offline template support.");
+      setError("AI service unavailable. Please check your connection and try again.");
       setMessages((prev) => [
         ...prev,
         {
@@ -206,43 +185,6 @@ export default function VoiceAssistantModal() {
     }
   };
 
-  // ── Voice Input using SpeechController ─────────────────────────────────────
-  const toggleListening = () => {
-    if (isListening) {
-      speechRef.current?.stopListening();
-      setIsListening(false);
-      return;
-    }
-
-    const langCode = LANGUAGE_CODES[language] ?? "en-IN";
-    const controller = new SpeechController(langCode);
-    speechRef.current = controller;
-
-    if (!controller.isSupported) {
-      setError("Speech recognition is not supported in this browser. Please use Chrome.");
-      return;
-    }
-
-    setIsListening(true);
-    setError(null);
-
-    controller.startListening(
-      (text) => {
-        setIsListening(false);
-        handleSend(text);
-      },
-      (err) => {
-        console.error("Speech error:", err);
-        setIsListening(false);
-        if (err?.error === "no-speech") {
-          setError("No speech detected. Please speak closer to the microphone.");
-        } else {
-          setError("Microphone access denied or error occurred.");
-        }
-      }
-    );
-  };
-
   // ── Fallback templates ──────────────────────────────────────────────────────
   const getFallbackResponse = (query: string): string => {
     const q = query.toLowerCase();
@@ -250,7 +192,7 @@ export default function VoiceAssistantModal() {
       return "📊 **Offline Price Insight:** Direct market prices are stable. Alphonso Mangoes are premium at ₹350/kg, Turmeric is steady at ₹152/kg, and Basmati is up 5% in Delhi APMC.";
     }
     if (q.includes("tomato") || q.includes("vegetable") || q.includes("fresh")) {
-      return "🍅 **Fresh Harvest Alert:** Tomatoes are currently Grade A+ verified in inventory by Rajesh Kumar. Hydroponic Spinach is fresh with 7-day shelf life.";
+      return "🍅 **Fresh Harvest Alert:** Tomatoes are currently Grade A+ verified in inventory. Hydroponic Spinach is fresh with 7-day shelf life.";
     }
     if (q.includes("profit") || q.includes("increase")) {
       return "💰 **Farm Advice:** Increase profits by sorting products to Grade A+ before listing. AI reports suggest setting prices 10% lower than market average during high harvest days.";
@@ -301,17 +243,13 @@ export default function VoiceAssistantModal() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                {/* TTS Toggle */}
+                {/* Clear chat */}
                 <button
-                  onClick={() => setTtsEnabled(!ttsEnabled)}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    ttsEnabled 
-                      ? "text-purple-600 hover:text-purple-700 bg-purple-500/10" 
-                      : "text-slate-500 hover:text-slate-700"
-                  }`}
-                  title={ttsEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}
+                  onClick={() => setMessages([])}
+                  className="p-1.5 rounded-lg transition-colors text-slate-500 hover:text-slate-700"
+                  title="Clear chat"
                 >
-                  {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  <RefreshCw className="w-4 h-4" />
                 </button>
                 {/* Minimize */}
                 <button
@@ -423,30 +361,15 @@ export default function VoiceAssistantModal() {
               </div>
             )}
 
-            {/* Input row */}
+            {/* Input row — text only */}
             <div className="p-4 border-t border-white/5 bg-white/5">
               <div className="flex gap-2">
-                {/* Voice Assistant Mic Button */}
-                <button
-                  onClick={toggleListening}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                    isListening ? "animate-pulse" : "hover:scale-105"
-                  }`}
-                  style={{
-                    background: isListening ? "rgba(239,68,68,0.25)" : "rgba(139,92,246,0.15)",
-                    border: `1px solid ${isListening ? "rgba(239,68,68,0.4)" : "rgba(139,92,246,0.3)"}`,
-                  }}
-                  title={isListening ? "Listening..." : "Dictate Command"}
-                >
-                  <Mic className={`w-4 h-4 ${isListening ? "text-red-400 animate-pulse" : "text-purple-400"}`} />
-                </button>
-
                 {/* Text input */}
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-                  placeholder={isListening ? "Listening..." : "Ask me anything..."}
+                  placeholder="Ask me anything about agriculture..."
                   disabled={loading}
                   className="flex-1 glass-input py-2 text-xs"
                 />
@@ -458,7 +381,7 @@ export default function VoiceAssistantModal() {
                   className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105 disabled:opacity-40"
                   style={{ background: userRole === "consumer" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)" }}
                 >
-                  <Send className="w-4 h-4 text-white" />
+                  {loading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Send className="w-4 h-4 text-white" />}
                 </button>
               </div>
 
@@ -518,6 +441,22 @@ export default function VoiceAssistantModal() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating trigger button (only when not open) */}
+      {!isOpen && (
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="mt-3 w-14 h-14 rounded-full flex items-center justify-center"
+          style={{
+            background: userRole === "consumer" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)",
+            boxShadow: "0 0 30px rgba(16,185,129,0.4), 0 4px 24px rgba(0,0,0,0.4)",
+          }}
+          aria-label="Open AI Chat"
+        >
+          <Bot className="w-6 h-6 text-white" />
+        </motion.button>
+      )}
     </div>
   );
 }

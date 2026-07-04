@@ -4,6 +4,8 @@ import "leaflet/dist/leaflet.css";
 import { Providers } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { VoiceAssistantProvider } from "@/context/VoiceAssistantContext";
+import { LocationWeatherProvider } from "@/context/LocationWeatherContext";
+import TranslationObserver from "@/components/layout/TranslationObserver";
 
 export const metadata: Metadata = {
   title: "AgriNex AI — Smart Agriculture Marketplace",
@@ -18,8 +20,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Root layout — renders frosted sidebar and floating Voice AI button.
- * Sidebar receives the authenticated profile for avatar + verification badge.
+ * Root layout — renders core providers, AI chat modal, and global translation observer.
  */
 export default function RootLayout({
   children,
@@ -40,9 +41,12 @@ export default function RootLayout({
         <Providers>
           <AuthProvider>
             <VoiceAssistantProvider>
-              <main className="min-h-screen">
-                {children}
-              </main>
+              <LocationWeatherProvider>
+                <TranslationObserver />
+                <main className="min-h-screen">
+                  {children}
+                </main>
+              </LocationWeatherProvider>
             </VoiceAssistantProvider>
           </AuthProvider>
         </Providers>

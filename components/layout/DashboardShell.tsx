@@ -13,14 +13,14 @@ import {
   ShoppingCart,
   ClipboardList,
   BarChart2,
-  Sparkles,
   LogOut,
   CheckCircle2,
   Clock,
   Settings,
   Brain,
   Star,
-  Bell
+  Bell,
+  Bot
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,6 @@ import { useVoiceAssistant } from "@/context/VoiceAssistantContext";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationsPanel, { NotificationBellButton } from "./NotificationsPanel";
 import LanguageSwitcher from "./LanguageSwitcher";
-import VoiceAIButton from "./VoiceAIButton";
 import VoiceAssistantModal from "./VoiceAssistantModal";
 
 interface DashboardShellProps {
@@ -240,12 +239,12 @@ export default function DashboardShell({ children, profile }: DashboardShellProp
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Voice Command Button */}
+            {/* AI Chat Button */}
             <button
               onClick={() => openModal()}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-100 bg-emerald-50 text-xs font-bold text-[#16a34a] hover:scale-105 active:scale-95 transition-all"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Bot className="w-3.5 h-3.5" />
               AI Assistant
             </button>
 
@@ -260,8 +259,7 @@ export default function DashboardShell({ children, profile }: DashboardShellProp
         </main>
       </div>
 
-      {/* Floating AI Button & Dialog */}
-      <VoiceAIButton />
+      {/* AI Chat Dialog */}
       <VoiceAssistantModal />
 
       {/* Notification Drawer Panel */}

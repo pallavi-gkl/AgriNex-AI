@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import { Search, Bell, Mic, Menu, CloudSun } from "lucide-react";
+import { Search, Bell, Bot, Menu, CloudSun } from "lucide-react";
 import type { Profile } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLocationWeather } from "@/context/LocationWeatherContext";
+import Link from "next/link";
 
 interface FarmerTopbarProps {
   title: string;
@@ -12,7 +14,7 @@ interface FarmerTopbarProps {
   isDemoMode?: boolean;
   onMenuClick?: () => void;
   onNotifClick?: () => void;
-  onVoiceClick?: () => void;
+  onAIChatClick?: () => void;
 }
 
 export default function FarmerTopbar({
@@ -22,9 +24,23 @@ export default function FarmerTopbar({
   isDemoMode = true,
   onMenuClick,
   onNotifClick,
-  onVoiceClick,
+  onAIChatClick,
 }: FarmerTopbarProps) {
   const { t } = useTranslation();
+  const { location, weather, loading } = useLocationWeather();
+
+  // Determine text to show
+  let weatherText = "Loading...";
+  if (weather && location) {
+    weatherText = `${weather.temperature}°C • ${location.city}`;
+  } else if (!loading) {
+    if (location?.permissionStatus === "denied") {
+      weatherText = "Set Location";
+    } else {
+      weatherText = "No GPS";
+    }
+  }
+
   return (
     <header
       className="fixed top-0 right-0 left-0 lg:left-[280px] h-16 z-30 flex items-center justify-between px-6 border-b border-slate-200 bg-white"
@@ -52,7 +68,7 @@ export default function FarmerTopbar({
         />
       </div>
 
-      {/* Right side: Demo badge, weather, mic, notification, avatar */}
+      {/* Right side: Demo badge, weather, AI chat, notification, avatar */}
       <div className="flex items-center gap-3 md:gap-4">
         {/* Pulsing Demo Pill */}
         {isDemoMode && (
@@ -63,22 +79,27 @@ export default function FarmerTopbar({
         )}
 
         {/* Mini Weather */}
-        <div className="hidden sm:flex items-center gap-2 bg-white border border-slate-200 px-3 py-1 rounded-xl text-xs text-black">
+        <Link
+          href="/farmer/weather"
+          className="hidden sm:flex items-center gap-2 bg-white border border-slate-200 px-3 py-1 rounded-xl text-xs text-black hover:bg-slate-50 transition"
+          title="Click to view Weather Intelligence"
+        >
           <CloudSun className="w-4 h-4 text-emerald-500" />
-          <span>32°C • Karnal</span>
-        </div>
+          <span>{weatherText}</span>
+        </Link>
 
-        {/* Voice assistant shortcut */}
-        {onVoiceClick && (
+        {/* AI Chat shortcut */}
+        {onAIChatClick && (
           <button
-            onClick={onVoiceClick}
+            onClick={onAIChatClick}
             className="p-2 rounded-xl text-white hover:opacity-90 transition-all flex items-center justify-center"
             style={{
               background: "linear-gradient(135deg, #10b981, #059669)",
               boxShadow: "0 0 10px rgba(16,185,129,0.3)",
             }}
+            title="AI Chat Assistant"
           >
-            <Mic className="w-4 h-4 animate-pulse" />
+            <Bot className="w-4 h-4" />
           </button>
         )}
 

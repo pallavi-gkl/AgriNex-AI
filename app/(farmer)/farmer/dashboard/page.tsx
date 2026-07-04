@@ -48,12 +48,15 @@ import {
 import { cn } from "@/lib/utils";
 import { useDemoMode } from "@/context/DemoContext";
 import { supabase } from "@/lib/supabase";
+import { useLocationWeather } from "@/context/LocationWeatherContext";
 
 export default function RedesignedDashboardPage() {
   const { isDemoMode } = useDemoMode();
   const { t } = useTranslation();
   const [tasks, setTasks] = useState(DEMO_TASKS);
   const [farmerName, setFarmerName] = useState<string>("Farmer");
+  const { nearbyMandis } = useLocationWeather();
+  const displayMandis = nearbyMandis.length > 0 ? nearbyMandis : DEMO_MARKET_PRICES;
 
   // Fetch actual logged-in farmer's name
   useEffect(() => {
@@ -205,7 +208,7 @@ export default function RedesignedDashboardPage() {
         </div>
         <div className="relative w-full overflow-hidden h-6 flex items-center">
           <div className="flex items-center gap-12 whitespace-nowrap animate-[marquee_25s_linear_infinite]">
-            {DEMO_MARKET_PRICES.map((m, idx) => (
+            {displayMandis.map((m, idx) => (
               <div key={idx} className="flex items-center gap-2 text-xs font-mono">
                 <span className="text-white font-bold">{m.crop}</span>
                 <span className="text-slate-400">{m.mandi}</span>
