@@ -16,7 +16,7 @@ async function fetchAdminStats() {
 
   const res = await fetch(`${API_URL}/api/admin/stats`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   if (!res.ok) throw new Error("Failed to fetch admin statistics");

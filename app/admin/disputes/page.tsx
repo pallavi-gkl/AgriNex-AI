@@ -15,7 +15,7 @@ async function fetchDisputes() {
 
   const res = await fetch(`${API_URL}/api/admin/disputes`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   if (!res.ok) throw new Error("Failed to fetch dispute logs");
@@ -35,7 +35,7 @@ async function resolveDispute(payload: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({
       action: payload.action,

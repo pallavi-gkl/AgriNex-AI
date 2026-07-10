@@ -14,7 +14,7 @@ async function fetchKYCApplications() {
 
   const res = await fetch(`${API_URL}/api/admin/kyc`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   if (!res.ok) throw new Error("Failed to fetch pending KYC applications");
@@ -33,7 +33,7 @@ async function verifyFarmerKYC(payload: {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(payload),
   });

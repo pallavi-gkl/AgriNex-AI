@@ -76,13 +76,10 @@ function CheckEmailContent() {
           <Mail className="w-8 h-8" />
         </div>
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-          {t("checkYourEmail")}
+          Verification email sent.
         </h2>
-        <p className="text-slate-500 text-sm mt-3 leading-relaxed font-medium">
-          Your account has been created successfully.
-        </p>
-        <p className="text-slate-600 text-sm mt-2 leading-relaxed font-medium">
-          We've sent a verification email to <strong className="text-slate-800 font-semibold">{email || "your registered email"}</strong>{t("pleaseVerifyYourEmailBeforeSig")}
+        <p className="text-slate-600 text-sm mt-3 leading-relaxed font-medium">
+          Please verify your email before signing in. We've sent a verification link to <strong className="text-slate-800 font-semibold">{email || "your registered email"}</strong>.
         </p>
       </div>
 

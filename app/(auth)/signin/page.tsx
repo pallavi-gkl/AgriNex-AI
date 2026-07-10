@@ -29,7 +29,14 @@ export default function SignInPage() {
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get("registered") === "true") {
-        setSuccess("Account created successfully! Please verify your email before signing in.");
+        setSuccess("Verification email sent. Please verify your email before signing in.");
+      }
+      const errParam = searchParams.get("error");
+      if (errParam) {
+        setError(errParam);
+        if (errParam.toLowerCase().includes("verify your email")) {
+          setShowResend(true);
+        }
       }
       const r = searchParams.get("role");
       if (r === "farmer" || r === "consumer") {
@@ -96,7 +103,7 @@ export default function SignInPage() {
           signInError.message.toLowerCase().includes("email not verified")
         ) {
           setShowResend(true);
-          throw new Error("Please verify your email before signing in. Check your inbox or resend the verification email.");
+          throw new Error("Please verify your email before signing in.");
         }
         throw signInError;
       }
@@ -106,6 +113,13 @@ export default function SignInPage() {
 
       if (!session || !user) {
         throw new Error("Login succeeded but session creation failed. Please try again.");
+      }
+
+      // Block sign in if email is not verified
+      if (!user.email_confirmed_at) {
+        await supabase.auth.signOut();
+        setShowResend(true);
+        throw new Error("Please verify your email before signing in.");
       }
 
       // Fetch profile role for routing

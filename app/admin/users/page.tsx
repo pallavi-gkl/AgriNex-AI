@@ -28,7 +28,7 @@ async function fetchUsers(filters: { search: string; role: string }) {
 
   const res = await fetch(`${API_URL}/api/admin/users?${params.toString()}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
   if (!res.ok) throw new Error("Failed to fetch user list");
@@ -43,7 +43,7 @@ async function toggleUserSuspension(payload: { profileId: string; verify: boolea
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({
       profileId: payload.profileId,
