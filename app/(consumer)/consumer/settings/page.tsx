@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
+
 
 /**
  * @fileoverview app/(consumer)/consumer/settings/page.tsx
@@ -26,6 +28,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
 ];
 
 export default function ConsumerSettingsPage() {
+  const { t } = useTranslation("consumer");
   const [activeTab, setActiveTab] = useState<TabId>("general");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,7 +210,7 @@ export default function ConsumerSettingsPage() {
             <Settings className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Account Settings</h1>
+            <h1 className="text-xl font-extrabold text-slate-800">{t("accountSettings")}</h1>
             <p className="text-slate-500 text-xs mt-0.5">Profile, language, and accessibility preferences</p>
           </div>
         </div>
@@ -215,24 +218,24 @@ export default function ConsumerSettingsPage() {
 
       {/* Profile Summary Card */}
       {profile && (
-        <div className="glass-panel rounded-2xl p-5 flex items-center gap-4">
+        <div className="premium-card rounded-3xl p-5 flex items-center gap-4 shadow-sm">
           {profilePhoto ? (
             <img src={profilePhoto} alt="Profile" className="w-14 h-14 rounded-2xl object-cover shrink-0 border border-amber-500/20" />
           ) : (
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl shrink-0"
-              style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", boxShadow: "0 0 24px rgba(245,158,11,0.3)" }}>
+              style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}>
               {profile.full_name?.charAt(0)?.toUpperCase()}
             </div>
           )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-white font-bold text-base truncate">{profile.full_name}</h2>
+              <h2 className="text-slate-800 font-bold text-base truncate">{profile.full_name}</h2>
               {profile.is_verified
                 ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" />
                 : <Clock className="w-4 h-4 text-amber-400 shrink-0" />}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">Consumer</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">{t("consumer1")}</span>
               <span className="text-slate-500 text-xs flex items-center gap-1">
                 <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                 {profile.trust_score?.toFixed(1) || "4.9"} Rating
@@ -243,16 +246,17 @@ export default function ConsumerSettingsPage() {
       )}
 
       {/* Tabs */}
-      <div role="tablist" className="flex gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
+      <div role="tablist" className="flex gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
             <button key={id} role="tab" aria-selected={isActive} onClick={() => setActiveTab(id)}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
               style={{
-                background: isActive ? "rgba(59,130,246,0.15)" : "transparent",
-                color: isActive ? "#60a5fa" : "#94a3b8",
-                border: isActive ? "1px solid rgba(59,130,246,0.25)" : "1px solid transparent",
+                background: isActive ? "#fff" : "transparent",
+                color: isActive ? "#1d4ed8" : "#64748b",
+                border: isActive ? "1px solid #bfdbfe" : "1px solid transparent",
+                boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}>
               <Icon className="w-3.5 h-3.5" />
               {label}
@@ -268,13 +272,13 @@ export default function ConsumerSettingsPage() {
           transition={{ duration: 0.2 }}>
           {activeTab === "general" && (
             <div className="space-y-5">
-              <div className="glass-panel rounded-2xl p-5">
+              <div className="premium-card rounded-3xl p-5 shadow-sm">
                 <LanguageSwitcher compact={false} />
               </div>
-              <div className="glass-panel rounded-2xl p-5">
+              <div className="premium-card rounded-3xl p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <Shield className="w-4 h-4 text-sky-400" />
-                  <h3 className="text-white font-semibold text-sm">Security & Privacy</h3>
+                  <h3 className="text-slate-800 font-semibold text-sm">Security & Privacy</h3>
                 </div>
                 <div className="space-y-3">
                   {[
@@ -293,192 +297,192 @@ export default function ConsumerSettingsPage() {
                   ))}
                 </div>
               </div>
-              <div className="rounded-2xl p-4 bg-slate-900/40 border border-white/5">
-                <p className="text-[10px] text-slate-500 font-mono">AgriNex AI v1.0.0 · Customer Marketplace · Powered by Google Gemini</p>
+              <div className="rounded-2xl p-4 bg-slate-50 border border-slate-200">
+                <p className="text-[10px] text-slate-400 font-semibold">AgriNex AI v1.0.0 · Customer Marketplace · Powered by Google Gemini</p>
               </div>
             </div>
           )}
 
           {activeTab === "profile" && (
-            <form onSubmit={handleSaveProfile} className="glass-panel p-6 rounded-2xl space-y-6">
+            <form onSubmit={handleSaveProfile} className="premium-card rounded-3xl p-6 shadow-sm space-y-6">
               {/* PERSONAL INFORMATION */}
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2">Personal Information</h3>
+              <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">{t("personalInfo")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Profile Photo URL</label>
+                  <label className="text-xs text-slate-500 font-semibold">Profile Photo URL</label>
                   <input type="text" value={profilePhoto} onChange={(e) => setProfilePhoto(e.target.value)}
-                    className="glass-input text-xs" placeholder="https://example.com/photo.jpg" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="https://example.com/photo.jpg" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Full Name</label>
+                  <label className="text-xs text-slate-500 font-semibold">{t("fullName")}</label>
                   <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Priya Sharma" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Priya Sharma" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Phone Number</label>
                   <input type="tel" required value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. 9876543210" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. 9876543210" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Email Address</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("emailAddress")}</label>
                   <input type="email" value={profile?.id ? (profile as any).email || "" : ""} disabled
-                    className="glass-input text-xs opacity-50 cursor-not-allowed" placeholder="Email Address" />
+                    className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-400 cursor-not-allowed opacity-75" placeholder={t("emailAddress")} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Date of Birth</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("dateOfBirth")}</label>
                   <input type="date" value={dob} onChange={(e) => setDob(e.target.value)}
-                    className="glass-input text-xs" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Gender</label>
-                  <select value={gender} onChange={(e) => setGender(e.target.value)} className="glass-input text-xs">
+                  <label className="text-xs text-slate-400 font-mono">{t("gender")}</label>
+                  <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
                     <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value={t("female")}>{t("female")}</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Languages Spoken</label>
                   <input type="text" value={languages} onChange={(e) => setLanguages(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. English, Hindi, Punjabi" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. English, Hindi, Punjabi" />
                 </div>
               </div>
 
               {/* ADDRESS INFORMATION */}
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2 pt-2">Address Information</h3>
+              <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 pt-2">{t("addressInformation")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">House / Flat Number</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("houseFlatNumber")}</label>
                   <input type="text" value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Flat 4B" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Flat 4B" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Street</label>
                   <input type="text" value={street} onChange={(e) => setStreet(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Green Apartments" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Green Apartments" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Area / Locality</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("areaLocality")}</label>
                   <input type="text" value={locality} onChange={(e) => setLocality(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Andheri West" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Andheri West" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">City</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("city")}</label>
                   <input type="text" value={city} onChange={(e) => setCity(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Mumbai" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Mumbai" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">District</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("district")}</label>
                   <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Mumbai Suburban" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Mumbai Suburban" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">State</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("state")}</label>
                   <input type="text" value={state} onChange={(e) => setState(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Maharashtra" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Maharashtra" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Country</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("country")}</label>
                   <input type="text" value={country} onChange={(e) => setCountry(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. India" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. India" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">PIN Code</label>
                   <input type="text" value={pinCode} onChange={(e) => setPinCode(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. 400053" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. 400053" />
                 </div>
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Default Delivery Address</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("defaultDeliveryAddress")}</label>
                   <input type="text" required value={address} onChange={(e) => setAddress(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Flat 4B, Green Apartments, Andheri West, Mumbai 400053" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Flat 4B, Green Apartments, Andheri West, Mumbai 400053" />
                 </div>
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Alternate Delivery Address</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("alternateDeliveryAddress")}</label>
                   <input type="text" value={alternateDelivery} onChange={(e) => setAlternateDelivery(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Office: Sector 5, Powai, Mumbai 400076" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Office: Sector 5, Powai, Mumbai 400076" />
                 </div>
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">GPS Location Coordinates (Optional)</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("gpsLocationCoordinatesOptional")}</label>
                   <input type="text" value={gpsLocation} onChange={(e) => setGpsLocation(e.target.value)}
-                    className="glass-input text-xs font-mono" placeholder="e.g. 19.1136° N, 72.8697° E" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. 19.1136Â° N, 72.8697Â° E" />
                 </div>
               </div>
 
               {/* PREFERENCES */}
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2 pt-2">Preferences</h3>
+              <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 pt-2">{t("preferences")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Preferred Language</label>
-                  <select value={prefLanguage} onChange={(e) => setPrefLanguage(e.target.value)} className="glass-input text-xs">
-                    <option value="en">English</option>
-                    <option value="hi">हिंदी (Hindi)</option>
-                    <option value="te">తెలుగు (Telugu)</option>
-                    <option value="ta">தமிழ் (Tamil)</option>
-                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                    <option value="ml">മലയാളം (Malayalam)</option>
+                  <select value={prefLanguage} onChange={(e) => setPrefLanguage(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    <option value="en">{t("english")}</option>
+                    <option value="hi">à¤¹à¤¿à¤‚à¤¦à¥€ (Hindi)</option>
+                    <option value="te">à°¤à±†à°²à±à°—à± (Telugu)</option>
+                    <option value="ta">à®¤à®®à®¿à®´à¯ (Tamil)</option>
+                    <option value="kn">à²•à²¨à³à²¨à²¡ (Kannada)</option>
+                    <option value="ml">à´®à´²à´¯à´¾à´³à´‚ (Malayalam)</option>
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Preferred Payment Method</label>
-                  <select value={prefPayment} onChange={(e) => setPrefPayment(e.target.value)} className="glass-input text-xs">
+                  <select value={prefPayment} onChange={(e) => setPrefPayment(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
                     <option value="UPI">UPI (GPay / PhonePe)</option>
-                    <option value="Card">Credit / Debit Card</option>
+                    <option value="Card">{t("creditDebitCard")}</option>
                     <option value="NetBanking">Net Banking</option>
-                    <option value="COD">Cash on Delivery</option>
+                    <option value="COD">{t("cashOnDelivery")}</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Favourite Categories</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("favouriteCategories")}</label>
                   <input type="text" value={favCategories} onChange={(e) => setFavCategories(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Organic, Fruits, Leafy Greens" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Organic, Fruits, Leafy Greens" />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Favourite Crops</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("favouriteCrops")}</label>
                   <input type="text" value={favCrops} onChange={(e) => setFavCrops(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Basmati Rice, Alphonso Mango" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Basmati Rice, Alphonso Mango" />
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Wishlist Preferences</label>
-                  <select value={wishlistPref} onChange={(e) => setWishlistPref(e.target.value)} className="glass-input text-xs">
+                  <select value={wishlistPref} onChange={(e) => setWishlistPref(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
                     <option value="In-Stock Only">Notify when In-Stock Only</option>
                     <option value="Price Drops">Notify on Price Drops</option>
-                    <option value="Always Notify">Always Notify</option>
+                    <option value={t("alwaysNotify")}>{t("alwaysNotify")}</option>
                   </select>
                 </div>
               </div>
 
               {/* ACCOUNT INFORMATION */}
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2 pt-2">Account Information</h3>
+              <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 pt-2">{t("accountInformation")}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Saved Delivery Locations (Shortcuts)</label>
                   <input type="text" value={savedAddresses} onChange={(e) => setSavedAddresses(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Home, Work, Parents" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. Home, Work, Parents" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-mono">Notification Preferences</label>
-                  <select value={notifPref} onChange={(e) => setNotifPref(e.target.value)} className="glass-input text-xs">
-                    <option value="Email & Push">Email & Push Notifications</option>
+                  <select value={notifPref} onChange={(e) => setNotifPref(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                    <option value="Email & Push">{t("emailPushNotifications")}</option>
                     <option value="SMS Only">SMS Tickers Only</option>
                     <option value="Mute All">Mute All Notifications</option>
                   </select>
                 </div>
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Communication Preferences</label>
-                  <select value={commPref} onChange={(e) => setCommPref(e.target.value)} className="glass-input text-xs">
+                  <label className="text-xs text-slate-400 font-mono">{t("communicationPreferences")}</label>
+                  <select value={commPref} onChange={(e) => setCommPref(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
                     <option value="WhatsApp">WhatsApp Messages</option>
                     <option value="SMS">SMS Texting</option>
-                    <option value="Email">Email Newsletters</option>
+                    <option value={t("email")}>{t("emailNewsletters")}</option>
                   </select>
                 </div>
               </div>
 
               {/* PAYMENT DETAILS */}
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2 pt-2">Payment Details</h3>
+              <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 pt-2">{t("paymentDetails")}</h3>
               <div className="space-y-1">
                 <label className="text-xs text-slate-400 font-mono">UPI ID (e.g. rajesh@oksbi)</label>
                 <input type="text" value={upiId} onChange={(e) => setUpiId(e.target.value)}
-                  className="glass-input text-xs font-mono" placeholder="e.g. priyasharma@okaxis" />
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30" placeholder="e.g. priyasharma@okaxis" />
               </div>
 
               {message && (
@@ -501,7 +505,7 @@ export default function ConsumerSettingsPage() {
           )}
 
           {activeTab === "accessibility" && (
-            <div className="glass-panel rounded-2xl p-5">
+            <div className="premium-card rounded-3xl p-5 shadow-sm">
               <AccessibilityPanel />
             </div>
           )}

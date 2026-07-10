@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
+
 
 /**
  * @fileoverview Consumer Orders Page — /consumer/orders
@@ -19,21 +21,22 @@ import { useConsumerOrders } from "@/hooks/useConsumerOrders";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ElementType; step: number }> = {
-  pending:          { label: "Order Placed",      color: "#fbbf24", bg: "rgba(251,191,36,0.12)",   border: "rgba(251,191,36,0.3)",   icon: Clock,        step: 1 },
-  accepted:         { label: "Accepted",          color: "#34d399", bg: "rgba(52,211,153,0.12)",   border: "rgba(52,211,153,0.3)",   icon: CheckCircle2, step: 2 },
-  quality_verified: { label: "Quality Verified",  color: "#c084fc", bg: "rgba(192,132,252,0.12)",  border: "rgba(192,132,252,0.3)",  icon: CheckCircle2, step: 3 },
-  dispatched:       { label: "In Transit",        color: "#38bdf8", bg: "rgba(56,189,248,0.12)",   border: "rgba(56,189,248,0.3)",   icon: Truck,        step: 4 },
-  delivered:        { label: "Delivered",         color: "#4ade80", bg: "rgba(74,222,128,0.12)",   border: "rgba(74,222,128,0.3)",   icon: CheckCircle2, step: 5 },
-  cancelled:        { label: "Cancelled",         color: "#f87171", bg: "rgba(248,113,113,0.12)",  border: "rgba(248,113,113,0.3)",  icon: AlertCircle,  step: 0 },
+  pending:          { label: "Order Placed",      color: "#d97706", bg: "rgba(217,119,6,0.08)",   border: "rgba(217,119,6,0.2)",   icon: Clock,        step: 1 },
+  accepted:         { label: "Accepted",          color: "#059669", bg: "rgba(5,150,105,0.08)",   border: "rgba(5,150,105,0.2)",   icon: CheckCircle2, step: 2 },
+  quality_verified: { label: "Quality Verified",  color: "#7c3aed", bg: "rgba(124,58,237,0.08)",  border: "rgba(124,58,237,0.2)",  icon: CheckCircle2, step: 3 },
+  dispatched:       { label: "In Transit",        color: "#0284c7", bg: "rgba(2,132,199,0.08)",   border: "rgba(2,132,199,0.2)",   icon: Truck,        step: 4 },
+  delivered:        { label: "Delivered",         color: "#16a34a", bg: "rgba(22,163,74,0.08)",   border: "rgba(22,163,74,0.2)",   icon: CheckCircle2, step: 5 },
+  cancelled:        { label: "Cancelled",         color: "#dc2626", bg: "rgba(220,38,38,0.08)",   border: "rgba(220,38,38,0.2)",   icon: AlertCircle,  step: 0 },
 };
 
 const STATUS_STEPS = ["pending", "accepted", "quality_verified", "dispatched", "delivered"];
 
 // ─── Mini progress track ──────────────────────────────────────────────────────
 function OrderProgress({ status }: { status: string }) {
+  const { t } = useTranslation("consumer");
   const currentStep = STATUS_CONFIG[status]?.step ?? 0;
   if (status === "cancelled") return (
-    <span className="text-xs text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />Cancelled</span>
+    <span className="text-xs text-red-600 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 text-red-500" />{t("cancelled")}</span>
   );
   return (
     <div className="flex items-center gap-1 mt-2">
@@ -43,11 +46,11 @@ function OrderProgress({ status }: { status: string }) {
         const active = currentStep === stepNum;
         return (
           <div key={s} className="flex items-center gap-1">
-            <div className={`w-2 h-2 rounded-full transition-all ${active ? "w-3 h-3" : ""}`}
-              style={{ background: done ? STATUS_CONFIG[s].color : "rgba(255,255,255,0.08)" }} />
+            <div className={`w-2 h-2 rounded-full transition-all ${active ? "w-2.5 h-2.5 scale-110" : ""}`}
+              style={{ background: done ? STATUS_CONFIG[s].color : "#cbd5e1" }} />
             {i < STATUS_STEPS.length - 1 && (
               <div className="h-0.5 w-4 rounded-full"
-                style={{ background: currentStep > stepNum ? STATUS_CONFIG[STATUS_STEPS[i]].color : "rgba(255,255,255,0.06)" }} />
+                style={{ background: currentStep > stepNum ? STATUS_CONFIG[STATUS_STEPS[i]].color : "#f1f5f9" }} />
             )}
           </div>
         );
@@ -58,6 +61,7 @@ function OrderProgress({ status }: { status: string }) {
 
 // ─── Order Card ───────────────────────────────────────────────────────────────
 function OrderCard({ order }: { order: any }) {
+  const { t } = useTranslation("consumer");
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG["pending"];
   const Icon = cfg.icon;
@@ -66,51 +70,50 @@ function OrderCard({ order }: { order: any }) {
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-      className="glass-panel rounded-2xl overflow-hidden">
+      className="premium-card rounded-3xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-200">
       {/* Header */}
       <div className="p-5 cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {/* Product image */}
-            <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0"
-              style={{ background: "rgba(16,185,129,0.08)" }}>
+            <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-slate-50 border-slate-100">
               {firstItem?.product?.image_url ? (
                 <img src={firstItem.product.image_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-6 h-6 text-emerald-400/40" />
+                <div className="w-full h-full flex items-center justify-center bg-emerald-50/20">
+                  <Package className="w-6 h-6 text-emerald-600/35" />
                 </div>
               )}
             </div>
-            <div className="min-w-0">
-              <p className="text-white font-semibold text-sm truncate">
+            <div className="min-w-0 text-left">
+              <p className="text-slate-800 font-bold text-sm truncate">
                 {firstItem?.product?.title ?? "Order"}
-                {itemCount > 1 && <span className="text-slate-400 text-xs ml-1">+{itemCount - 1} more</span>}
+                {itemCount > 1 && <span className="text-slate-400 text-xs font-semibold ml-1.5">+{itemCount - 1} more</span>}
               </p>
-              <p className="text-slate-500 text-xs mt-0.5">
+              <p className="text-slate-400 font-mono font-bold text-[10px] mt-0.5">
                 #{order.id.substring(0, 8).toUpperCase()}
               </p>
               <OrderProgress status={order.status} />
             </div>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-emerald-400 font-bold text-base">₹{(order.total_amount ?? 0).toLocaleString()}</p>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1"
-              style={{ color: cfg.color, background: cfg.bg, border: `1px solid ${cfg.border}` }}>
+            <p className="text-emerald-600 font-extrabold text-base">₹{(order.total_amount ?? 0).toLocaleString()}</p>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold mt-1.5 border"
+              style={{ color: cfg.color, background: cfg.bg, borderColor: cfg.border }}>
               <Icon className="w-3 h-3" />{cfg.label}
             </span>
           </div>
         </div>
 
         {/* Meta row */}
-        <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+        <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50 text-xs text-slate-450 text-slate-400 font-semibold">
           <span className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
             {new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
           </span>
           {order.farmer && (
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
+            <span className="flex items-center gap-1 truncate">
+              <MapPin className="w-3.5 h-3.5 text-slate-400" />
               {order.farmer.full_name ?? order.farmer.fullName}
             </span>
           )}
@@ -121,23 +124,23 @@ function OrderCard({ order }: { order: any }) {
       <AnimatePresence>
         {expanded && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            className="border-t border-white/5 px-5 pb-5 pt-4 space-y-4">
+            className="border-t border-slate-100 px-5 pb-5 pt-4 space-y-4 text-left bg-slate-50/20">
             {/* Items */}
             <div>
-              <p className="text-slate-400 text-xs mb-2">Order Items</p>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Order Items</p>
               <div className="space-y-2">
                 {order.order_items?.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <div key={item.id} className="flex items-center justify-between text-sm premium-card p-2.5 rounded-xl">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-50 border-slate-100">
                         {item.product?.image_url && (
                           <img src={item.product.image_url} alt="" className="w-full h-full object-cover" />
                         )}
                       </div>
-                      <span className="text-white text-xs">{item.product?.title ?? "Product"}</span>
-                      <span className="text-slate-500 text-xs">×{item.quantity} {item.product?.unit_type}</span>
+                      <span className="text-slate-800 text-xs font-bold">{item.product?.title ?? "Product"}</span>
+                      <span className="text-slate-450 text-slate-400 text-xs font-bold">Ã—{item.quantity} {item.product?.unit_type}</span>
                     </div>
-                    <span className="text-emerald-400 text-xs font-semibold">
+                    <span className="text-emerald-600 text-xs font-extrabold">
                       ₹{(item.price_at_purchase * item.quantity).toLocaleString()}
                     </span>
                   </div>
@@ -148,32 +151,29 @@ function OrderCard({ order }: { order: any }) {
             {/* Delivery address */}
             {order.delivery_address && (
               <div>
-                <p className="text-slate-400 text-xs mb-1">Delivery Address</p>
-                <p className="text-white text-xs">{order.delivery_address}</p>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">{t("deliveryAddress")}</p>
+                <p className="text-slate-700 text-xs font-medium">{order.delivery_address}</p>
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap pt-2 border-t border-slate-50">
               {["dispatched", "delivered"].includes(order.status) && (
                 <Link href={`/consumer/orders/${order.id}/track`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-all hover:scale-105"
-                  style={{ background: "rgba(56,189,248,0.2)", border: "1px solid rgba(56,189,248,0.3)", color: "#38bdf8" }}>
-                  <Truck className="w-3.5 h-3.5" />Track Order
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 border-sky-200 bg-sky-50 text-sky-700 no-underline">
+                  <Truck className="w-3.5 h-3.5" />{t("trackOrder")}
                 </Link>
               )}
               {order.status === "delivered" && (
                 <Link href={`/consumer/reviews?orderId=${order.id}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105"
-                  style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)", color: "#fbbf24" }}>
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 border-amber-200 bg-amber-50 text-amber-700 no-underline">
                   <Star className="w-3.5 h-3.5" />Write Review
                 </Link>
               )}
               {firstItem?.product?.id && (
                 <Link href={`/consumer/marketplace/${firstItem.product.id}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs text-slate-400 hover:text-white transition-all"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  View Product
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold text-slate-600 hover:text-slate-800 transition-all border border-slate-200/80 premium-card no-underline">
+                  {t("viewProduct")}
                 </Link>
               )}
             </div>
@@ -186,15 +186,15 @@ function OrderCard({ order }: { order: any }) {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState() {
+  const { t } = useTranslation("consumer");
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <ShoppingBag className="w-16 h-16 text-slate-700 mb-4" />
-      <h3 className="text-white font-semibold text-lg mb-2">No orders yet</h3>
-      <p className="text-slate-400 text-sm mb-6">Start shopping directly from verified farmers</p>
+      <ShoppingBag className="w-16 h-16 text-slate-300 mb-4" />
+      <h3 className="text-slate-800 font-bold text-lg mb-2">{t("noOrdersYet")}</h3>
+      <p className="text-slate-505 text-slate-500 text-sm mb-6 font-semibold">Start shopping directly from verified farmers</p>
       <Link href="/consumer/marketplace"
-        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105"
-        style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 20px rgba(16,185,129,0.25)" }}>
-        Browse Marketplace
+        className="btn-primary no-underline text-sm">
+        {t("browseMarketplace")}
         <ArrowRight className="w-4 h-4" />
       </Link>
     </div>
@@ -203,6 +203,7 @@ function EmptyState() {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function ConsumerOrdersPage() {
+  const { t } = useTranslation("consumer");
   const { data: orders = [], isLoading, refetch, isRefetching } = useConsumerOrders();
   const [filter, setFilter] = useState("all");
 
@@ -216,28 +217,25 @@ export default function ConsumerOrdersPage() {
   // Stats
   const totalSpent = orders.reduce((s: number, o: any) => s + (o.total_amount ?? 0), 0);
   const activeCount = orders.filter((o: any) => ["pending", "accepted", "quality_verified", "dispatched"].includes(o.status)).length;
-  const deliveredCount = orders.filter((o: any) => o.status === "delivered").length;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white">My Orders</h1>
-          <p className="text-slate-400 text-sm mt-1">Track your farm-fresh deliveries</p>
+        <div className="text-left">
+          <h1 className="text-2xl font-extrabold text-slate-850 text-slate-800">{t("myOrders")}</h1>
+          <p className="text-slate-505 text-slate-500 text-xs font-semibold mt-1">Track your farm-fresh deliveries</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => refetch()} disabled={isRefetching}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-400 hover:text-white transition-all"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <RefreshCw className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`} />
-            Refresh
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-650 text-slate-600 hover:text-slate-800 premium-card cursor-pointer">
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+            {t("refresh")}
           </button>
           <Link href="/consumer/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all hover:scale-105"
-            style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#34d399" }}>
-            <BarChart2 className="w-4 h-4" />
-            Dashboard
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all hover:scale-105 border-emerald-200 bg-emerald-50 text-emerald-700 cursor-pointer no-underline">
+            <BarChart2 className="w-4 h-4 text-emerald-600" />
+            {t("farmerDashboard")}
           </Link>
         </div>
       </div>
@@ -247,16 +245,16 @@ export default function ConsumerOrdersPage() {
         {[
           { label: "Total Orders", value: orders.length, color: "#10b981", icon: <Package className="w-5 h-5" /> },
           { label: "Active Deliveries", value: activeCount, color: "#38bdf8", icon: <Truck className="w-5 h-5" /> },
-          { label: "Total Spent", value: `₹${totalSpent.toLocaleString()}`, color: "#fbbf24", icon: <TrendingUp className="w-5 h-5" /> },
+          { label: "Total Spent", value: `₹${totalSpent.toLocaleString()}`, color: "#f59e0b", icon: <TrendingUp className="w-5 h-5" /> },
         ].map((stat) => (
-          <div key={stat.label} className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div key={stat.label} className="premium-card rounded-3xl shadow-sm p-4 flex items-center gap-3 text-left">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: `${stat.color}15`, color: stat.color }}>
+              style={{ background: `${stat.color}10`, color: stat.color }}>
               {stat.icon}
             </div>
             <div>
-              <p className="text-xs text-slate-400">{stat.label}</p>
-              <p className="text-white font-bold text-lg leading-none mt-0.5">{stat.value}</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{stat.label}</p>
+              <p className="text-lg font-extrabold text-slate-800 leading-none mt-1">{stat.value}</p>
             </div>
           </div>
         ))}
@@ -272,11 +270,11 @@ export default function ConsumerOrdersPage() {
           { key: "cancelled", label: "Cancelled" },
         ].map((f) => (
           <button key={f.key} onClick={() => setFilter(f.key)}
-            className="px-4 py-2 rounded-xl text-sm transition-all"
+            className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
             style={{
-              background: filter === f.key ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.04)",
-              border: `1px solid ${filter === f.key ? "rgba(16,185,129,0.4)" : "rgba(255,255,255,0.08)"}`,
-              color: filter === f.key ? "#34d399" : "#64748b",
+              background: filter === f.key ? "rgba(16,185,129,0.12)" : "rgba(0,0,0,0.03)",
+              border: `1px solid ${filter === f.key ? "rgba(16,185,129,0.25)" : "rgba(0,0,0,0.06)"}`,
+              color: filter === f.key ? "#059669" : "#475569",
             }}>
             {f.label}
           </button>
@@ -287,7 +285,7 @@ export default function ConsumerOrdersPage() {
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="glass-panel rounded-2xl h-24 animate-pulse anim-shimmer" />
+            <div key={i} className="premium-card rounded-3xl shadow-sm h-24 animate-pulse anim-shimmer" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -304,11 +302,10 @@ export default function ConsumerOrdersPage() {
 
       {/* CTA when no orders */}
       {!isLoading && orders.length === 0 && (
-        <div className="mt-6 rounded-2xl p-4 flex items-center gap-3 text-sm"
-          style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}>
-          <span className="text-amber-400">🛒</span>
-          <span className="text-slate-400">
-            Ready to shop? <Link href="/consumer/marketplace" className="text-amber-400 hover:underline font-bold">Browse the marketplace</Link> to place your first order.
+        <div className="mt-6 rounded-2xl p-4 flex items-center gap-3 text-sm bg-amber-50 border-amber-200 text-slate-700 text-left font-medium">
+          <span className="text-base">🛒</span>
+          <span>
+            Ready to shop? <Link href="/consumer/marketplace" className="text-amber-705 text-amber-700 hover:underline font-bold">{t("browseTheMarketplace")}</Link> to place your first order.
           </span>
         </div>
       )}

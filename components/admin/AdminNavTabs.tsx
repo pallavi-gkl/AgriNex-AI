@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, FileCheck, ShieldAlert, Users, Bell } from "lucide-react";
@@ -16,7 +15,7 @@ export default function AdminNavTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="flex border-b border-white/5 space-x-1 p-1 bg-white/[0.02] rounded-xl max-w-2xl">
+    <div className="premium-card flex flex-wrap gap-1 p-1.5 max-w-3xl">
       {ADMIN_TABS.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.href;
@@ -25,13 +24,13 @@ export default function AdminNavTabs() {
           <Link
             key={tab.id}
             href={tab.href}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold transition-all no-underline ${
               isActive
-                ? "bg-purple-500/10 text-purple-300 border-b-2 border-purple-500 shadow-[0_4px_12px_rgba(139,92,246,0.15)] font-bold"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
+                ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-[0_4px_14px_rgba(139,92,246,0.35)] font-bold"
+                : "text-slate-600 hover:text-purple-700 hover:bg-purple-50"
             }`}
           >
-            <Icon className={`w-3.5 h-3.5 ${isActive ? "text-purple-400" : "text-slate-500"}`} />
+            <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-slate-500"}`} />
             {tab.label}
           </Link>
         );

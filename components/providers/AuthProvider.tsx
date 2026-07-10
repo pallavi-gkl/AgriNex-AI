@@ -1,5 +1,4 @@
 "use client";
-
 /**
  * @fileoverview AuthProvider — Client-side authentication context.
  * Handles getSession() on app load, sets up the onAuthStateChange listener,

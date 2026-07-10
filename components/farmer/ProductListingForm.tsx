@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview ProductListingForm — speech-enabled product creation form.
@@ -36,6 +37,7 @@ interface ProductListingFormProps {
 }
 
 export default function ProductListingForm({ aiGradeResult, className = "" }: ProductListingFormProps) {
+  const { t } = useTranslation("farmer");
   const { mutate: createProduct, isPending, isSuccess, isError, reset: resetMutation } = useCreateProduct();
   const [aiRationale, setAiRationale] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -83,6 +85,7 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
 
   // ── Form submission ──────────────────────────────────────────────────────────
   const onSubmit = (formData: ProductFormData) => {
+  const { t } = useTranslation("farmer");
     const token = localStorage.getItem("sb-access-token") ??
       document.cookie.match(/sb-.*-auth-token=([^;]+)/)?.[1] ?? "";
 
@@ -117,14 +120,14 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
   };
 
   return (
-    <div className={`glass-panel rounded-2xl p-5 flex flex-col gap-4 ${className}`}>
+    <div className={`premium-card rounded-3xl shadow-sm p-5 flex flex-col gap-4 ${className}`}>
       {/* Header */}
       <div className="flex items-center gap-2">
         <PackagePlus className="w-4 h-4 text-emerald-400" />
-        <h3 className="text-white font-semibold text-sm">Create Product Listing</h3>
+        <h3 className="text-white font-semibold text-sm">{t("createProductListing")}</h3>
         {aiGradeResult && (
-          <span className="ml-auto px-2 py-0.5 rounded-full text-xs bg-emerald-500/15 border border-emerald-500/25 text-emerald-300">
-            Grade {aiGradeResult.grade} Applied
+          <span className="ml-auto px-2 py-0.5 rounded-full text-xs bg-emerald-500/15 border-emerald-500/25 text-emerald-300">
+            {t("grade")} {aiGradeResult.grade} {t("applied")}
           </span>
         )}
       </div>
@@ -132,11 +135,11 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
         {/* Title */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-400 font-medium">Crop / Product Name</label>
+          <label className="text-xs text-slate-400 font-medium">{t("cropProductName")}</label>
           <div className="relative">
             <input
               {...register("title")}
-              className="glass-input text-sm"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-sm"
               placeholder="e.g. Organically Grown Potatoes"
             />
           </div>
@@ -146,11 +149,11 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
         {/* Category + Unit Type — 2 col */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-slate-400 font-medium">Category</label>
+            <label className="text-xs text-slate-400 font-medium">{t("schemeCategory")}</label>
             <div className="relative">
               <select
                 {...register("category")}
-                className="glass-input text-sm appearance-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-sm appearance-none"
               >
                 <option value="" disabled>Select category</option>
                 {CATEGORIES.map((c) => (
@@ -166,7 +169,7 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
             <div className="relative">
               <select
                 {...register("unitType")}
-                className="glass-input text-sm appearance-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-sm appearance-none"
               >
                 <option value="" disabled>Select unit</option>
                 {UNIT_TYPES.map((u) => (
@@ -188,17 +191,17 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
                 {...register("pricePerUnit")}
                 type="number"
                 step="0.01"
-                className="glass-input text-sm"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-sm"
                 style={{ paddingRight: "6.5rem" }}
                 placeholder="e.g. 24.00"
               />
               <button
                 type="button"
                 onClick={getAIPrice}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-purple-500/20 border border-purple-500/30 text-purple-300 px-2 py-1 rounded-lg hover:bg-purple-500/30 transition-all flex items-center gap-1"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-purple-500/20 border-purple-500/30 text-purple-300 px-2 py-1 rounded-lg hover:bg-purple-500/30 transition-all flex items-center gap-1"
               >
                 <Sparkles className="w-3 h-3" />
-                AI Price
+                {t("aiPrice")}
               </button>
             </div>
             {aiRationale && (
@@ -217,7 +220,7 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
                 {...register("quantityAvailable")}
                 type="number"
                 step="0.01"
-                className="glass-input text-sm"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-sm"
                 placeholder="e.g. 150"
               />
             </div>
@@ -229,12 +232,12 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
 
         {/* Description */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-slate-400 font-medium">Description</label>
+          <label className="text-xs text-slate-400 font-medium">{t("description")}</label>
           <div className="relative">
             <textarea
               {...register("description")}
               rows={3}
-              className="glass-input text-sm resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-sm resize-none"
               placeholder="Describe your produce — origin, farming method, freshness..."
             />
           </div>
@@ -270,7 +273,7 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-sm"
+              className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border-emerald-500/25 text-emerald-300 text-sm"
             >
               <CheckCircle className="w-4 h-4 shrink-0" />
               {successMsg}
@@ -281,10 +284,10 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-red-300 text-sm"
+              className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border-red-500/25 text-red-300 text-sm"
             >
               <AlertCircle className="w-4 h-4 shrink-0" />
-              Failed to create listing. Please try again.
+              {t("failedToCreateListingPleaseTry")}
             </motion.div>
           )}
         </AnimatePresence>

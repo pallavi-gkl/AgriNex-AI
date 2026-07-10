@@ -1,3 +1,5 @@
+"use client";
+import { useTranslation } from "@/hooks/useTranslation";
 /**
  * @fileoverview app/(consumer)/orders/[id]/track/page.tsx
  * Phase 5: Live Order Tracking Page.
@@ -10,7 +12,7 @@
  *  - OTP entry UI: 4 glass-input boxes, auto-focus-next, verify-delivery call
  *  - TanStack Query refetch every 5s for route endpoint
  */
-"use client";
+
 
 import dynamic from "next/dynamic";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -76,8 +78,8 @@ function TrackingSkeletonLoader() {
   return (
     <div className="p-6 space-y-6 animate-pulse">
       <div className="h-8 w-64 rounded-xl anim-shimmer" />
-      <div className="glass-panel rounded-2xl overflow-hidden h-96 anim-shimmer" />
-      <div className="glass-panel rounded-2xl p-5 grid grid-cols-3 gap-4">
+      <div className="premium-card rounded-3xl shadow-sm overflow-hidden h-96 anim-shimmer" />
+      <div className="premium-card rounded-3xl shadow-sm p-5 grid grid-cols-3 gap-4">
         {[0, 1, 2].map((i) => (
           <div key={i} className="space-y-2 text-center">
             <div className="h-3 w-20 rounded mx-auto anim-shimmer" />
@@ -85,7 +87,7 @@ function TrackingSkeletonLoader() {
           </div>
         ))}
       </div>
-      <div className="glass-panel rounded-2xl p-6 space-y-4 anim-shimmer h-48" />
+      <div className="premium-card rounded-3xl shadow-sm p-6 space-y-4 anim-shimmer h-48" />
     </div>
   );
 }
@@ -109,6 +111,7 @@ interface OtpEntryProps {
 }
 
 function OtpEntry({ orderId, onSuccess }: OtpEntryProps) {
+  const { t } = useTranslation("consumer");
   const [digits, setDigits] = useState(["", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -154,6 +157,7 @@ function OtpEntry({ orderId, onSuccess }: OtpEntryProps) {
   );
 
   const handleVerify = () => {
+  const { t } = useTranslation("consumer");
     const otp = digits.join("");
     if (otp.length !== 4) {
       setError("Please enter the complete 4-digit OTP.");
@@ -180,11 +184,11 @@ function OtpEntry({ orderId, onSuccess }: OtpEntryProps) {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="glass-panel rounded-2xl p-6 text-center"
+        className="premium-card rounded-3xl shadow-sm p-6 text-center"
         style={{ border: "1px solid rgba(74,222,128,0.3)" }}
       >
         <div className="text-5xl mb-3">🎉</div>
-        <h3 className="text-white font-bold text-lg">Delivery Confirmed!</h3>
+        <h3 className="text-white font-bold text-lg">{t("deliveryConfirmed")}</h3>
         <p className="text-slate-400 text-sm mt-1">
           Thank you for your order. Enjoy your fresh produce!
         </p>
@@ -193,13 +197,13 @@ function OtpEntry({ orderId, onSuccess }: OtpEntryProps) {
   }
 
   return (
-    <div className="glass-panel rounded-2xl p-6">
+    <div className="premium-card rounded-3xl shadow-sm p-6">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🔐</span>
         <div>
-          <h3 className="font-semibold text-white text-sm">Delivery OTP Verification</h3>
+          <h3 className="font-semibold text-white text-sm">{t("deliveryOtpVerification")}</h3>
           <p className="text-slate-500 text-xs mt-0.5">
-            Enter the 4-digit code sent to your notifications when the order was dispatched.
+            {t("enterThe4DigitCodeSentToYourNo")}
           </p>
         </div>
       </div>
@@ -217,7 +221,7 @@ function OtpEntry({ orderId, onSuccess }: OtpEntryProps) {
             value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
-            className="glass-input w-14 h-14 text-center text-2xl font-mono tracking-widest"
+            className="w-14 h-14 bg-slate-50 border-2 border-slate-200 rounded-xl text-center text-2xl font-mono tracking-widest text-slate-800 focus:outline-none focus:border-emerald-500"
             style={{
               padding: "0",
               borderColor: digit
@@ -271,6 +275,7 @@ function OtpEntry({ orderId, onSuccess }: OtpEntryProps) {
 
 // ─── Main Tracking Page ───────────────────────────────────────────────────────
 export default function TrackOrderPage() {
+  const { t } = useTranslation("consumer");
   const params = useParams<{ id: string }>();
   const orderId = params?.id;
 
@@ -342,7 +347,7 @@ export default function TrackOrderPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/orders"
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white/10 transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>
@@ -360,7 +365,7 @@ export default function TrackOrderPage() {
       </div>
 
       {/* ── Map Container ───────────────────────────────────────────────────── */}
-      <div className="glass-panel rounded-2xl overflow-hidden h-96 relative">
+      <div className="premium-card rounded-3xl shadow-sm overflow-hidden h-96 relative">
         {/* Map legend overlay */}
         <div
           className="absolute top-3 left-3 z-10 flex flex-col gap-1 px-3 py-2 rounded-xl text-xs"
@@ -391,12 +396,12 @@ export default function TrackOrderPage() {
       </div>
 
       {/* ── Logistics Summary Card ──────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4 glass-panel rounded-2xl p-5">
+      <div className="grid grid-cols-3 gap-4 premium-card rounded-3xl shadow-sm p-5">
         {/* Distance remaining */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Navigation className="w-3.5 h-3.5 text-slate-500" />
-            <p className="text-slate-400 text-xs">Distance</p>
+            <p className="text-slate-400 text-xs">{t("distance")}</p>
           </div>
           <p className="text-sky-400 font-bold text-2xl leading-none">
             {isDelivered ? "0" : routeData.distanceRemainingKm}
@@ -405,10 +410,10 @@ export default function TrackOrderPage() {
         </div>
 
         {/* ETA */}
-        <div className="text-center border-x border-white/5">
+        <div className="text-center border-x border-slate-100">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <p className="text-slate-400 text-xs">ETA</p>
+            <p className="text-slate-400 text-xs">{t("eta")}</p>
           </div>
           <p className="text-emerald-400 font-bold text-2xl leading-none">
             {isDelivered ? "—" : `${routeData.estimatedTimeRemainingMin}`}
@@ -422,7 +427,7 @@ export default function TrackOrderPage() {
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <Truck className="w-3.5 h-3.5 text-slate-500" />
-            <p className="text-slate-400 text-xs">Status</p>
+            <p className="text-slate-400 text-xs">{t("schemeStatus")}</p>
           </div>
           <div className="flex justify-center mt-1">
             <StatusBadge status={status} />
@@ -456,7 +461,7 @@ export default function TrackOrderPage() {
       {/* Farmer info */}
       {order?.farmer && (
         <div
-          className="glass-panel rounded-2xl p-4 flex items-center gap-3"
+          className="premium-card rounded-3xl shadow-sm p-4 flex items-center gap-3"
           style={{ border: "1px solid rgba(16,185,129,0.15)" }}
         >
           <div

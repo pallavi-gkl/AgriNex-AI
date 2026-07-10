@@ -1,7 +1,6 @@
 "use client";
-
 import React from "react";
-import { Search, Bell, Bot, Menu, CloudSun } from "lucide-react";
+import { Search, Bell, Bot, Menu, CloudSun, Sparkles } from "lucide-react";
 import type { Profile } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLocationWeather } from "@/context/LocationWeatherContext";
@@ -29,10 +28,9 @@ export default function FarmerTopbar({
   const { t } = useTranslation();
   const { location, weather, loading } = useLocationWeather();
 
-  // Determine text to show
   let weatherText = "Loading...";
   if (weather && location) {
-    weatherText = `${weather.temperature}°C • ${location.city}`;
+    weatherText = `${weather.temperature}°C · ${location.city}`;
   } else if (!loading) {
     if (location?.permissionStatus === "denied") {
       weatherText = "Set Location";
@@ -42,49 +40,54 @@ export default function FarmerTopbar({
   }
 
   return (
-    <header
-      className="fixed top-0 right-0 left-0 lg:left-[280px] h-16 z-30 flex items-center justify-between px-6 border-b border-slate-200 bg-white"
-    >
-      {/* Left side: Hamburger & Title */}
-      <div className="flex items-center gap-4">
+    <header className="ag-topbar fixed top-0 right-0 left-0 lg:left-[280px] h-16 z-30 flex items-center justify-between px-4 sm:px-6">
+      {/* Left: Hamburger + Title */}
+      <div className="flex items-center gap-3">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
+            aria-label="Open navigation menu"
+            className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
-        <h1 className="text-lg font-bold text-slate-800 tracking-wide">{title}</h1>
+        <div>
+          <h1 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight leading-tight">
+            {title}
+          </h1>
+        </div>
       </div>
 
-      {/* Center: Search */}
-      <div className="hidden md:flex items-center w-[300px] lg:w-[400px] relative">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3.5" />
+      {/* Center: Search bar */}
+      <div className="hidden md:flex items-center w-[280px] lg:w-[380px] relative">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
         <input
           type="text"
           placeholder={t("searchPlaceholder")}
-          className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all"
+          aria-label={t("search")}
+          className="w-full bg-white/70 border border-slate-200/80 rounded-full py-2 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 backdrop-blur-sm"
         />
       </div>
 
-      {/* Right side: Demo badge, weather, AI chat, notification, avatar */}
-      <div className="flex items-center gap-3 md:gap-4">
-        {/* Pulsing Demo Pill */}
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2 sm:gap-3">
+
+        {/* Demo pill */}
         {isDemoMode && (
-          <div className="hidden sm:flex items-center gap-1.5 bg-white border border-emerald-500 text-emerald-600 text-[11px] font-mono px-3 py-1 rounded-full">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Demo Engine
+          <div className="hidden sm:flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide uppercase">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+            {t("demo")}
           </div>
         )}
 
-        {/* Mini Weather */}
+        {/* Weather chip */}
         <Link
           href="/farmer/weather"
-          className="hidden sm:flex items-center gap-2 bg-white border border-slate-200 px-3 py-1 rounded-xl text-xs text-black hover:bg-slate-50 transition"
-          title="Click to view Weather Intelligence"
+          title="View Weather Intelligence"
+          className="hidden sm:flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-all duration-200 no-underline"
         >
-          <CloudSun className="w-4 h-4 text-emerald-500" />
+          <CloudSun className="w-3.5 h-3.5 text-emerald-500" />
           <span>{weatherText}</span>
         </Link>
 
@@ -92,35 +95,42 @@ export default function FarmerTopbar({
         {onAIChatClick && (
           <button
             onClick={onAIChatClick}
-            className="p-2 rounded-xl text-white hover:opacity-90 transition-all flex items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              boxShadow: "0 0 10px rgba(16,185,129,0.3)",
-            }}
+            aria-label="Open AI Assistant"
             title="AI Chat Assistant"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-bold transition-all duration-200 hover:scale-105 active:scale-95 btn-ai"
           >
-            <Bot className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t("aiChat")}</span>
           </button>
         )}
 
         {/* Notifications */}
         <button
           onClick={onNotifClick}
-          className="p-2 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-slate-100 transition relative"
+          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+          className="relative p-2 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-4.5 h-4.5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full"></span>
+            <span className="absolute top-1 right-1 min-w-[16px] h-4 flex items-center justify-center text-[9px] font-extrabold bg-emerald-500 text-white rounded-full px-0.5">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
           )}
         </button>
 
         {/* Profile Avatar */}
         {profile && (
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+          <Link
+            href="/farmer/profile"
+            title="View Profile"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md hover:scale-105 transition-transform duration-200 no-underline"
+            style={{
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              boxShadow: "0 2px 8px rgba(16,185,129,0.3)",
+            }}
           >
             {profile.full_name?.charAt(0).toUpperCase() || "F"}
-          </div>
+          </Link>
         )}
       </div>
     </header>

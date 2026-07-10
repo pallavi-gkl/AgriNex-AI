@@ -1,16 +1,10 @@
-/**
- * @fileoverview NotificationsPanel — Slide-out notifications drawer.
- * Phase 5: Bell icon in sidebar header triggers this panel.
- *
- * Features:
- *  - Slide-in from right (Framer Motion)
- *  - Lists all notifications for the current user (newest first)
- *  - Unread badge count on bell icon
- *  - Mark-all-read button
- *  - Notification type icons: order_update (sky), price_alert (emerald), verification (purple)
- *  - Click-outside to close
- */
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
+﻿/**
+ * @fileoverview NotificationsPanel — Slide-out notifications drawer.
+ * Redesigned into a beautiful white glass frosted panel.
+ */
+
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,36 +20,36 @@ import {
 import { useNotifications, useMarkAllRead } from "@/hooks/useNotifications";
 import type { Notification } from "@/types";
 
-// ─── Type → Icon + colour map ─────────────────────────────────────────────────
+// ─── Type → Icon + colour map (Redesigned with design system colors) ───────────
 const TYPE_CONFIG: Record<
   string,
   { Icon: React.ElementType; color: string; bg: string; border: string }
 > = {
   order_update: {
     Icon: Package,
-    color: "#38bdf8",
-    bg: "rgba(14,165,233,0.12)",
-    border: "rgba(14,165,233,0.25)",
+    color: "#10b981", // Emerald
+    bg: "rgba(16,185,129,0.08)",
+    border: "rgba(16,185,129,0.2)",
   },
   price_alert: {
     Icon: TrendingUp,
-    color: "#34d399",
-    bg: "rgba(16,185,129,0.12)",
-    border: "rgba(16,185,129,0.25)",
+    color: "#f59e0b", // Amber
+    bg: "rgba(245,158,11,0.08)",
+    border: "rgba(245,158,11,0.2)",
   },
   verification: {
     Icon: ShieldCheck,
-    color: "#c084fc",
-    bg: "rgba(139,92,246,0.12)",
-    border: "rgba(139,92,246,0.25)",
+    color: "#8b5cf6", // Purple
+    bg: "rgba(139,92,246,0.08)",
+    border: "rgba(139,92,246,0.2)",
   },
 };
 
 const defaultType = {
   Icon: Bell,
-  color: "#94a3b8",
-  bg: "rgba(255,255,255,0.05)",
-  border: "rgba(255,255,255,0.1)",
+  color: "#64748b",
+  bg: "rgba(100,116,139,0.08)",
+  border: "rgba(100,116,139,0.2)",
 };
 
 // ─── Single notification row ──────────────────────────────────────────────────
@@ -69,35 +63,36 @@ function NotificationRow({ n }: { n: Notification }) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex items-start gap-3 p-3 rounded-xl transition-all"
+      className="flex items-start gap-3 p-3.5 rounded-xl transition-all"
       style={{
         background: n.is_read
-          ? "rgba(255,255,255,0.02)"
-          : cfg.bg,
-        border: `1px solid ${n.is_read ? "rgba(255,255,255,0.05)" : cfg.border}`,
+          ? "#ffffff"
+          : "rgba(255,255,255,0.7)",
+        border: `1.5px solid ${n.is_read ? "#f1f5f9" : cfg.border}`,
+        boxShadow: n.is_read ? "none" : "0 4px 12px rgba(0,0,0,0.02)",
       }}
     >
-      {/* Icon */}
+      {/* Icon Wrapper */}
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
         style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}
       >
-        <Icon className="w-4 h-4" style={{ color: cfg.color }} />
+        <Icon className="w-4.5 h-4.5" style={{ color: cfg.color }} />
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <p
-          className={`text-sm font-medium leading-snug ${
-            n.is_read ? "text-slate-400" : "text-white"
+          className={`text-xs font-bold leading-snug ${
+            n.is_read ? "text-slate-500" : "text-slate-800"
           }`}
         >
           {n.title}
         </p>
-        <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">
+        <p className="text-slate-500 text-[11px] mt-0.5 leading-relaxed font-medium">
           {n.message}
         </p>
-        <p className="text-slate-700 text-[10px] font-mono mt-1">
+        <p className="text-slate-400 text-[9px] font-bold mt-1.5 uppercase font-mono">
           {new Date(n.created_at).toLocaleString("en-IN", {
             dateStyle: "medium",
             timeStyle: "short",
@@ -107,8 +102,10 @@ function NotificationRow({ n }: { n: Notification }) {
 
       {/* Unread dot */}
       {!n.is_read && (
-        <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-          style={{ background: cfg.color }} />
+        <div
+          className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+          style={{ background: cfg.color }}
+        />
       )}
     </motion.div>
   );
@@ -125,6 +122,7 @@ export default function NotificationsPanel({
   isOpen,
   onClose,
 }: NotificationsPanelProps) {
+  const { t } = useTranslation();
   const { data: notifications = [], isLoading } = useNotifications();
   const { mutate: markAllRead, isPending: marking } = useMarkAllRead();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -135,6 +133,7 @@ export default function NotificationsPanel({
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: MouseEvent) => {
+  const { t } = useTranslation();
       if (overlayRef.current === e.target) onClose();
     };
     document.addEventListener("mousedown", handler);
@@ -151,8 +150,7 @@ export default function NotificationsPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50"
-            style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)" }}
+            className="fixed inset-0 z-50 bg-slate-900/20 backdrop-blur-[2px]"
           />
 
           {/* Slide-in panel */}
@@ -163,30 +161,24 @@ export default function NotificationsPanel({
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 280, damping: 30 }}
-            className="fixed right-0 top-0 h-full w-[380px] z-50 flex flex-col"
-            style={{
-              background: "rgba(5, 8, 20, 0.92)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              borderLeft: "1px solid rgba(255,255,255,0.08)",
-              boxShadow: "-20px 0 60px rgba(0,0,0,0.5)",
-            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed right-0 top-0 h-full w-[360px] sm:w-[385px] z-50 flex flex-col bg-white/90 backdrop-blur-2xl border-l border-white/60 shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
               <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-sky-400" aria-hidden="true" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50">
+                  <Bell className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                </div>
                 <span
                   id="notifications-panel-title"
-                  className="font-semibold text-white text-sm"
+                  className="font-bold text-slate-800 text-sm"
                 >
-                  Notifications
+                  {t("notifications2")}
                 </span>
                 {unreadCount > 0 && (
                   <span
-                    className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                    style={{ background: "#ef4444", color: "white" }}
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white"
                     aria-label={`${unreadCount} unread notifications`}
                   >
                     {unreadCount}
@@ -200,7 +192,7 @@ export default function NotificationsPanel({
                     onClick={() => markAllRead()}
                     disabled={marking}
                     aria-label="Mark all notifications as read"
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-all border border-slate-200"
                   >
                     <CheckCheck className="w-3.5 h-3.5" aria-hidden="true" />
                     Mark all read
@@ -210,7 +202,7 @@ export default function NotificationsPanel({
                   id="notifications-close-btn"
                   onClick={onClose}
                   aria-label="Close notifications panel"
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
                 >
                   <X className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -218,24 +210,26 @@ export default function NotificationsPanel({
             </div>
 
             {/* Notification list */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
               {isLoading ? (
                 // Skeleton loader
                 Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-16 rounded-xl anim-shimmer"
+                    className="h-20 rounded-2xl anim-shimmer border border-slate-200"
                     style={{ animationDelay: `${i * 0.1}s` }}
                   />
                 ))
               ) : notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                  <Inbox className="w-10 h-10 text-slate-700 mb-3" />
-                  <p className="text-slate-500 text-sm font-medium">
-                    No notifications yet
+                <div className="flex flex-col items-center justify-center h-full text-center py-12 px-6">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                    <Inbox className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-slate-800 text-sm font-bold">
+                    {t("allCaughtUp")}
                   </p>
-                  <p className="text-slate-700 text-xs mt-1">
-                    Order updates and alerts will appear here
+                  <p className="text-slate-400 text-xs mt-1 leading-normal">
+                    Order updates and regional market alerts will appear here.
                   </p>
                 </div>
               ) : (
@@ -249,9 +243,9 @@ export default function NotificationsPanel({
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="px-4 py-3 border-t border-white/5 text-center">
-                <p className="text-slate-700 text-xs">
-                  Showing last {notifications.length} notifications
+              <div className="px-4 py-3 border-t border-slate-200/60 bg-white/80 backdrop-blur-xl text-center">
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                  Showing last {notifications.length} {t("notifications2")}
                 </p>
               </div>
             )}
@@ -276,16 +270,15 @@ export function NotificationBellButton({
     <button
       id="sidebar-notifications-bell"
       onClick={onClick}
-      className="relative w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-all"
+      className="relative w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
       aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
     >
-      <Bell className="w-4 h-4" />
+      <Bell className="w-4.5 h-4.5" />
       {unreadCount > 0 && (
         <motion.span
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
-          style={{ background: "#ef4444" }}
+          className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white px-0.5 bg-red-500"
         >
           {unreadCount > 9 ? "9+" : unreadCount}
         </motion.span>

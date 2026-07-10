@@ -132,7 +132,11 @@ router.get(
 
       // Category filter
       if (category && category !== "All") {
-        query = query.eq("category", category as string);
+        if (category === "Fruits" || category === "Fruit") {
+          query = query.or("category.eq.Fruits,category.eq.Fruit,title.ilike.%pomegranate%,category.ilike.%pomegranate%");
+        } else {
+          query = query.eq("category", category as string);
+        }
       }
 
       const { data, error } = await query.limit(100);
@@ -141,6 +145,15 @@ router.get(
 
       // Haversine distance filter (if lat/lng provided)
       let products = data ?? [];
+
+      // Filter out Pomegranate from Spices category (or any non-Fruits category)
+      if (category && category !== "All" && category !== "Fruits" && category !== "Fruit") {
+        products = products.filter((p: any) => {
+          const titleLower = (p.title ?? "").toLowerCase();
+          const categoryLower = (p.category ?? "").toLowerCase();
+          return !titleLower.includes("pomegranate") && !categoryLower.includes("pomegranate");
+        });
+      }
       if (lat && lng && maxDistance) {
         const userLat = parseFloat(lat as string);
         const userLng = parseFloat(lng as string);

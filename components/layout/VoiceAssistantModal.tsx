@@ -1,19 +1,24 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
- * @fileoverview AgriNex AI Smart Assistant — Text-only conversational AI chatbot.
- * Floating, bottom-right aligned layout with minimize/maximize and full text conversational state.
+ * @fileoverview AgriNex AI Smart Assistant — Conversational AI chatbot.
+ * Floating, bottom-right aligned layout with minimize/maximize.
+ * Redesigned to support a premium light-themed design system.
+ * FIXED: Uses correct /api/ai/assistant endpoint with proper request format.
+ * FIXED: No error boxes, no technical messages — graceful fallback only.
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Loader2, AlertCircle,
-  Send, Bot, Sparkles, Minus, Maximize2, RefreshCw, User,
+  X, Loader2,
+  Send, Bot, Sparkles, Minus, RefreshCw, User,
   Compass,
 } from "lucide-react";
 import { useVoiceAssistant } from "@/context/VoiceAssistantContext";
 import { supabase } from "@/lib/supabase";
+import { useLocationWeather } from "@/context/LocationWeatherContext";
 
 interface Message {
   id: string;
@@ -24,15 +29,27 @@ interface Message {
 
 const LANGUAGES = [
   { code: "en", label: "English" },
-  { code: "hi", label: "हिन्दी" },
+  { code: "hi", label: "हिंदी" },
   { code: "te", label: "తెలుగు" },
   { code: "ta", label: "தமிழ்" },
   { code: "kn", label: "ಕನ್ನಡ" },
   { code: "ml", label: "മലയാളം" },
 ];
 
+function getOfflineFallback(platform: string): string {
+  if (platform === "farmer") {
+    return "🌱 I'm temporarily unable to reach the AI service. As your **Farmer Assistant**, I can guide you through the platform:\n\n• **AI Lab** — Disease detection, yield prediction\n• **Inventory** — Manage your crops and stock\n• **Orders** — Track incoming buyer orders\n• **Market** — Live mandi prices\n• **Schemes** — Government agricultural schemes\n\nPlease try again in a moment for full AI responses.";
+  }
+  if (platform === "consumer") {
+    return "🛒 I'm temporarily unable to reach the AI service. As your **Shopping Assistant**, here's how I can help:\n\n• **Marketplace** — Browse fresh produce\n• **My Orders** — Track deliveries\n• **Wishlist** — Saved products\n• **Reviews** — Rate your purchases\n\nPlease try again in a moment for full AI responses.";
+  }
+  return "👋 I'm temporarily offline. Please try again in a moment. In the meantime, explore the platform using the navigation menu!";
+}
+
 export default function VoiceAssistantModal() {
+  const { t } = useTranslation();
   const { isOpen, closeModal } = useVoiceAssistant();
+  const { location, weather } = useLocationWeather();
   const [minimized, setMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -40,7 +57,6 @@ export default function VoiceAssistantModal() {
   const [loading, setLoading] = useState(false);
   const [userRole, setUserRole] = useState<string>("all");
   const [currentPath, setCurrentPath] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -59,80 +75,56 @@ export default function VoiceAssistantModal() {
   useEffect(() => {
     const handleLangChange = (e: Event) => {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail?.code) {
-        setLanguage(customEvent.detail.code);
+      if (customEvent.detail?.lang) {
+        setLanguage(customEvent.detail.lang);
       }
     };
-    if (typeof window !== "undefined") {
-      window.addEventListener("agrinex:language-change", handleLangChange);
-      const cached = sessionStorage.getItem("agrinex-lang");
-      if (cached) setLanguage(cached);
-    }
-    return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("agrinex:language-change", handleLangChange);
-      }
-    };
+    window.addEventListener("languageChanged", handleLangChange);
+    return () => window.removeEventListener("languageChanged", handleLangChange);
   }, []);
 
-  // Load welcome message when opened
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      const welcomeMsgs: Record<string, string> = {
-        farmer: "👨‍🌾 Welcome to your AgriNex Farmer Assistant! I can help you with crop rotation, weather-based farming advice, disease diagnosis, yields, or listing products. Ask me anything!",
-        consumer: "🥦 Welcome to the Customer Marketplace! I can suggest healthy recipes, recommend fresh crops, analyze price fairness, compare farmers, or track your orders.",
-        admin: "🛡️ Welcome Admin! I can summarize system health, analyze dispute records, or explain platform analytics. How can I help you manage AgriNex today?",
-        all: "👋 Hello! I am your AgriNex AI Smart Assistant. Feel free to ask me anything about the marketplace, crop health, or farm operations!"
-      };
-      setMessages([
-        {
-          id: "welcome",
-          role: "ai",
-          text: welcomeMsgs[userRole] || welcomeMsgs.all,
-          timestamp: new Date()
-        }
-      ]);
-    }
-  }, [isOpen, userRole]);
-
-  // Scroll to bottom when messages update
-  useEffect(() => {
+  const scrollToBottom = () => {
+  const { t } = useTranslation();
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  // ── Smart Context-based suggested prompts ──────────────────────────────────
-  const getSuggestedPrompts = () => {
-    if (currentPath.includes("/farmer/inventory")) {
-      return ["Which crop should I sell this week?", "How can I increase my farm profit?", "Show pricing strategies for grade A crops"];
-    }
-    if (currentPath.includes("/farmer/farm-twin") || currentPath.includes("/farmer/analytics")) {
-      return ["Explain this analytics chart", "Predict next month yield", "Disease risk alert in my region"];
-    }
-    if (currentPath.includes("/marketplace")) {
-      return ["Show the freshest tomatoes", "Compare rice from nearby farmers", "Recommend healthy vegetables"];
-    }
-    if (currentPath.includes("/consumer/dashboard")) {
-      return ["How much did I save this month?", "Recommend healthy recipes", "Show seasonal buying advice"];
-    }
-    if (userRole === "farmer") {
-      return ["How can I increase my farm profit?", "PM-KISAN scheme eligibility", "Suggested crop rotation for Haryana"];
-    }
-    if (userRole === "admin") {
-      return ["Platform analytics snapshot", "Explain fraud logs", "Review farmer pending verifications"];
-    }
-    return ["What is AgriNex AI?", "Show the freshest tomatoes", "Which crop should I sell this week?"];
   };
 
-  // ── Send Message ──────────────────────────────────────────────────────────
-  const handleSend = async (textToSend: string) => {
-    if (!textToSend.trim() || loading) return;
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
-    setError(null);
+  const getSuggestedPrompts = (): string[] => {
+    if (userRole === "farmer") {
+      return [
+        "Forecast Basmati Rice prices",
+        "Check tomato leaf disease",
+        "Irrigation schedule for wheat",
+        "Eligible crop insurance schemes",
+      ];
+    }
+    if (userRole === "consumer") {
+      return [
+        "Recommend fresh vegetables",
+        "Track my recent order",
+        "Best organic products",
+        "Compare product prices",
+      ];
+    }
+    return [
+      "Compare Alphonso Mango prices",
+      "Is Basmati Rice organic?",
+      "Best high-protein crops",
+      "Government farming schemes",
+    ];
+  };
+
+  const handleSend = async (text: string) => {
+    if (!text.trim() || loading) return;
+
     const userMsg: Message = {
       id: Math.random().toString(),
       role: "user",
-      text: textToSend,
-      timestamp: new Date()
+      text,
+      timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -140,70 +132,72 @@ export default function VoiceAssistantModal() {
     setLoading(true);
 
     try {
-      const responseHistory = [...messages, userMsg].map((m) => ({
-        role: m.role,
-        text: m.text
-      }));
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
 
-      const res = await fetch("/api/ai/assistant", {
+      // Build message history in the correct format for /api/ai/assistant
+      const allMessages = [
+        ...messages.map((m) => ({ role: m.role, text: m.text })),
+        { role: "user" as const, text },
+      ];
+
+      const response = await fetch("/api/ai/assistant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({
-          messages: responseHistory,
+          messages: allMessages,
           currentPath,
           role: userRole,
-          language
-        })
+          language,
+          location,
+          weather,
+        }),
       });
 
-      if (!res.ok) throw new Error("Failed to get response");
-      const data = await res.json();
-      const aiReply = data.answer || "I could not generate an answer. Please try again.";
+      if (!response.ok) {
+        throw new Error("Service temporarily unavailable");
+      }
 
-      setMessages((prev) => [
-        ...prev,
-        {
+      const data = await response.json();
+      const replyText = data.answer || data.reply || data.text || getOfflineFallback(userRole);
+
+      const aiMsg: Message = {
+        id: Math.random().toString(),
+        role: "ai",
+        text: replyText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch {
+      // Graceful fallback — never show technical errors to users
+      setTimeout(() => {
+        const aiMsg: Message = {
           id: Math.random().toString(),
           role: "ai",
-          text: aiReply,
-          timestamp: new Date()
-        }
-      ]);
-    } catch (err: any) {
-      setError("AI service unavailable. Please check your connection and try again.");
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Math.random().toString(),
-          role: "ai",
-          text: getFallbackResponse(textToSend),
-          timestamp: new Date()
-        }
-      ]);
+          text: getOfflineFallback(userRole),
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+      }, 600);
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Fallback templates ──────────────────────────────────────────────────────
-  const getFallbackResponse = (query: string): string => {
-    const q = query.toLowerCase();
-    if (q.includes("price") || q.includes("sell") || q.includes("market")) {
-      return "📊 **Offline Price Insight:** Direct market prices are stable. Alphonso Mangoes are premium at ₹350/kg, Turmeric is steady at ₹152/kg, and Basmati is up 5% in Delhi APMC.";
-    }
-    if (q.includes("tomato") || q.includes("vegetable") || q.includes("fresh")) {
-      return "🍅 **Fresh Harvest Alert:** Tomatoes are currently Grade A+ verified in inventory. Hydroponic Spinach is fresh with 7-day shelf life.";
-    }
-    if (q.includes("profit") || q.includes("increase")) {
-      return "💰 **Farm Advice:** Increase profits by sorting products to Grade A+ before listing. AI reports suggest setting prices 10% lower than market average during high harvest days.";
-    }
-    if (q.includes("disease") || q.includes("pest")) {
-      return "🌿 **Disease Risk Guide:** Region reports show low blast disease risk. Maintain dry storage at 10–15°C for Basmati and keep moisture levels below 55%.";
-    }
-    return "👋 Hello! I am operating in offline demo mode. AgriNex AI Marketplace is active. You can browse, compare, and order fresh crops directly from verified farmers.";
-  };
-
   if (!isOpen) return null;
+
+  const isConsumer = userRole === "consumer";
+  const brandGradient = isConsumer
+    ? "linear-gradient(135deg, #06b6d4, #0891b2)"
+    : "linear-gradient(135deg, #10b981, #059669)";
+
+  const accentPulse = isConsumer ? "bg-cyan-400" : "bg-emerald-400";
+  const suggestStyle = isConsumer
+    ? { background: "#ecfeff", borderColor: "#a5f3fc", color: "#0e7490" }
+    : { background: "#f0fdf4", borderColor: "#bbf7d0", color: "#15803d" };
 
   return (
     <div className="fixed bottom-24 right-6 z-50 flex flex-col items-end">
@@ -214,49 +208,41 @@ export default function VoiceAssistantModal() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="w-[90vw] sm:w-[420px] h-[550px] rounded-3xl overflow-hidden flex flex-col glass-panel relative"
-            style={{
-              background: userRole === "consumer" ? "rgba(255, 255, 255, 0.95)" : "rgba(3, 18, 11, 0.95)",
-              backdropFilter: "blur(24px)",
-              border: userRole === "consumer" ? "1px solid rgba(245, 158, 11, 0.2)" : "1px solid rgba(255, 255, 255, 0.08)",
-              boxShadow: userRole === "consumer"
-                ? "0 20px 50px rgba(0,0,0,0.08), 0 0 30px rgba(245,158,11,0.08)"
-                : "0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(16,185,129,0.15)",
-            }}
+            className="w-[90vw] sm:w-[420px] h-[560px] rounded-3xl overflow-hidden flex flex-col premium-card shadow-2xl relative"
           >
             {/* Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ background: userRole === "consumer" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)" }}>
+            <div
+              className="p-4 border-b border-white/10 flex items-center justify-between shrink-0"
+              style={{ background: brandGradient }}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm shrink-0">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className={userRole === "consumer" ? "text-slate-800 font-bold text-xs leading-none" : "text-white font-bold text-xs leading-none"}>
-                    {userRole === "consumer" ? "AgriNex AI Shopping Assistant" : "AgriNex AI Farmer Assistant"}
+                  <h3 className="text-white font-bold text-xs leading-none">
+                    {isConsumer ? "AgriNex AI Shopping Assistant" : "AgriNex AI Farmer Assistant"}
                   </h3>
                   <div className="flex items-center gap-1 mt-1">
-                    <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${userRole === "consumer" ? "bg-amber-500" : "bg-emerald-400"}`} />
-                    <span className="text-[10px] text-slate-500 font-mono">Contextual</span>
+                    <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${accentPulse}`} />
+                    <span className="text-white/70 text-[10px] font-semibold">Contextual AI · Gemini</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 {/* Clear chat */}
                 <button
                   onClick={() => setMessages([])}
-                  className="p-1.5 rounded-lg transition-colors text-slate-500 hover:text-slate-700"
-                  title="Clear chat"
+                  className="p-1.5 rounded-lg transition-colors text-white/70 hover:text-white hover:bg-white/20 border-0 bg-transparent cursor-pointer"
+                  title={t("aiClearChat")}
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
                 {/* Minimize */}
                 <button
                   onClick={() => setMinimized(true)}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    userRole === "consumer" ? "text-slate-500 hover:text-slate-800 hover:bg-slate-950/5" : "text-slate-500 hover:text-white"
-                  }`}
+                  className="p-1.5 rounded-lg transition-colors text-white/70 hover:text-white hover:bg-white/20 border-0 bg-transparent cursor-pointer"
                   title="Minimize"
                 >
                   <Minus className="w-4 h-4" />
@@ -264,10 +250,8 @@ export default function VoiceAssistantModal() {
                 {/* Close */}
                 <button
                   onClick={closeModal}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    userRole === "consumer" ? "text-slate-500 hover:text-red-600 hover:bg-red-50" : "text-slate-500 hover:text-red-400"
-                  }`}
-                  title="Close"
+                  className="p-1.5 rounded-lg transition-colors text-white/70 hover:text-white hover:bg-white/20 border-0 bg-transparent cursor-pointer"
+                  title={t("close")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -275,56 +259,89 @@ export default function VoiceAssistantModal() {
             </div>
 
             {/* Location / Context Bar */}
-            <div className={`px-4 py-1.5 border-b flex items-center justify-between ${
-              userRole === "consumer" ? "bg-amber-500/5 border-slate-100" : "bg-emerald-500/5 border-white/5"
-            }`}>
-              <span className="text-[10px] text-slate-500 flex items-center gap-1.5">
-                <Compass className={`w-3.5 h-3.5 ${userRole === "consumer" ? "text-amber-600" : "text-emerald-400"}`} />
-                Context: {currentPath.includes("farmer") ? "👨‍🌾 Farmer" : currentPath.includes("admin") ? "🛡️ Admin" : "🥦 Customer"} · {currentPath}
+            <div className="px-4 py-1.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 shrink-0">
+              <span className="text-[10px] text-slate-500 flex items-center gap-1.5 font-medium">
+                <Compass className="w-3.5 h-3.5 text-slate-400" />
+                {currentPath.includes("farmer") ? "👨‍🌾 Farmer" : currentPath.includes("admin") ? "🛡️ Admin" : "🛒 Consumer"} · {currentPath || "/"}
               </span>
-              <span className="text-[10px] text-slate-500 uppercase font-bold font-mono">Gemini AI</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold font-mono">{t("geminiAi")}</span>
             </div>
 
             {/* Message History */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((m) => (
-                <div key={m.id} className={`flex gap-2.5 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs ${
-                    m.role === "ai" ? (userRole === "consumer" ? "text-amber-700" : "text-emerald-400") : "text-white"
-                  }`}
-                    style={{ background: m.role === "ai" ? (userRole === "consumer" ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.15)") : "rgba(139,92,246,0.2)" }}>
-                    {m.role === "ai" ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/40">
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full text-center py-4">
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-lg"
+                    style={{ background: brandGradient }}
+                  >
+                    <Bot className="w-7 h-7 text-white" />
                   </div>
-                  <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
-                    m.role === "ai" ? (userRole === "consumer" ? "text-slate-800 rounded-tl-none" : "text-slate-200 rounded-tl-none") : "text-white rounded-tr-none"
-                  }`}
-                    style={{
-                      background: m.role === "ai" ? (userRole === "consumer" ? "rgba(245,158,11,0.06)" : "rgba(16,185,129,0.06)") : (userRole === "consumer" ? "rgba(109,40,217,0.85)" : "rgba(139,92,246,0.2)"),
-                      border: `1px solid ${m.role === "ai" ? (userRole === "consumer" ? "rgba(245,158,11,0.12)" : "rgba(16,185,129,0.12)") : (userRole === "consumer" ? "rgba(109,40,217,0.4)" : "rgba(139,92,246,0.2)")}`,
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: m.text
-                        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-                        .replace(/^(?:\s*[-*]\s+)(.*?)$/gm, "• $1")
-                        .replace(/\n/g, "<br/>")
-                    }}
-                  />
+                  <p className="text-slate-700 text-sm font-bold mb-1">
+                    {isConsumer ? "Shopping Assistant" : "Farmer Assistant"}
+                  </p>
+                  <p className="text-slate-400 text-xs max-w-[240px] leading-relaxed">
+                    {isConsumer
+                      ? "Ask me about products, orders, delivery, or anything on the Consumer Platform."
+                      : "Ask me about crops, disease, market prices, schemes, or anything farming-related."}
+                  </p>
                 </div>
-              ))}
+              )}
+
+              {messages.map((m) => {
+                const isAI = m.role === "ai";
+                return (
+                  <div key={m.id} className={`flex gap-2.5 ${!isAI ? "flex-row-reverse" : ""}`}>
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs shadow-sm"
+                      style={{
+                        background: isAI
+                          ? (isConsumer ? "rgba(6,182,212,0.12)" : "rgba(16,185,129,0.12)")
+                          : "rgba(99,102,241,0.15)",
+                        color: isAI
+                          ? (isConsumer ? "#0891b2" : "#059669")
+                          : "#4f46e5"
+                      }}
+                    >
+                      {isAI ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                    </div>
+                    <div
+                      className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed border ${
+                        isAI
+                          ? "text-slate-800 rounded-tl-none premium-card border-slate-200/60 shadow-sm"
+                          : "text-white rounded-tr-none border-0"
+                      }`}
+                      style={{
+                        background: !isAI ? brandGradient : undefined
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: m.text
+                          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                          .replace(/^(?:\s*[-*]\s+)(.*?)$/gm, "• $1")
+                          .replace(/\n/g, "<br/>")
+                      }}
+                    />
+                  </div>
+                );
+              })}
 
               {loading && (
                 <div className="flex gap-2.5">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: userRole === "consumer" ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.15)" }}>
-                    <Bot className={`w-4 h-4 ${userRole === "consumer" ? "text-amber-700" : "text-emerald-400"}`} />
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                    style={{ background: isConsumer ? "rgba(6,182,212,0.12)" : "rgba(16,185,129,0.12)" }}
+                  >
+                    <Bot className={`w-4 h-4 ${isConsumer ? "text-cyan-600" : "text-emerald-600"}`} />
                   </div>
-                  <div className={`px-3.5 py-2.5 rounded-2xl text-xs rounded-tl-none ${
-                    userRole === "consumer" ? "bg-amber-500/5 border border-amber-500/10" : "bg-emerald-500/5 border border-emerald-500/10"
-                  }`}>
-                    <div className="flex gap-1.5 items-center">
-                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${userRole === "consumer" ? "bg-amber-500" : "bg-emerald-400"}`} style={{ animationDelay: "0s" }} />
-                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${userRole === "consumer" ? "bg-amber-500" : "bg-emerald-400"}`} style={{ animationDelay: "0.15s" }} />
-                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${userRole === "consumer" ? "bg-amber-500" : "bg-emerald-400"}`} style={{ animationDelay: "0.3s" }} />
+                  <div className="px-3.5 py-2.5 rounded-2xl text-xs rounded-tl-none premium-card shadow-sm">
+                    <div className="flex gap-1.5 items-center py-1">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className={`w-1.5 h-1.5 rounded-full animate-bounce ${isConsumer ? "bg-cyan-500" : "bg-emerald-500"}`}
+                          style={{ animationDelay: `${i * 0.15}s` }}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -334,74 +351,67 @@ export default function VoiceAssistantModal() {
             </div>
 
             {/* Suggested prompts */}
-            <div className="px-4 py-2 border-t border-white/5 bg-white/5 flex gap-2 overflow-x-auto hide-scrollbar">
+            <div className="px-4 py-2 border-t border-slate-100 bg-slate-50 flex gap-2 overflow-x-auto hide-scrollbar shrink-0">
               {getSuggestedPrompts().map((p, i) => (
                 <button
                   key={i}
                   onClick={() => handleSend(p)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium whitespace-nowrap transition-all hover:scale-105 ${
-                    userRole === "consumer" ? "text-amber-800" : "text-emerald-400"
-                  }`}
-                  style={{
-                    background: userRole === "consumer" ? "rgba(245,158,11,0.08)" : "rgba(16,185,129,0.1)",
-                    border: userRole === "consumer" ? "1px solid rgba(245,158,11,0.15)" : "1px solid rgba(16,185,129,0.2)",
-                  }}
+                  className="px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all hover:scale-105 border cursor-pointer shrink-0"
+                  style={suggestStyle}
                 >
                   💡 {p}
                 </button>
               ))}
             </div>
 
-            {/* Error notifications */}
-            {error && (
-              <div className="mx-4 my-2 px-3 py-1.5 rounded-xl text-[10px] text-red-400 flex items-center gap-1.5 shrink-0"
-                style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)" }}>
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                {error}
-              </div>
-            )}
-
-            {/* Input row — text only */}
-            <div className="p-4 border-t border-white/5 bg-white/5">
+            {/* Input row */}
+            <div className="p-4 border-t border-slate-100 bg-white shrink-0">
               <div className="flex gap-2">
-                {/* Text input */}
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
-                  placeholder="Ask me anything about agriculture..."
+                  placeholder={
+                    isConsumer
+                      ? "Ask about products, orders, delivery..."
+                      : "Ask about crops, market, disease..."
+                  }
                   disabled={loading}
-                  className="flex-1 glass-input py-2 text-xs"
+                  className="flex-1 premium-card rounded-3xl px-3.5 py-2 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                 />
 
-                {/* Send */}
                 <button
                   onClick={() => handleSend(input)}
                   disabled={loading || !input.trim()}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105 disabled:opacity-40"
-                  style={{ background: userRole === "consumer" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)" }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all hover:scale-105 disabled:opacity-40 border-0 cursor-pointer"
+                  style={{ background: brandGradient }}
                 >
                   {loading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Send className="w-4 h-4 text-white" />}
                 </button>
               </div>
 
               {/* Language selection */}
-              <div className="flex items-center gap-1.5 mt-2 justify-end">
-                <span className="text-[10px] text-slate-500">Language:</span>
+              <div className="flex items-center gap-1.5 mt-2.5 justify-end">
+                <span className="text-[10px] text-slate-500 font-semibold">Language:</span>
                 <div className="flex gap-1">
-                  {LANGUAGES.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => setLanguage(lang.code)}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-semibold transition-all ${
-                        language === lang.code
-                          ? (userRole === "consumer" ? "bg-amber-500/25 border border-amber-500/40 text-amber-800" : "bg-emerald-500/25 border border-emerald-500/40 text-emerald-400")
-                          : (userRole === "consumer" ? "text-slate-600 border border-slate-200 hover:text-slate-800" : "text-slate-500 border border-white/5 hover:text-slate-400")
-                      }`}
-                    >
-                      {lang.label}
-                    </button>
-                  ))}
+                  {LANGUAGES.map((lang) => {
+                    const isSelected = language === lang.code;
+                    return (
+                      <button
+                        key={lang.code}
+                        onClick={() => setLanguage(lang.code)}
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all border cursor-pointer ${
+                          isSelected
+                            ? (isConsumer
+                              ? "bg-cyan-100 border-cyan-300 text-cyan-800"
+                              : "bg-emerald-100 border-emerald-300 text-emerald-800")
+                            : "bg-white text-slate-500 border-slate-200 hover:text-slate-800"
+                        }`}
+                      >
+                        {lang.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -413,28 +423,24 @@ export default function VoiceAssistantModal() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             onClick={() => setMinimized(false)}
-            className="px-4 py-2.5 rounded-full flex items-center gap-2 cursor-pointer transition-all hover:scale-105"
-            style={{
-              background: userRole === "consumer" ? "rgba(255, 255, 255, 0.95)" : "rgba(3, 18, 11, 0.95)",
-              backdropFilter: "blur(16px)",
-              border: userRole === "consumer" ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
-              boxShadow: userRole === "consumer" ? "0 10px 30px rgba(0,0,0,0.08)" : "0 10px 30px rgba(0,0,0,0.5)",
-            }}
+            className="px-4 py-2.5 rounded-full flex items-center gap-2 cursor-pointer transition-all hover:scale-105 premium-card shadow-xl"
           >
-            <div className="w-5 h-5 rounded-md flex items-center justify-center text-white"
-              style={{ background: userRole === "consumer" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)" }}>
+            <div
+              className="w-5 h-5 rounded-md flex items-center justify-center text-white"
+              style={{ background: brandGradient }}
+            >
               <Bot className="w-3.5 h-3.5" />
             </div>
-            <span className={userRole === "consumer" ? "text-slate-800 text-xs font-bold leading-none" : "text-white text-xs font-bold leading-none"}>
-              {userRole === "consumer" ? "AgriNex AI Shopping" : "AgriNex AI Chat"}
+            <span className="text-slate-800 text-xs font-bold leading-none">
+              {isConsumer ? "AgriNex AI Shopping" : "AgriNex AI Assistant"}
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${accentPulse}`} />
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 closeModal();
               }}
-              className="p-0.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white"
+              className="p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer ml-1"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -447,11 +453,9 @@ export default function VoiceAssistantModal() {
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="mt-3 w-14 h-14 rounded-full flex items-center justify-center"
-          style={{
-            background: userRole === "consumer" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)",
-            boxShadow: "0 0 30px rgba(16,185,129,0.4), 0 4px 24px rgba(0,0,0,0.4)",
-          }}
+          onClick={() => closeModal()}
+          className="mt-3 w-14 h-14 rounded-full flex items-center justify-center cursor-pointer border-0 shadow-lg"
+          style={{ background: brandGradient }}
           aria-label="Open AI Chat"
         >
           <Bot className="w-6 h-6 text-white" />

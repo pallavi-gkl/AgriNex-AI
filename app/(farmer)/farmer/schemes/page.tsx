@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
@@ -95,6 +96,7 @@ const EXTENDED_SCHEMES = [
 const CATEGORIES = ["All", "Insurance", "Subsidy", "Credit", "Advisory", "Market"];
 
 export default function GovernmentSchemesPage() {
+  const { t } = useTranslation("farmer");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [expandedScheme, setExpandedScheme] = useState<number | null>(null);
@@ -132,26 +134,52 @@ export default function GovernmentSchemesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Award className="w-6 h-6 text-amber-400" />
-            Government Schemes & Subsidies
-          </h1>
-          <p className="text-slate-400 text-xs mt-0.5">
-            AI-matched Central & State government schemes, subsidies and credit facilities for Indian farmers.
-          </p>
+    <div className="space-y-8">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 via-white to-orange-50 border border-amber-100 p-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30">
+                <Award className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                  {t("schemesTitle")}
+                </h1>
+                <p className="text-slate-500 text-sm mt-1">
+                  {t("aiMatchedCentralStateGovernmen")}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleAiMatch}
+              disabled={loading}
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-sm font-bold rounded-xl transition shadow-lg shadow-amber-500/30"
+            >
+              <Zap className={cn("w-4 h-4", loading && "animate-pulse")} />
+              {loading ? "Matching..." : "AI Auto-Match"}
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-amber-200 shadow-sm">
+              <Star className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-semibold text-slate-700">{t("aiPowered")}</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-emerald-200 shadow-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-slate-700">Verified Schemes</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-sky-200 shadow-sm">
+              <IndianRupee className="w-4 h-4 text-sky-600" />
+              <span className="text-sm font-semibold text-slate-700">{t("financialBenefits")}</span>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={handleAiMatch}
-          disabled={loading}
-          className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 text-xs font-mono rounded-xl transition self-start sm:self-auto shrink-0"
-        >
-          <Zap className={cn("w-3.5 h-3.5", loading && "animate-pulse")} />
-          {loading ? "Matching..." : "AI Auto-Match Schemes"}
-        </button>
       </div>
 
       {/* AI Match Banner */}
@@ -159,48 +187,60 @@ export default function GovernmentSchemesPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-5 rounded-2xl border border-amber-500/20 bg-amber-500/5"
+          className="premium-card shadow-sm p-6 rounded-3xl border-amber-500/20 bg-gradient-to-r from-amber-50 to-orange-50"
         >
-          <div className="flex items-start gap-3">
-            <Star className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-bold text-white">AI Scheme Recommendation (Gemini)</h3>
-              <p className="text-xs text-slate-300 leading-relaxed mt-1">{aiMatchResult}</p>
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center shrink-0">
+              <Star className="w-6 h-6 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-bold text-slate-800">{t("aiSchemeRecommendation")}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed mt-2">{aiMatchResult}</p>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-panel p-4 rounded-2xl text-center">
-          <p className="text-2xl font-bold text-amber-400">{EXTENDED_SCHEMES.length}</p>
-          <p className="text-[10px] text-slate-500 font-mono mt-1">TOTAL SCHEMES</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <div className="premium-card shadow-sm p-6 rounded-3xl text-center">
+          <p className="text-3xl font-bold text-amber-500">{EXTENDED_SCHEMES.length}</p>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-2">Total Schemes</p>
         </div>
-        <div className="glass-panel p-4 rounded-2xl text-center">
-          <p className="text-2xl font-bold text-emerald-400">{EXTENDED_SCHEMES.filter(s => (s as any).status === "eligible" || (s as any).status === "enrolled").length}</p>
-          <p className="text-[10px] text-slate-500 font-mono mt-1">YOU QUALIFY</p>
+        <div className="premium-card shadow-sm p-6 rounded-3xl text-center">
+          <p className="text-3xl font-bold text-emerald-500">{EXTENDED_SCHEMES.filter(s => (s as any).status === "eligible" || (s as any).status === "enrolled").length}</p>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-2">You Qualify</p>
         </div>
-        <div className="glass-panel p-4 rounded-2xl text-center">
-          <p className="text-2xl font-bold text-white">₹3.5L+</p>
-          <p className="text-[10px] text-slate-500 font-mono mt-1">POTENTIAL BENEFIT</p>
+        <div className="premium-card shadow-sm p-6 rounded-3xl text-center">
+          <p className="text-3xl font-extrabold text-slate-800">₹3.5L+</p>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-2">Potential Benefit</p>
         </div>
-        <div className="glass-panel p-4 rounded-2xl text-center">
-          <p className="text-2xl font-bold text-red-400">1</p>
-          <p className="text-[10px] text-slate-500 font-mono mt-1">DEADLINE THIS MONTH</p>
+        <div className="premium-card shadow-sm p-6 rounded-3xl text-center">
+          <p className="text-3xl font-bold text-red-500">1</p>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-2">{t("deadlineThisMonth")}</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex flex-col sm:flex-row gap-4"
+      >
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search schemes, ministries, or benefits..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
+            className="glass-input w-full pl-12 pr-4 py-3 text-sm"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -209,78 +249,83 @@ export default function GovernmentSchemesPage() {
               key={cat}
               onClick={() => setCategory(cat)}
               className={cn(
-                "px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition",
+                "px-4 py-2.5 rounded-xl text-xs font-bold transition",
                 category === cat
-                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-                  : "bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30"
+                  : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
               )}
             >
               {cat}
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Scheme Cards */}
-      <div className="space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="space-y-5"
+      >
         {filteredSchemes.map((scheme, idx) => {
           const isExpanded = expandedScheme === idx;
           const s = scheme as any;
           return (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.06 }}
+              transition={{ delay: idx * 0.05 }}
               className={cn(
-                "glass-panel p-5 rounded-2xl border transition-all duration-300 cursor-pointer",
+                "premium-card shadow-sm p-6 rounded-3xl border transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-0.5",
                 s.status === "enrolled"
-                  ? "border-emerald-500/20"
-                  : "border-white/5 hover:border-amber-500/20"
+                  ? "border-emerald-500/20 bg-gradient-to-r from-emerald-50/50 to-teal-50/50"
+                  : "border-slate-100 hover:border-amber-500/20"
               )}
               onClick={() => setExpandedScheme(isExpanded ? null : idx)}
             >
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                 {/* Left */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <div className="flex items-center flex-wrap gap-2 mb-3">
                     {s.status === "enrolled" ? (
-                      <span className="flex items-center gap-1 text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 font-mono font-bold">
-                        <CheckCircle className="w-3 h-3" /> ENROLLED
+                      <span className="flex items-center gap-1.5 text-xs bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 font-bold">
+                        <CheckCircle className="w-3.5 h-3.5" /> {t("enrolled")}
                       </span>
                     ) : (
-                      <span className="text-[9px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 font-mono font-bold">
-                        ELIGIBLE
+                      <span className="text-xs bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 px-3 py-1 rounded-lg border border-amber-200 font-bold">
+                        {t("eligible")}
                       </span>
                     )}
                     {s.category && (
-                      <span className="text-[9px] bg-blue-500/10 text-white px-2 py-0.5 rounded border border-blue-500/20 font-mono">
+                      <span className="text-xs bg-gradient-to-r from-blue-100 to-sky-100 text-blue-700 px-3 py-1 rounded-lg border border-blue-200 font-bold">
                         {s.category}
                       </span>
                     )}
                     {s.ai_match_score && (
-                      <span className="text-[9px] text-purple-400 font-mono">
+                      <span className="text-xs text-purple-600 font-bold bg-purple-50 px-3 py-1 rounded-lg border border-purple-200">
                         AI Match: {s.ai_match_score}%
                       </span>
                     )}
                   </div>
-                  <h3 className="text-sm font-bold text-white leading-tight">{scheme.name}</h3>
-                  <p className="text-[11px] text-slate-400 font-mono mt-1">{scheme.ministry}</p>
+                  <h3 className="text-base font-bold text-slate-800 leading-tight">{scheme.name}</h3>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">{scheme.ministry}</p>
                   {s.description && (
-                    <p className="text-[11px] text-slate-400 mt-1 leading-relaxed line-clamp-2">{s.description}</p>
+                    <p className="text-sm text-slate-500 mt-2 leading-relaxed line-clamp-2">{s.description}</p>
                   )}
                 </div>
 
                 {/* Right */}
-                <div className="flex flex-row sm:flex-col gap-4 sm:gap-2 text-right shrink-0">
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-mono">BENEFIT</p>
-                    <p className="text-emerald-400 font-bold text-xs">{scheme.benefit}</p>
-                    {s.amount && <p className="text-[10px] text-slate-400 font-mono">{s.amount}</p>}
+                <div className="flex flex-row sm:flex-col gap-6 sm:gap-3 text-right shrink-0">
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-100">
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">{t("benefit")}</p>
+                    <p className="text-emerald-700 font-bold text-sm mt-1">{scheme.benefit}</p>
+                    {s.amount && <p className="text-xs text-emerald-600 font-semibold mt-1">{s.amount}</p>}
                   </div>
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-mono">DEADLINE</p>
-                    <p className="text-white text-xs font-bold">{scheme.deadline}</p>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
+                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">{t("deadline")}</p>
+                    <p className="text-slate-800 text-sm font-bold mt-1">{scheme.deadline}</p>
                   </div>
                 </div>
               </div>
@@ -290,17 +335,19 @@ export default function GovernmentSchemesPage() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
-                  className="mt-4 pt-4 border-t border-white/5 space-y-4"
+                  className="mt-6 pt-6 border-t border-slate-100 space-y-5"
                 >
                   {s.requirements && (
                     <div>
-                      <h4 className="text-xs font-bold text-white mb-2 flex items-center gap-1">
-                        <FileText className="w-3.5 h-3.5 text-blue-400" />
+                      <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-sky-100 flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-blue-600" />
+                        </div>
                         Required Documents
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {s.requirements.map((req: string, i: number) => (
-                          <span key={i} className="text-[10px] bg-blue-500/10 text-white px-2 py-0.5 rounded border border-blue-500/20 font-mono">
+                          <span key={i} className="text-xs bg-gradient-to-r from-blue-50 to-sky-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200 font-semibold">
                             {req}
                           </span>
                         ))}
@@ -308,9 +355,9 @@ export default function GovernmentSchemesPage() {
                     </div>
                   )}
                   <div className="flex gap-3">
-                    <button className="flex-1 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-bold rounded-xl hover:bg-amber-500/20 transition flex items-center justify-center gap-1.5">
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      Apply Now
+                    <button className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30">
+                      <CheckCircle className="w-4 h-4" />
+                      {t("applyNow")}
                     </button>
                     {s.link && (
                       <a
@@ -318,9 +365,9 @@ export default function GovernmentSchemesPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 text-xs font-mono rounded-xl transition"
+                        className="flex items-center gap-2 px-5 py-3 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-4 h-4" />
                         Official Portal
                       </a>
                     )}
@@ -330,7 +377,7 @@ export default function GovernmentSchemesPage() {
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }

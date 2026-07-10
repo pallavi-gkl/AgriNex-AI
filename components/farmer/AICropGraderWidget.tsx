@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview AICropGraderWidget — 3-state crop quality grading scanner.
@@ -54,6 +55,7 @@ export default function AICropGraderWidget({
   cropType = "Tomato",
   className = "",
 }: AICropGraderWidgetProps) {
+  const { t } = useTranslation("farmer");
   const [state, setState] = useState<WidgetState>("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [gradeResult, setGradeResult] = useState<CropGradeResult | null>(null);
@@ -112,19 +114,20 @@ export default function AICropGraderWidget({
   };
 
   const applyPrice = () => {
+  const { t } = useTranslation("farmer");
     if (gradeResult && onPriceApply) {
       onPriceApply(gradeResult.recommendedPrice, gradeResult);
     }
   };
 
   return (
-    <div className={`glass-panel rounded-2xl p-5 flex flex-col gap-4 ${className}`}>
+    <div className={`premium-card rounded-3xl shadow-sm p-5 flex flex-col gap-4 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-white font-semibold text-sm flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-purple-400" />
-            AI Crop Grader
+            {t("aiCropGrader")}
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">Upload a photo for instant quality analysis</p>
         </div>
@@ -132,7 +135,7 @@ export default function AICropGraderWidget({
           <button
             onClick={reset}
             aria-label="Reset crop grader"
-            className="w-7 h-7 rounded-lg glass-panel flex items-center justify-center hover:border-white/20 transition-all"
+            className="w-7 h-7 rounded-lg premium-card shadow-sm flex items-center justify-center hover:border-white/20 transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
           </button>
@@ -154,7 +157,7 @@ export default function AICropGraderWidget({
             onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); isDragging.current = true; }}
             onDrop={handleDrop}
-            className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center cursor-pointer hover:border-emerald-500/40 transition-all group flex flex-col items-center gap-3"
+            className="border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer hover:border-emerald-500/40 transition-all group flex flex-col items-center gap-3"
           >
             <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-all">
               <Camera className="w-7 h-7 text-emerald-400" aria-hidden="true" />
@@ -164,7 +167,7 @@ export default function AICropGraderWidget({
               <p className="text-slate-500 text-xs mt-1">PNG, JPG, WEBP · Drop here or click to browse</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs bg-purple-500/15 border border-purple-500/25 text-purple-300 flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full text-xs bg-purple-500/15 border-purple-500/25 text-purple-300 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" aria-hidden="true" /> Powered by Gemini Vision
               </span>
             </div>
@@ -228,7 +231,7 @@ export default function AICropGraderWidget({
             <AlertCircle className="w-10 h-10 text-red-400" />
             <p className="text-slate-300 text-sm">{error}</p>
             <button onClick={reset} className="text-xs text-purple-400 hover:text-purple-300 underline">
-              Try again
+              {t("tryAgain")}
             </button>
           </motion.div>
         )}
@@ -261,7 +264,7 @@ export default function AICropGraderWidget({
               <p className="text-slate-300 text-sm">
                 Shelf Life:{" "}
                 <span className="text-emerald-400 font-semibold">
-                  ~{gradeResult.estimatedShelfLifeDays} Days
+                  ~{gradeResult.estimatedShelfLifeDays} {t("days")}
                 </span>
               </p>
             </div>
@@ -271,24 +274,24 @@ export default function AICropGraderWidget({
               <img
                 src={previewUrl}
                 alt="Graded crop"
-                className="w-full h-32 object-cover rounded-xl border border-white/8"
+                className="w-full h-32 object-cover rounded-xl border-white/8"
               />
             )}
 
             {/* Details */}
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center py-1 border-b border-white/5">
-                <span className="text-slate-400">Freshness</span>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-400">{t("freshness")}</span>
                 <span className="text-white font-medium">{gradeResult.freshness}</span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b border-white/5">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
                 <span className="text-slate-400">Water Content</span>
                 <span className="text-sky-400 font-medium">{gradeResult.waterContentPercentage}%</span>
               </div>
               {gradeResult.blemishes.length > 0 && (
                 <div className="py-1">
                   <span className="text-amber-400 text-xs">
-                    ⚠ Blemishes: {gradeResult.blemishes.join(", ")}
+                    ⚠️ Blemishes: {gradeResult.blemishes.join(", ")}
                   </span>
                 </div>
               )}
@@ -297,7 +300,7 @@ export default function AICropGraderWidget({
             {/* Apply price button */}
             <button
               onClick={applyPrice}
-              className="mt-1 w-full text-xs py-2.5 px-4 rounded-xl border border-purple-500/30 text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center gap-1.5"
+              className="mt-1 w-full text-xs py-2.5 px-4 rounded-xl border-purple-500/30 text-purple-300 hover:bg-purple-500/10 transition-all flex items-center justify-center gap-1.5"
             >
               <Sparkles className="w-3 h-3" />
               Apply Recommended Price: ₹{gradeResult.recommendedPrice}/unit

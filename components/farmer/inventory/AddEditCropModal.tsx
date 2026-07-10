@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import React, { useState } from "react";
 import { X, Sparkles, AlertTriangle } from "lucide-react";
@@ -47,6 +48,7 @@ interface AddEditCropModalProps {
 }
 
 export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropModalProps) {
+  const { t } = useTranslation("farmer");
   const [activeTab, setActiveTab] = useState<"basic" | "pricing" | "ai" | "media" | "certs">("basic");
   const [loading, setLoading] = useState(false);
   const [aiRunning, setAiRunning] = useState(false);
@@ -92,6 +94,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
   };
 
   const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { t } = useTranslation("farmer");
     const { name, checked } = e.target;
     setForm((prev) => ({ ...prev, [name]: checked }));
   };
@@ -139,24 +142,24 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="glass-panel w-full max-w-2xl rounded-3xl overflow-hidden bg-[#0d1426]/95 border-white/10 flex flex-col max-h-[90vh] shadow-2xl"
+        className="w-full max-w-2xl rounded-3xl overflow-hidden premium-card flex flex-col max-h-[90vh] shadow-2xl"
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-white/5">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-emerald-400" />
+        <div className="flex justify-between items-center p-6 border-b border-slate-200">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-emerald-600" />
             {crop ? "Edit Crop Listing" : "Add New Crop Listing"}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white transition"
+            className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-white/5 px-6 gap-4 overflow-x-auto shrink-0 bg-white/[0.01]">
+        <div className="flex border-b border-slate-200 px-6 gap-4 overflow-x-auto shrink-0 bg-slate-50">
           {(["basic", "pricing", "ai", "media", "certs"] as const).map((tab) => (
             <button
               key={tab}
@@ -164,8 +167,8 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
               className={cn(
                 "py-3 border-b-2 text-xs font-mono tracking-wider uppercase transition-colors shrink-0",
                 activeTab === tab
-                  ? "border-emerald-500 text-emerald-400 font-bold"
-                  : "border-transparent text-slate-400 hover:text-white"
+                  ? "border-emerald-500 text-emerald-700 font-bold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               )}
             >
               {tab} Info
@@ -187,7 +190,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     value={form.title}
                     onChange={handleChange}
                     placeholder="e.g. Alphonso Mangoes"
-                    className="glass-input"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -198,25 +201,25 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     value={form.scientific_name}
                     onChange={handleChange}
                     placeholder="e.g. Mangifera indica"
-                    className="glass-input"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Category</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("schemeCategory")}</label>
                   <select
                     name="category"
                     value={form.category}
                     onChange={handleChange}
-                    className="glass-input"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                   >
-                    <option value="Grains & Cereals">Grains & Cereals</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Vegetables">Vegetables</option>
+                    <option value={t("grainsCereals")}>{t("grainsCereals")}</option>
+                    <option value={t("fruits")}>{t("fruits")}</option>
+                    <option value={t("vegetables")}>{t("vegetables")}</option>
                     <option value="Spices & Herbs">Spices & Herbs</option>
-                    <option value="Leafy Vegetables">Leafy Vegetables</option>
+                    <option value={t("leafyGreens")}>{t("leafyGreens")}</option>
                     <option value="Pulses & Legumes">Pulses & Legumes</option>
                   </select>
                 </div>
@@ -227,7 +230,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="location"
                     value={form.location}
                     onChange={handleChange}
-                    className="glass-input"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
               </div>
@@ -240,7 +243,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                   onChange={handleChange}
                   rows={3}
                   placeholder="Describe your crop's quality, cultivation method, packaging..."
-                  className="glass-input resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 resize-none focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
 
@@ -252,17 +255,17 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="production_date"
                     value={form.production_date}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Harvest Date</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("harvestDate")}</label>
                   <input
                     type="date"
                     name="harvest_date"
                     value={form.harvest_date}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
               </div>
@@ -275,7 +278,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="supply_start_date"
                     value={form.supply_start_date}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -285,21 +288,21 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="supply_end_date"
                     value={form.supply_end_date}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-2xl">
+              <div className="flex items-center gap-3 bg-slate-50 border-slate-200 p-3 rounded-2xl">
                 <input
                   type="checkbox"
                   id="is_organic"
                   name="is_organic"
                   checked={form.is_organic}
                   onChange={handleCheckbox}
-                  className="w-4 h-4 rounded border-white/15 bg-white/5 accent-emerald-500 cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 bg-white accent-emerald-500 cursor-pointer"
                 />
-                <label htmlFor="is_organic" className="text-xs text-slate-300 cursor-pointer">
+                <label htmlFor="is_organic" className="text-xs text-slate-500 cursor-pointer">
                   Practiced 100% Certified Organic cultivation (No chemical fertilizers/pesticides)
                 </label>
               </div>
@@ -318,7 +321,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     value={form.farmer_price || ""}
                     onChange={handleChange}
                     placeholder="₹ price per unit"
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -327,13 +330,13 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="unit_type"
                     value={form.unit_type}
                     onChange={handleChange}
-                    className="glass-input"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                   >
                     <option value="Kg">Kg</option>
                     <option value="Ton">Ton</option>
-                    <option value="Bag">Bag (50 Kg)</option>
-                    <option value="Box">Box</option>
-                    <option value="Crate">Crate</option>
+                    <option value="Bag">{t("bag50Kg")}</option>
+                    <option value={t("box")}>{t("box")}</option>
+                    <option value={t("crate")}>{t("crate")}</option>
                   </select>
                 </div>
               </div>
@@ -347,7 +350,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     required
                     value={form.quantity_available || ""}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -356,11 +359,11 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="status"
                     value={form.status}
                     onChange={handleChange}
-                    className="glass-input"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                   >
-                    <option value="available">Available (Live)</option>
+                    <option value={t("available")}>{t("availableLive")}</option>
                     <option value="reserved">Reserved (Bidded)</option>
-                    <option value="out_of_stock">Out of Stock</option>
+                    <option value="out_of_stock">{t("outOfStock")}</option>
                   </select>
                 </div>
               </div>
@@ -373,7 +376,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="shelf_life_days"
                     value={form.shelf_life_days}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
@@ -384,7 +387,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     value={form.storage_temp}
                     onChange={handleChange}
                     placeholder="e.g. 10-15°C"
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
               </div>
@@ -397,31 +400,31 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                   onChange={handleChange}
                   rows={2}
                   placeholder="e.g. Cool, dry place, away from sunlight"
-                  className="glass-input resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 resize-none focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">GPS Latitude</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("gpsLatitude")}</label>
                   <input
                     type="number"
                     step="0.0001"
                     name="gps_lat"
                     value={form.gps_lat}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">GPS Longitude</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("gpsLongitude")}</label>
                   <input
                     type="number"
                     step="0.0001"
                     name="gps_lng"
                     value={form.gps_lng}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   />
                 </div>
               </div>
@@ -430,12 +433,12 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
 
           {activeTab === "ai" && (
             <div className="space-y-4">
-              <div className="bg-purple-950/30 border border-purple-500/20 p-4 rounded-2xl flex items-start gap-3">
+              <div className="bg-purple-950/30 border-purple-500/20 p-4 rounded-2xl flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
                 <div className="text-xs">
-                  <h4 className="font-bold text-white">AI Crop Quality Analytics Engine</h4>
+                  <h4 className="font-bold text-slate-800">{t("aiCropQualityAnalyticsEngine")}</h4>
                   <p className="text-slate-400 mt-1">
-                    AgriNex integrates Gemini Vision models to automatically analyze freshness, disease metrics, and verify grade criteria based on uploaded crop parameters.
+                    {t("agrinexIntegratesGeminiVisionM")}
                   </p>
                   <button
                     type="button"
@@ -450,17 +453,17 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">AI Certified Grade</label>
+                  <label className="text-xs text-slate-400 font-mono">{t("aiCertifiedGrade")}</label>
                   <select
                     name="ai_quality_grade"
                     value={form.ai_quality_grade}
                     onChange={handleChange}
-                    className="glass-input font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                   >
-                    <option value="A+">Grade A+</option>
-                    <option value="A">Grade A</option>
-                    <option value="B">Grade B</option>
-                    <option value="C">Grade C</option>
+                    <option value="A+">{t("gradeA1")}</option>
+                    <option value="A">{t("gradeA")}</option>
+                    <option value="B">{t("gradeB")}</option>
+                    <option value="C">{t("gradeC")}</option>
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -470,7 +473,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     name="traceability_code"
                     readOnly
                     value={form.traceability_code}
-                    className="glass-input font-mono bg-white/5 cursor-not-allowed"
+                    className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-400 font-mono cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -485,7 +488,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     max="100"
                     value={form.ai_freshness_score}
                     onChange={handleChange}
-                    className="w-full mt-2 accent-emerald-500 bg-white/10"
+                    className="w-full mt-2 accent-emerald-500 bg-white"
                   />
                 </div>
                 <div className="space-y-1">
@@ -497,7 +500,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     max="100"
                     value={form.ai_confidence_score}
                     onChange={handleChange}
-                    className="w-full mt-2 accent-purple-500 bg-white/10"
+                    className="w-full mt-2 accent-purple-500 bg-white"
                   />
                 </div>
               </div>
@@ -512,7 +515,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     max="100"
                     value={form.ai_disease_score}
                     onChange={handleChange}
-                    className="w-full mt-2 accent-red-500 bg-white/10"
+                    className="w-full mt-2 accent-red-500 bg-white"
                   />
                 </div>
                 <div className="space-y-1">
@@ -524,7 +527,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     max="100"
                     value={form.ai_pest_score}
                     onChange={handleChange}
-                    className="w-full mt-2 accent-amber-500 bg-white/10"
+                    className="w-full mt-2 accent-amber-500 bg-white"
                   />
                 </div>
               </div>
@@ -541,11 +544,11 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                   value={form.image_url}
                   onChange={handleChange}
                   placeholder="https://images.unsplash.com/..."
-                  className="glass-input"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
 
-              <div className="border border-dashed border-white/10 rounded-2xl p-6 text-center text-xs text-slate-500 bg-white/[0.01]">
+              <div className="border-dashed border-slate-200 rounded-2xl p-6 text-center text-xs text-slate-500 bg-slate-50">
                 <p>Support drag-and-drop or batch media attachments</p>
                 <p className="mt-1">JPEG, PNG, MP4 up to 50MB (Automatically encrypted on IPFS)</p>
               </div>
@@ -555,7 +558,7 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
           {activeTab === "certs" && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs text-slate-400 font-mono">Active Quality Credentials (Comma separated)</label>
+                <label className="text-xs text-slate-400 font-mono">{t("activeQualityCredentialsCommaS")}</label>
                 <input
                   type="text"
                   name="certificates_raw"
@@ -564,17 +567,17 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
                     const arr = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
                     setForm((prev) => ({ ...prev, certificates: arr }));
                   }}
-                  className="glass-input font-mono"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 font-mono focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
 
-              <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-xs text-slate-400">
+              <div className="p-3 bg-slate-50 border-slate-200 rounded-2xl text-xs text-slate-400">
                 <h5 className="font-bold text-white flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  Compliance Verification
+                  {t("complianceVerification")}
                 </h5>
                 <p className="mt-1">
-                  Certifications are automatically cataloged onto the public Digital Crop Passport ledger, boosting trust indicators by up to 40% in search rankings.
+                  {t("certificationsAreAutomatically")}
                 </p>
               </div>
             </div>
@@ -582,18 +585,18 @@ export default function AddEditCropModal({ crop, onClose, onSave }: AddEditCropM
         </form>
 
         {/* Footer Actions */}
-        <div className="p-6 border-t border-white/5 flex justify-end gap-3 bg-white/[0.01] shrink-0">
+        <div className="p-6 border-t border-slate-100/80 flex justify-end gap-3 bg-white/70 backdrop-blur-xl shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl text-slate-300 bg-white/5 hover:bg-white/10 text-xs font-bold transition"
+            className="btn-ghost text-xs"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black text-xs font-bold transition"
+            className="btn-primary text-xs"
           >
             {loading ? "Saving changes..." : crop ? "Update Crop" : "List New Crop"}
           </button>

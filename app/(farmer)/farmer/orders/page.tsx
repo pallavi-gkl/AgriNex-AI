@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
+
 
 /**
  * @fileoverview Farmer Orders Page — /farmer/orders
@@ -33,53 +35,54 @@ const STATUS_CONFIG: Record<
 > = {
   pending: {
     label: "Pending Review",
-    color: "text-amber-400",
+    color: "text-amber-700",
     icon: Clock,
-    bg: "bg-amber-500/10 border-amber-500/20",
+    bg: "bg-amber-50 border-amber-200",
   },
   accepted: {
     label: "Accepted",
-    color: "text-white",
+    color: "text-blue-700",
     icon: CheckCircle,
-    bg: "bg-blue-500/10 border-blue-500/20",
+    bg: "bg-blue-50 border-blue-200",
   },
   quality_verified: {
     label: "Quality Verified",
-    color: "text-purple-400",
+    color: "text-purple-700",
     icon: Package,
-    bg: "bg-purple-500/10 border-purple-500/20",
+    bg: "bg-purple-50 border-purple-200",
   },
   dispatched: {
     label: "Dispatched",
-    color: "text-white",
+    color: "text-sky-700",
     icon: Truck,
-    bg: "bg-cyan-500/10 border-cyan-500/20",
+    bg: "bg-sky-50 border-sky-200",
   },
   delivered: {
     label: "Delivered",
-    color: "text-emerald-400",
+    color: "text-emerald-700",
     icon: CheckCircle,
-    bg: "bg-emerald-500/10 border-emerald-500/20",
+    bg: "bg-emerald-50 border-emerald-200",
   },
   cancelled: {
     label: "Cancelled",
-    color: "text-red-400",
+    color: "text-red-700",
     icon: XCircle,
-    bg: "bg-red-500/10 border-red-500/20",
+    bg: "bg-rose-50 border-rose-200",
   },
 };
 
 function EmptyState() {
+  const { t } = useTranslation("farmer");
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <Inbox className="w-16 h-16 text-slate-700 mb-4" />
-      <h3 className="text-white font-semibold text-lg mb-2">
-        No orders yet
+      <Inbox className="w-16 h-16 text-slate-300 mb-4" />
+      <h3 className="text-slate-800 font-bold text-lg mb-2">
+        {t("noOrdersYet")}
       </h3>
-      <p className="text-slate-400 text-sm mb-1">
+      <p className="text-slate-500 text-sm mb-1 font-semibold">
         Orders from buyers will appear here once consumers place orders
       </p>
-      <p className="text-slate-500 text-xs">
+      <p className="text-slate-400 text-xs font-semibold">
         Make sure your crop listings are active in the Inventory section
       </p>
     </div>
@@ -87,6 +90,7 @@ function EmptyState() {
 }
 
 export default function FarmerOrdersPage() {
+  const { t } = useTranslation("farmer");
   const { data: orders = [], isLoading, refetch, isRefetching } =
     useFarmerOrdersDirect();
   const { mutate: updateStatus, isPending: updating } =
@@ -110,6 +114,7 @@ export default function FarmerOrdersPage() {
   });
 
   const handleUpdateStatus = (orderId: string, newStatus: OrderStatus) => {
+  const { t } = useTranslation("farmer");
     updateStatus({ orderId, status: newStatus });
   };
 
@@ -125,12 +130,12 @@ export default function FarmerOrdersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-amber-400" />
-            Incoming Orders
+        <div className="text-left">
+          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+            <ClipboardList className="w-6 h-6 text-emerald-600" />
+            {t("incomingOrders")}
           </h1>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <p className="text-slate-500 text-xs font-semibold mt-1">
             Review, accept, dispatch, and track all buyer orders from your crop
             listings.
           </p>
@@ -138,7 +143,7 @@ export default function FarmerOrdersPage() {
         <button
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 text-xs font-mono rounded-xl transition self-start sm:self-auto shrink-0"
+          className="flex items-center gap-1.5 px-4 py-2.5 premium-card hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-xs font-bold font-mono rounded-xl transition self-start sm:self-auto shrink-0 cursor-pointer"
         >
           <RefreshCw
             className={cn("w-3.5 h-3.5", isRefetching && "animate-spin")}
@@ -150,31 +155,31 @@ export default function FarmerOrdersPage() {
       {/* Summary Cards */}
       {!isLoading && orders.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 font-mono">
-          <div className="glass-panel p-4 rounded-2xl text-center">
-            <p className="text-[10px] text-slate-500">TOTAL ORDERS</p>
-            <p className="text-xl font-bold text-white mt-1">{summary.total}</p>
+          <div className="premium-card shadow-sm p-4 rounded-2xl text-center">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{t("totalOrders2")}</p>
+            <p className="text-xl font-extrabold text-slate-800 mt-1">{summary.total}</p>
           </div>
-          <div className="glass-panel p-4 rounded-2xl text-center">
-            <p className="text-[10px] text-amber-400">PENDING</p>
-            <p className="text-xl font-bold text-amber-400 mt-1">
+          <div className="shadow-sm p-4 rounded-2xl text-center border-amber-200 bg-amber-50/10">
+            <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">{t("pendingOrders")}</p>
+            <p className="text-xl font-extrabold text-amber-700 mt-1">
               {summary.pending}
             </p>
           </div>
-          <div className="glass-panel p-4 rounded-2xl text-center">
-            <p className="text-[10px] text-cyan-400">IN TRANSIT</p>
-            <p className="text-xl font-bold text-cyan-400 mt-1">
+          <div className="shadow-sm p-4 rounded-2xl text-center border-sky-200 bg-sky-50/10">
+            <p className="text-[10px] text-sky-700 font-bold uppercase tracking-wider">{t("inTransit")}</p>
+            <p className="text-xl font-extrabold text-sky-700 mt-1">
               {summary.dispatched}
             </p>
           </div>
-          <div className="glass-panel p-4 rounded-2xl text-center">
-            <p className="text-[10px] text-emerald-400">DELIVERED</p>
-            <p className="text-xl font-bold text-emerald-400 mt-1">
+          <div className="shadow-sm p-4 rounded-2xl text-center border-emerald-200 bg-emerald-50/10">
+            <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">{t("deliveredOrders")}</p>
+            <p className="text-xl font-extrabold text-emerald-700 mt-1">
               {summary.delivered}
             </p>
           </div>
-          <div className="glass-panel p-4 rounded-2xl text-center col-span-2 lg:col-span-1">
-            <p className="text-[10px] text-slate-500">TOTAL REVENUE</p>
-            <p className="text-lg font-bold text-white mt-1">
+          <div className="premium-card shadow-sm p-4 rounded-2xl text-center col-span-2 lg:col-span-1">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{t("totalRevenue")}</p>
+            <p className="text-lg font-extrabold text-slate-800 mt-1">
               ₹{summary.revenue.toLocaleString("en-IN")}
             </p>
           </div>
@@ -183,15 +188,15 @@ export default function FarmerOrdersPage() {
 
       {/* Filters */}
       {!isLoading && orders.length > 0 && (
-        <div className="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row gap-3">
+        <div className="premium-card shadow-sm p-4 rounded-2xl flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by buyer, crop, or order ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -201,10 +206,10 @@ export default function FarmerOrdersPage() {
                   key={s}
                   onClick={() => setStatusFilter(s)}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-mono capitalize transition",
+                    "px-3 py-1.5 rounded-xl text-xs font-mono font-bold capitalize transition border cursor-pointer",
                     statusFilter === s
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                      : "bg-white/5 border border-white/10 text-slate-400 hover:text-white"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-250 border"
+                      : "bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100"
                   )}
                 >
                   {s}
@@ -221,7 +226,7 @@ export default function FarmerOrdersPage() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="glass-panel rounded-2xl h-20 animate-pulse"
+              className="premium-card rounded-3xl shadow-sm h-20 animate-pulse"
             />
           ))}
         </div>
@@ -248,8 +253,7 @@ export default function FarmerOrdersPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   className={cn(
-                    "glass-panel rounded-2xl overflow-hidden border transition-all duration-300",
-                    config.bg
+                    "premium-card rounded-3xl shadow-sm overflow-hidden border transition-all duration-300 shadow-sm bg-white border-slate-200"
                   )}
                 >
                   {/* Order Header Row */}
@@ -270,14 +274,14 @@ export default function FarmerOrdersPage() {
                           className={cn("w-5 h-5", config.color)}
                         />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 text-left">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-white text-sm">
+                          <span className="font-bold text-slate-800 text-sm">
                             {order.consumer?.full_name ?? "Customer"}
                           </span>
                           <span
                             className={cn(
-                              "text-[9px] px-2 py-0.5 rounded-full border font-mono uppercase font-bold",
+                              "text-[9px] px-2.5 py-0.5 rounded-full border font-mono uppercase font-bold",
                               config.bg,
                               config.color
                             )}
@@ -285,7 +289,7 @@ export default function FarmerOrdersPage() {
                             {config.label}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">
                           #{order.id.slice(0, 8).toUpperCase()} ·{" "}
                           {order.order_items?.[0]?.product?.title ??
                             "Mixed Items"}{" "}
@@ -298,11 +302,11 @@ export default function FarmerOrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="text-right font-mono">
-                        <p className="text-[10px] text-slate-500">
-                          ORDER VALUE
+                      <div className="text-right font-mono shrink-0">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                          Value
                         </p>
-                        <p className="text-base font-bold text-emerald-400">
+                        <p className="text-base font-bold text-emerald-600">
                           ₹{(order.total_amount ?? 0).toLocaleString()}
                         </p>
                       </div>
@@ -321,28 +325,28 @@ export default function FarmerOrdersPage() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="border-t border-white/10 p-4 space-y-4"
+                        className="border-t border-slate-100 p-4 space-y-4 text-left bg-slate-50/20"
                       >
                         {/* Line Items */}
                         <div>
-                          <h4 className="text-xs font-bold text-white mb-2 font-mono">
-                            ORDER ITEMS
+                          <h4 className="text-[10px] font-bold text-slate-400 mb-2 font-mono uppercase tracking-wider">
+                            Order Items
                           </h4>
                           <div className="space-y-2">
                             {order.order_items?.map((item: any) => (
                               <div
                                 key={item.id}
-                                className="flex justify-between items-center bg-white/5 p-3 rounded-xl text-xs font-mono"
+                                className="flex justify-between items-center premium-card p-3 rounded-xl text-xs font-mono"
                               >
-                                <span className="text-white font-bold">
+                                <span className="text-slate-800 font-bold">
                                   {item.product?.title ?? "Product"}
                                 </span>
                                 <div className="flex gap-4 text-right">
-                                  <span className="text-slate-400">
+                                  <span className="text-slate-400 font-semibold">
                                     {item.quantity}{" "}
                                     {item.product?.unit_type ?? "Kg"}
                                   </span>
-                                  <span className="text-emerald-400 font-bold">
+                                  <span className="text-emerald-600 font-bold">
                                     ₹
                                     {(
                                       item.quantity * item.price_at_purchase
@@ -356,15 +360,15 @@ export default function FarmerOrdersPage() {
 
                         {/* Buyer Info */}
                         {order.consumer && (
-                          <div className="bg-white/5 p-3 rounded-xl text-xs font-mono">
-                            <p className="text-slate-500 text-[10px] mb-1">
-                              BUYER DETAILS
+                          <div className="premium-card p-3 rounded-xl text-xs font-mono">
+                            <p className="text-slate-400 font-bold text-[9px] uppercase tracking-wider mb-1">
+                              {t("buyerDetails")}
                             </p>
-                            <p className="text-white">
+                            <p className="text-slate-800 font-bold">
                               {order.consumer.full_name}
                             </p>
                             {order.consumer.phone_number && (
-                              <p className="text-slate-400 mt-0.5">
+                              <p className="text-slate-500 font-semibold mt-0.5">
                                 📞 {order.consumer.phone_number}
                               </p>
                             )}
@@ -373,18 +377,18 @@ export default function FarmerOrdersPage() {
 
                         {/* Delivery Address */}
                         {order.delivery_address && (
-                          <div className="bg-white/5 p-3 rounded-xl text-xs font-mono">
-                            <p className="text-slate-500 text-[10px] mb-1">
-                              DELIVERY ADDRESS
+                          <div className="premium-card p-3 rounded-xl text-xs font-mono">
+                            <p className="text-slate-400 font-bold text-[9px] uppercase tracking-wider mb-1">
+                              {t("deliveryAddress")}
                             </p>
-                            <p className="text-white">
+                            <p className="text-slate-700 font-semibold">
                               {order.delivery_address}
                             </p>
                           </div>
                         )}
 
                         {/* Actions */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
                           {order.status === "pending" && (
                             <>
                               <button
@@ -392,20 +396,20 @@ export default function FarmerOrdersPage() {
                                   handleUpdateStatus(order.id, "accepted")
                                 }
                                 disabled={updating}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 text-xs font-mono rounded-xl transition font-bold disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 text-xs font-mono font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
                               >
                                 <CheckCircle className="w-3.5 h-3.5" />
-                                Accept Order
+                                {t("acceptOrder1")}
                               </button>
                               <button
                                 onClick={() =>
                                   handleUpdateStatus(order.id, "cancelled")
                                 }
                                 disabled={updating}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 text-xs font-mono rounded-xl transition disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 border-rose-200 text-red-700 hover:bg-rose-100 text-xs font-mono font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
-                                Reject
+                                {t("rejectOrder")}
                               </button>
                             </>
                           )}
@@ -415,7 +419,7 @@ export default function FarmerOrdersPage() {
                                 handleUpdateStatus(order.id, "dispatched")
                               }
                               disabled={updating}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 text-xs font-mono rounded-xl transition font-bold disabled:opacity-50"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100 text-xs font-mono font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
                             >
                               <Truck className="w-3.5 h-3.5" />
                               Mark as Dispatched
@@ -427,13 +431,13 @@ export default function FarmerOrdersPage() {
                                 handleUpdateStatus(order.id, "delivered")
                               }
                               disabled={updating}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 text-xs font-mono rounded-xl transition font-bold disabled:opacity-50"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 text-xs font-mono font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
-                              Confirm Delivery
+                              {t("confirmDelivery")}
                             </button>
                           )}
-                          <button className="flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 text-xs font-mono rounded-xl transition">
+                          <button className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 text-xs font-bold font-mono rounded-xl transition border-0 cursor-pointer">
                             <MessageSquare className="w-3.5 h-3.5" />
                             Message Buyer
                           </button>
@@ -447,12 +451,12 @@ export default function FarmerOrdersPage() {
           </AnimatePresence>
 
           {filteredOrders.length === 0 && (
-            <div className="glass-panel p-12 rounded-2xl text-center">
-              <ClipboardList className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400 text-sm">
+            <div className="premium-card shadow-sm p-12 rounded-2xl text-center">
+              <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-800 font-bold text-sm">
                 No orders match your filter
               </p>
-              <p className="text-slate-500 text-xs mt-1">
+              <p className="text-slate-400 text-xs mt-1 font-semibold">
                 Try changing the search criteria or status filter
               </p>
             </div>

@@ -1,5 +1,4 @@
 "use client";
-
 import type { UserRole } from "@/types";
 
 export interface KYCApp {
@@ -23,7 +22,7 @@ export default function KYCApplicationList({
   onSelect,
 }: KYCApplicationListProps) {
   return (
-    <div className="glass-panel h-full overflow-y-auto border-r border-white/5 flex flex-col">
+    <div className="premium-card shadow-sm h-full overflow-y-auto border-r border-white/5 flex flex-col">
       <div className="p-4 border-b border-white/5 bg-white/[0.01]">
         <h4 className="text-white font-semibold text-sm">KYC Applications</h4>
         <p className="text-slate-500 text-xs mt-0.5">
@@ -47,7 +46,7 @@ export default function KYCApplicationList({
                   : ""
               }`}
             >
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 font-semibold text-sm flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border-purple-500/30 flex items-center justify-center text-purple-300 font-semibold text-sm flex-shrink-0">
                 {app.fullName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">

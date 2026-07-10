@@ -1,3 +1,5 @@
+"use client";
+import { useTranslation } from "@/hooks/useTranslation";
 /**
  * @fileoverview AccessibilityPanel — Phase 7 polish component.
  *
@@ -10,7 +12,7 @@
  * Settings are persisted in localStorage AND optionally saved to Supabase
  * `profiles.accessibility_settings` JSONB column (non-blocking).
  */
-"use client";
+
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -134,6 +136,7 @@ function SettingRow({ icon: Icon, iconColor, title, description, children }: Set
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function AccessibilityPanel() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<AccessibilitySettings>(DEFAULTS);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -201,9 +204,9 @@ export default function AccessibilityPanel() {
           <Accessibility className="w-4 h-4 text-white" />
         </div>
         <div>
-          <h2 className="text-white font-semibold text-base">Accessibility</h2>
+          <h2 className="text-white font-semibold text-base">{t("accessibility")}</h2>
           <p className="text-slate-500 text-xs">
-            Customize your experience
+            {t("customizeYourExperience")}
           </p>
         </div>
       </div>
@@ -212,11 +215,11 @@ export default function AccessibilityPanel() {
       <SettingRow
         icon={Type}
         iconColor="#38bdf8"
-        title="Font Size"
+        title={t("fontSize")}
         description="Adjust the base text size across the platform."
       >
         <div className="flex items-center gap-3 w-48">
-          <span className="text-slate-500 text-xs shrink-0">Aa</span>
+          <span className="text-slate-500 text-xs shrink-0">{t("aa")}</span>
           <input
             id="accessibility-font-size-slider"
             type="range"
@@ -261,7 +264,7 @@ export default function AccessibilityPanel() {
           className="text-white/60 italic"
           style={{ fontSize: fontPreviewSize }}
         >
-          "Fresh tomatoes from certified organic farm — Grade A+"
+          {t("freshTomatoesFromCertifiedOrga1")}
         </p>
         <p className="text-sky-400/50 text-[10px] mt-1">Preview at {settings.fontSize}px</p>
       </motion.div>
@@ -322,7 +325,7 @@ export default function AccessibilityPanel() {
             border: "1px solid rgba(139,92,246,0.2)",
           }}
         >
-          <p className="text-purple-300 text-xs font-medium mb-1.5">Active Overrides</p>
+          <p className="text-purple-300 text-xs font-medium mb-1.5">{t("activeOverrides")}</p>
           <div className="flex flex-wrap gap-1.5">
             {settings.fontSize !== 16 && (
               <span className="px-2 py-0.5 rounded-full text-[10px] bg-sky-500/15 text-sky-400 border border-sky-500/20">
@@ -331,7 +334,7 @@ export default function AccessibilityPanel() {
             )}
             {settings.highContrast && (
               <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                High Contrast
+                {t("highContrast")}
               </span>
             )}
             {settings.reduceAnimations && (

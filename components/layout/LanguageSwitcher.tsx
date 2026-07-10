@@ -1,3 +1,4 @@
+"use client";
 /**
  * @fileoverview LanguageSwitcher — Phase 7 finalized component.
  *
@@ -7,7 +8,7 @@
  *   - Updates the SpeechController language code globally via context event
  *   - Reads initial language from Supabase profile on mount
  */
-"use client";
+
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,43 +44,56 @@ const LANGUAGE_OPTIONS = [
   { code: "ml", flag: "🇮🇳", nativeLabel: "മലയാളം",    label: LANGUAGE_LABELS["ml"] },
 ];
 
+import {
+  getCurrentLangForPlatform,
+  dispatchLangChange,
+  Platform
+} from "@/hooks/useTranslation";
+
 // ─── Global language event — picked up by VoiceAssistantModal ─────────────────
 const LANG_CHANGE_EVENT = "agrinex:language-change";
 
-export function dispatchLanguageChange(code: string): void {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(
-      new CustomEvent(LANG_CHANGE_EVENT, { detail: { code } })
-    );
-    // Persist to sessionStorage for VoiceAssistantModal to read
-    sessionStorage.setItem("agrinex-lang", code);
-  }
+export function detectPlatform(): Platform | undefined {
+  if (typeof window === "undefined") return undefined;
+  const path = window.location.pathname;
+  if (path.includes("/farmer")) return "farmer";
+  if (path.includes("/consumer")) return "consumer";
+  return undefined;
 }
 
-export function getCurrentLanguage(): string {
-  if (typeof window === "undefined") return "en";
-  return sessionStorage.getItem("agrinex-lang") ?? "en";
+export function dispatchLanguageChange(code: string, platform?: Platform): void {
+  const p = platform || detectPlatform();
+  dispatchLangChange(code, p);
+}
+
+export function getCurrentLanguage(platform?: Platform): string {
+  const p = platform || detectPlatform();
+  return getCurrentLangForPlatform(p);
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 interface LanguageSwitcherProps {
   /** If true, renders as a compact inline dropdown (for sidebar) */
   compact?: boolean;
+  /** Explicit platform target */
+  platform?: Platform;
 }
 
-export default function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ compact = false, platform }: LanguageSwitcherProps) {
   const [currentCode, setCurrentCode] = useState("en");
   const [isOpen, setIsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Load language preference from Supabase profile on mount
+  const activePlatform = platform || detectPlatform() || "consumer";
+
+  // Load language preference from storage/profile on mount
   useEffect(() => {
     const loadLang = async () => {
-      // First check sessionStorage for instant restore
-      const cached = getCurrentLanguage();
+      // First check sessionStorage/localStorage for instant restore
+      const cached = getCurrentLanguage(activePlatform);
       if (cached && cached !== "en") {
         setCurrentCode(cached);
-        dispatchLanguageChange(cached);
+        dispatchLanguageChange(cached, activePlatform);
         return;
       }
 
@@ -97,11 +111,11 @@ export default function LanguageSwitcher({ compact = false }: LanguageSwitcherPr
 
       if (profile?.language_preference && LANGUAGE_CODES[profile.language_preference]) {
         setCurrentCode(profile.language_preference);
-        dispatchLanguageChange(profile.language_preference);
+        dispatchLanguageChange(profile.language_preference, activePlatform);
       }
     };
     loadLang();
-  }, []);
+  }, [activePlatform]);
 
   const handleSelect = useCallback(
     async (code: string) => {
@@ -109,7 +123,7 @@ export default function LanguageSwitcher({ compact = false }: LanguageSwitcherPr
       if (code === currentCode) return;
 
       setCurrentCode(code);
-      dispatchLanguageChange(code);
+      dispatchLanguageChange(code, activePlatform);
       setSaving(true);
 
       try {
@@ -129,7 +143,7 @@ export default function LanguageSwitcher({ compact = false }: LanguageSwitcherPr
         setSaving(false);
       }
     },
-    [currentCode]
+    [currentCode, activePlatform]
   );
 
   const current = LANGUAGE_OPTIONS.find((l) => l.code === currentCode) ?? LANGUAGE_OPTIONS[0];

@@ -1,5 +1,4 @@
 "use client";
-
 /**
  * @fileoverview /orders — Unified Orders List page for both farmers and consumers.
  * - Consumers see orders they placed
@@ -41,7 +40,7 @@ export default function UnifiedOrdersPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#030704] text-white">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">
       <div className="flex flex-col items-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
         <p className="text-sm font-semibold">Redirecting to your orders...</p>
@@ -49,5 +48,3 @@ export default function UnifiedOrdersPage() {
     </div>
   );
 }
-
-

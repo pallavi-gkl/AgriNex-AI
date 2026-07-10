@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -96,7 +95,7 @@ export default function AdminKYCPage() {
 
   if (error) {
     return (
-      <div className="p-6 text-center text-red-400 glass-panel rounded-2xl">
+      <div className="p-6 text-center text-red-400 premium-card rounded-3xl shadow-sm">
         <ShieldX className="w-10 h-10 mx-auto mb-2 text-red-500" />
         <p>Error loading KYC: {(error as Error).message}</p>
       </div>
@@ -105,7 +104,7 @@ export default function AdminKYCPage() {
 
   return (
     <div
-      className="grid h-[500px] glass-panel rounded-2xl overflow-hidden border border-white/5"
+      className="grid h-[500px] premium-card rounded-3xl shadow-sm overflow-hidden border-white/5"
       style={{ gridTemplateColumns: "320px 1fr" }}
     >
       {/* Left List Pane */}

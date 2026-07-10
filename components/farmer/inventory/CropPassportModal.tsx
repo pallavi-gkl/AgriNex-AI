@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import React from "react";
 import { motion } from "framer-motion";
@@ -59,6 +60,7 @@ interface CropPassportModalProps {
 }
 
 export default function CropPassportModal({ crop, onClose }: CropPassportModalProps) {
+  const { t } = useTranslation("farmer");
   // Traceability steps
   const steps = [
     { label: "Sowing & Growth", date: crop.production_date || "2026-04-01", desc: "Monitored organic sowing under sustainable guidelines." },
@@ -73,7 +75,7 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="glass-panel w-full max-w-4xl rounded-3xl overflow-hidden bg-[#0d1426]/90 border-white/10 flex flex-col md:flex-row max-h-[90vh] shadow-2xl"
+        className="w-full max-w-4xl rounded-3xl overflow-hidden bg-[#0d1426]/90 border-white/10 flex flex-col md:flex-row max-h-[90vh] shadow-2xl"
       >
         {/* Left Column: Image & Basic Tags */}
         <div className="md:w-2/5 relative bg-slate-900 border-r border-white/5 flex flex-col">
@@ -94,18 +96,18 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
             {crop.is_organic && (
               <span className="bg-emerald-500 text-black text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
                 <Leaf className="w-3.5 h-3.5 fill-black" />
-                Certified Organic
+                {t("certifiedOrganic")}
               </span>
             )}
-            <span className="bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono px-2.5 py-1 rounded-full shadow-md">
+            <span className="bg-emerald-950/80 border-emerald-500/30 text-emerald-400 text-[10px] font-mono px-2.5 py-1 rounded-full shadow-md">
               TRACE CODE: {crop.traceability_code || "AGX-2026-GEN-00"}
             </span>
           </div>
 
-          <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/5 p-3 rounded-2xl">
+          <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border-white/5 p-3 rounded-2xl">
             <h4 className="text-sm font-bold text-white mb-1 flex items-center gap-1">
               <QrCode className="w-4 h-4 text-emerald-400" />
-              Digital Ledger QR Passport
+              {t("digitalLedgerQrPassport")}
             </h4>
             <div className="flex gap-3 items-center">
               <div className="bg-white p-1 rounded-lg shrink-0">
@@ -130,7 +132,7 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
             <div className="flex justify-between items-start gap-4">
               <div>
                 <span className="text-[10px] uppercase font-mono text-emerald-400 tracking-wider">
-                  Digital Crop Passport
+                  {t("digitalCropPassport")}
                 </span>
                 <h2 className="text-xl md:text-2xl font-bold text-white mt-1 flex items-center gap-2">
                   {crop.title}
@@ -153,22 +155,22 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
 
             {/* Key Grid Details */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
-              <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
+              <div className="bg-white/5 border-white/10 p-3 rounded-xl">
                 <p className="text-[10px] text-slate-500 font-mono">STOCK QUANTITY</p>
                 <p className="text-sm font-bold text-white mt-1">
                   {crop.quantity_available} {crop.unit_type}
                 </p>
               </div>
-              <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
-                <p className="text-[10px] text-slate-500 font-mono">EXPECTED SHELF LIFE</p>
+              <div className="bg-white/5 border-white/10 p-3 rounded-xl">
+                <p className="text-[10px] text-slate-500 font-mono">{t("expectedShelfLife")}</p>
                 <p className="text-sm font-bold text-white mt-1">
-                  {crop.shelf_life_days || 14} Days
+                  {crop.shelf_life_days || 14} {t("days")}
                 </p>
               </div>
-              <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
-                <p className="text-[10px] text-slate-500 font-mono">AI STABILITY GRADE</p>
-                <span className="inline-block mt-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20 font-mono">
-                  Grade {crop.ai_quality_grade || "A+"}
+              <div className="bg-white/5 border-white/10 p-3 rounded-xl">
+                <p className="text-[10px] text-slate-500 font-mono">{t("aiStabilityGrade")}</p>
+                <span className="inline-block mt-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border-emerald-500/20 font-mono">
+                  {t("grade")} {crop.ai_quality_grade || "A+"}
                 </span>
               </div>
             </div>
@@ -177,12 +179,12 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
             <div className="mt-6 border-t border-white/5 pt-6">
               <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-purple-400" />
-                AI Crop Health Diagnostics (Gemini Vision)
+                {t("aiCropHealthDiagnosticsGeminiV")}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-400">Freshness Integrity</span>
+                    <span className="text-slate-400">{t("freshnessIntegrity")}</span>
                     <span className="text-emerald-400">{crop.ai_freshness_score || 95}%</span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -194,7 +196,7 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-400">AI Confidence Index</span>
+                    <span className="text-slate-400">{t("aiConfidenceIndex")}</span>
                     <span className="text-purple-400">{crop.ai_confidence_score || 96}%</span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -276,11 +278,11 @@ export default function CropPassportModal({ crop, onClose }: CropPassportModalPr
               <div className="mt-6 border-t border-white/5 pt-6">
                 <h4 className="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1">
                   <Award className="w-3.5 h-3.5 text-amber-400" />
-                  AGRICULTURAL CREDENTIALS
+                  {t("agriculturalCredentials")}
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {crop.certificates.map((cert) => (
-                    <span key={cert} className="bg-slate-900 border border-white/10 px-2 py-0.5 rounded text-[10px] text-slate-300 font-mono">
+                    <span key={cert} className="bg-slate-900 border-white/10 px-2 py-0.5 rounded text-[10px] text-slate-300 font-mono">
                       {cert}
                     </span>
                   ))}

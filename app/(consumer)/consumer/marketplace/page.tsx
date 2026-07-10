@@ -49,26 +49,54 @@ const GRADE_CONFIG: Record<string, { color: string; bg: string; border: string }
 };
 
 const CATEGORIES = [
-  { label: "All",          icon: "🌾",  keywords: [] },
-  { label: "Vegetables",   icon: "🥦",  keywords: ["vegetable", "vegetables"] },
-  { label: "Fruits",       icon: "🍎",  keywords: ["fruit", "fruits"] },
-  { label: "Grains",       icon: "🌾",  keywords: ["grain", "grains", "cereal", "cereals", "rice", "wheat"] },
-  { label: "Pulses",       icon: "🫘",  keywords: ["pulse", "pulses", "dal", "lentil", "lentils", "legume"] },
-  { label: "Spices",       icon: "🌶️", keywords: ["spice", "spices", "herb", "herbs"] },
-  { label: "Leafy Greens", icon: "🥬",  keywords: ["leafy", "greens", "spinach", "palak"] },
-  { label: "Dairy",        icon: "🥛",  keywords: ["dairy", "milk", "cheese", "paneer"] },
-  { label: "Others",       icon: "📦",  keywords: ["other", "others", "misc"] },
+  { label: "All",              icon: "🌾",  keywords: [] },
+  { label: "Vegetables",       icon: "🥦",  keywords: ["vegetable", "vegetables"] },
+  { label: "Fruits",           icon: "🍎",  keywords: ["fruit", "fruits"] },
+  { label: "Grains",           icon: "🌾",  keywords: ["grain", "grains", "cereal", "cereals", "rice", "wheat"] },
+  { label: "Pulses",           icon: "🫘",  keywords: ["pulse", "pulses", "dal", "lentil", "lentils", "legume"] },
+  { label: "Spices",           icon: "🌶️", keywords: ["spice", "spices", "herb", "herbs"] },
+  { label: "Leafy Vegetables", icon: "🥬",  keywords: ["leafy", "greens", "spinach", "palak"] },
+  { label: "Dairy",            icon: "🥛",  keywords: ["dairy", "milk", "cheese", "paneer"] },
+  { label: "Others",           icon: "📦",  keywords: ["other", "others", "misc"] },
 ];
 
 /** Returns true if a product's category matches the selected filter label */
-function matchesCategory(productCategory: string, filterLabel: string): boolean {
+function matchesCategory(product: any, filterLabel: string): boolean {
   if (filterLabel === "All") return true;
+
+  const title = (product.title ?? "").toLowerCase();
+  const category = (product.category ?? "").toLowerCase();
+
+  // 1. Pomegranate belongs strictly to Fruits
+  if (title.includes("pomegranate") || category.includes("pomegranate")) {
+    return filterLabel === "Fruits";
+  }
+
+  // 2. Prevent fruit/vegetable contamination in Spices
+  if (filterLabel === "Spices") {
+    if (
+      title.includes("mango") ||
+      category.includes("fruit") ||
+      category.includes("vegetable") ||
+      category.includes("leafy")
+    ) {
+      return false;
+    }
+  }
+
+  // 3. Prevent leafy vegetables from showing in normal Vegetables filter
+  if (filterLabel === "Vegetables") {
+    if (category.includes("leafy")) {
+      return false;
+    }
+  }
+
   const cat = CATEGORIES.find((c) => c.label === filterLabel);
   if (!cat) return false;
-  const lower = (productCategory ?? "").toLowerCase();
-  // Exact match first
+
+  const lower = category.toLowerCase();
   if (lower === filterLabel.toLowerCase()) return true;
-  // Check if any keyword appears in the product category
+
   return cat.keywords.some((kw) => lower.includes(kw));
 }
 
@@ -169,7 +197,9 @@ function ProductCard({
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <Leaf className="w-10 h-10 text-emerald-400/40" />
-            <span className="text-slate-600 text-xs">{product.category}</span>
+            <span className="text-slate-606 text-slate-600 text-xs">
+              {(product.title?.toLowerCase().includes("pomegranate") || product.category?.toLowerCase().includes("pomegranate")) ? "Fruits" : product.category}
+            </span>
           </div>
         )}
 
@@ -238,7 +268,9 @@ function ProductCard({
           </div>
         )}
 
-        <span className="text-slate-500 text-xs">{product.category}</span>
+        <span className="text-slate-500 text-xs">
+          {(product.title?.toLowerCase().includes("pomegranate") || product.category?.toLowerCase().includes("pomegranate")) ? "Fruits" : product.category}
+        </span>
 
         {/* Stock */}
         <div className="flex items-center gap-1 text-xs text-slate-500">
@@ -637,9 +669,9 @@ export default function MarketplacePage() {
 
   // Client-side filter for category, organic, price, and grade
   const filteredProducts = products.filter((p: any) => {
-    // Category filter (applied on demo data; API already filters live data)
-    if (category !== "All" && liveProducts.length === 0) {
-      if (!matchesCategory(p.category ?? "", category)) return false;
+    // Category filter (applied client-side for extra safety)
+    if (category !== "All") {
+      if (!matchesCategory(p, category)) return false;
     }
     if (onlyOrganic && !(p.isOrganic || p.is_organic)) return false;
     const price = p.pricePerUnit ?? p.price_per_unit ?? 0;
@@ -667,7 +699,7 @@ export default function MarketplacePage() {
       farmerName: product.farmer?.fullName ?? product.farmerName ?? "Verified Farmer",
       imageUrl: product.imageUrl ?? product.image_url,
       maxQty: product.quantityAvailable ?? product.quantity_available ?? 999,
-      category: product.category,
+      category: (product.title?.toLowerCase().includes("pomegranate") || product.category?.toLowerCase().includes("pomegranate")) ? "Fruits" : product.category,
     });
     setCartOpen(true);
   }, [addToCart]);
@@ -694,7 +726,7 @@ export default function MarketplacePage() {
         qualityGrade: product.qualityGrade ?? product.quality_grade,
         farmerName: product.farmer?.fullName ?? product.farmerName,
         farmerId: product.farmer?.id ?? product.farmerId,
-        category: product.category,
+        category: (product.title?.toLowerCase().includes("pomegranate") || product.category?.toLowerCase().includes("pomegranate")) ? "Fruits" : product.category,
       });
     }
   }, [isInWishlist, addToWishlist, removeFromWishlist]);

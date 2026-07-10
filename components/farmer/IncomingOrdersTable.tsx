@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview IncomingOrdersTable — farmer's incoming order management table.
@@ -12,6 +13,7 @@ import { useFarmerOrders } from "@/hooks/useFarmerOrders";
 import { useUpdateOrderStatus } from "@/hooks/useOrders";
 import type { OrderStatus } from "@/types";
 import { staggerContainerVariants, listItemVariants } from "@/lib/animations";
+import { cn } from "@/lib/utils";
 
 // ─── Status badge config ──────────────────────────────────────────────────────
 const statusConfig: Record<
@@ -28,6 +30,7 @@ const statusConfig: Record<
 
 // ─── Detail Modal ─────────────────────────────────────────────────────────────
 function OrderDetailDrawer({ order, onClose }: { order: any; onClose: () => void }) {
+  const { t } = useTranslation("farmer");
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -41,27 +44,27 @@ function OrderDetailDrawer({ order, onClose }: { order: any; onClose: () => void
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="glass-panel rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+        className="premium-card rounded-3xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
       >
-        <h3 className="text-white font-semibold mb-1">Order Details</h3>
+        <h3 className="text-[#0f172a] font-semibold mb-1">{t("orderDetails")}</h3>
         <p className="text-slate-400 text-xs font-mono mb-4">#{order.id.slice(0, 8)}</p>
 
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-400">Consumer</span>
-            <span className="text-white">{order.consumer?.full_name ?? "—"}</span>
+            <span className="text-slate-400">{t("consumer1")}</span>
+            <span className="text-slate-800">{order.consumer?.full_name ?? "—"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Total</span>
+            <span className="text-slate-400">{t("total")}</span>
             <span className="gradient-text-green font-semibold">₹{Number(order.total_amount).toLocaleString("en-IN")}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Delivery Address</span>
-            <span className="text-white text-right max-w-[200px]">{order.delivery_address}</span>
+            <span className="text-slate-400">{t("deliveryAddress")}</span>
+            <span className="text-slate-600 text-right max-w-[200px]">{order.delivery_address}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Payment</span>
-            <span className={order.payment_status === "completed" ? "text-emerald-400" : "text-amber-400"}>
+            <span className={order.payment_status === "completed" ? "text-emerald-600" : "text-amber-600"}>
               {order.payment_status}
             </span>
           </div>
@@ -69,21 +72,21 @@ function OrderDetailDrawer({ order, onClose }: { order: any; onClose: () => void
 
         {/* Items */}
         <div className="mt-4">
-          <p className="text-xs text-slate-400 font-medium mb-2">Items</p>
+          <p className="text-xs text-slate-400 font-medium mb-2">{t("items")}</p>
           {(order.order_items ?? []).map((item: any) => (
-            <div key={item.id} className="flex justify-between items-center py-2 border-b border-white/5 text-sm">
-              <span className="text-white">{item.product?.title ?? "Product"}</span>
+            <div key={item.id} className="flex justify-between items-center py-2 border-b border-slate-100 text-sm">
+              <span className="text-slate-800">{item.product?.title ?? "Product"}</span>
               <span className="text-slate-400">{item.quantity} {item.product?.unit_type}</span>
-              <span className="text-emerald-400">₹{item.price_at_purchase}</span>
+              <span className="text-emerald-600">₹{item.price_at_purchase}</span>
             </div>
           ))}
         </div>
 
         <button
           onClick={onClose}
-          className="mt-4 w-full py-2 rounded-xl border border-white/10 text-slate-400 text-sm hover:border-white/20 transition-all"
+          className="mt-4 w-full btn-ghost text-sm"
         >
-          Close
+          {t("close")}
         </button>
       </motion.div>
     </motion.div>
@@ -92,30 +95,34 @@ function OrderDetailDrawer({ order, onClose }: { order: any; onClose: () => void
 
 // ─── Main Table Component ─────────────────────────────────────────────────────
 export default function IncomingOrdersTable({ className = "" }: { className?: string }) {
+  const { t } = useTranslation("farmer");
   const { data: orders = [], isLoading, refetch, isFetching } = useFarmerOrders();
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateOrderStatus();
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
   const handleAction = (orderId: string, status: OrderStatus) => {
+  const { t } = useTranslation("farmer");
     updateStatus({ orderId, status });
   };
 
   return (
-    <div className={`glass-panel rounded-2xl p-5 ${className}`}>
+    <div className={`premium-card rounded-3xl p-5 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-white font-semibold text-sm">Incoming Orders</h3>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-sm">
+            <ClipboardList className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-[#0f172a] font-semibold text-sm">{t("incomingOrders")}</h3>
           {orders.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/15 border border-emerald-500/25 text-emerald-300">
+            <span className="badge badge-green">
               {orders.length}
             </span>
           )}
         </div>
         <button
           onClick={() => refetch()}
-          className="w-7 h-7 rounded-lg glass-panel flex items-center justify-center hover:border-emerald-500/30 transition-all"
+          className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-xl border border-slate-200/80 flex items-center justify-center hover:border-emerald-500/30 transition-all"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${isFetching ? "animate-spin" : ""}`} />
         </button>
@@ -136,9 +143,9 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
         </div>
       ) : (
         <div className="overflow-x-auto -mx-1">
-          <table className="w-full text-sm min-w-[640px]">
+          <table className="ag-table w-full text-sm min-w-[640px]">
             <thead>
-              <tr className="border-b border-white/5">
+              <tr className="border-b border-slate-100">
                 {["Order ID", "Consumer", "Crop(s)", "Qty", "Total", "Status", "Actions"].map((h) => (
                   <th key={h} className="text-left py-2 px-2 text-xs text-slate-500 font-medium">
                     {h}
@@ -161,7 +168,7 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
                   <motion.tr
                     key={order.id}
                     variants={listItemVariants}
-                    className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
+                    className="border-b border-slate-100 hover:bg-emerald-50/30 transition-colors"
                   >
                     {/* Order ID */}
                     <td className="py-3 px-2">
@@ -172,12 +179,12 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
 
                     {/* Consumer */}
                     <td className="py-3 px-2">
-                      <span className="text-white">{order.consumer?.full_name ?? "—"}</span>
+                      <span className="text-slate-800">{order.consumer?.full_name ?? "—"}</span>
                     </td>
 
                     {/* Crops */}
                     <td className="py-3 px-2">
-                      <span className="text-slate-300 truncate max-w-[120px] block" title={cropNames}>
+                      <span className="text-slate-600 truncate max-w-[120px] block" title={cropNames}>
                         {cropNames}
                       </span>
                     </td>
@@ -196,7 +203,15 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
 
                     {/* Status badge */}
                     <td className="py-3 px-2">
-                      <span className={`px-2 py-1 rounded-full text-xs border ${cfg.classes} whitespace-nowrap`}>
+                      <span className={cn(
+                        "badge whitespace-nowrap",
+                        order.status === "pending" ? "badge-amber" :
+                        order.status === "accepted" ? "badge-blue" :
+                        order.status === "quality_verified" ? "badge-green" :
+                        order.status === "dispatched" ? "badge-purple" :
+                        order.status === "delivered" ? "badge-slate" :
+                        "badge-red"
+                      )}>
                         {cfg.label}
                       </span>
                     </td>
@@ -207,8 +222,8 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
                         {/* View details */}
                         <button
                           onClick={() => setSelectedOrder(order)}
-                          className="w-7 h-7 rounded-lg glass-panel flex items-center justify-center hover:border-white/20 transition-all"
-                          title="View details"
+                          className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-xl border border-slate-200/80 flex items-center justify-center hover:border-emerald-500/30 transition-all"
+                          title={t("viewDetails")}
                         >
                           <Eye className="w-3.5 h-3.5 text-slate-400" />
                         </button>
@@ -218,16 +233,10 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
                           <button
                             onClick={() => handleAction(order.id, "accepted")}
                             disabled={isUpdating}
-                            className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 disabled:opacity-50"
-                            style={{
-                              background: "rgba(16,185,129,0.15)",
-                              border: "1px solid rgba(16,185,129,0.35)",
-                              color: "#34d399",
-                              boxShadow: "0 0 10px rgba(16,185,129,0.1)",
-                            }}
+                            className="btn-primary text-xs py-1.5 px-3 disabled:opacity-50"
                           >
                             {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-                            Accept
+                            {t("acceptOrder")}
                           </button>
                         )}
 
@@ -236,15 +245,10 @@ export default function IncomingOrdersTable({ className = "" }: { className?: st
                           <button
                             onClick={() => handleAction(order.id, "dispatched")}
                             disabled={isUpdating}
-                            className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 disabled:opacity-50"
-                            style={{
-                              background: "rgba(139,92,246,0.15)",
-                              border: "1px solid rgba(139,92,246,0.35)",
-                              color: "#c084fc",
-                            }}
+                            className="btn-ai text-xs py-1.5 px-3 disabled:opacity-50"
                           >
                             {isUpdating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Truck className="w-3 h-3" />}
-                            Dispatch
+                            {t("dispatchOrder")}
                           </button>
                         )}
                       </div>

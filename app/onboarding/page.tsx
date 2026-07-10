@@ -1,12 +1,15 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import PageBackground from "@/components/ui/PageBackground";
 import { Leaf, Sprout, ShoppingCart, CheckCircle, Loader2, User, Phone, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function OnboardingPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loadingSession, setLoadingSession] = useState(true);
   const [profileExists, setProfileExists] = useState(false);
@@ -87,6 +90,7 @@ export default function OnboardingPage() {
   }, [router]);
 
   const startOnboardingAnimation = () => {
+  const { t } = useTranslation();
     setLoadingSession(false);
     setTimeout(() => setAnimationStep(1), 500);
     setTimeout(() => setAnimationStep(2), 1200);
@@ -164,7 +168,7 @@ export default function OnboardingPage() {
 
   if (loadingSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8faf8]">
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
         <div className="flex flex-col items-center gap-3 text-slate-500">
           <Loader2 className="w-8 h-8 animate-spin text-[#16a34a]" />
           <p className="text-sm font-semibold font-sans">Verifying session...</p>
@@ -174,10 +178,8 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#f8faf8] relative">
-      {/* Background Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[100px] bg-emerald-500/5 pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[100px] bg-emerald-500/5 pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-transparent relative">
+      <PageBackground variant="auth" />
 
       <div className="w-full max-w-lg relative z-10">
         {/* Logo */}
@@ -198,10 +200,10 @@ export default function OnboardingPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.4 }}
-              className="glass-panel rounded-3xl p-8 shadow-xl relative overflow-hidden"
+              className="premium-card shadow-sm rounded-3xl p-8 relative overflow-hidden"
             >
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Complete Your Profile</h1>
+                <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">{t("completeYourProfile")}</h1>
                 <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">
                   Select your role and enter your details to join AgriNex
                 </p>
@@ -214,7 +216,7 @@ export default function OnboardingPage() {
                 {/* Role Cards */}
                 <div>
                   <label className="text-[11px] text-slate-400 mb-2.5 block font-bold tracking-wider uppercase">
-                    CHOOSE YOUR ROLE
+                    {t("chooseYourRole")}
                   </label>
                   <div className="grid grid-cols-2 gap-4">
                     {/* Farmer Card */}
@@ -224,7 +226,7 @@ export default function OnboardingPage() {
                       className={`flex flex-col items-center gap-3.5 p-5 rounded-2xl border text-center transition-all duration-300 relative overflow-hidden group ${
                         selectedRole === "farmer"
                           ? "bg-emerald-500/5 border-[#16a34a] text-[#16a34a] shadow-[0_0_20px_rgba(22,163,74,0.06)]"
-                          : "bg-white/40 border-slate-200 text-slate-500 hover:bg-white/70 hover:border-slate-300"
+                          : "premium-card text-slate-500 hover:bg-slate-50 hover:border-slate-350"
                       }`}
                     >
                       <div
@@ -235,7 +237,7 @@ export default function OnboardingPage() {
                         <Sprout className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-slate-800">Farmer</p>
+                        <p className="font-bold text-sm text-slate-800">{t("farmer")}</p>
                         <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
                           Sell crops directly, get AI prices &amp; grading
                         </p>
@@ -249,7 +251,7 @@ export default function OnboardingPage() {
                       className={`flex flex-col items-center gap-3.5 p-5 rounded-2xl border text-center transition-all duration-300 relative overflow-hidden group ${
                         selectedRole === "consumer"
                           ? "bg-amber-500/5 border-amber-500 text-amber-600 shadow-[0_0_20px_rgba(245,158,11,0.06)]"
-                          : "bg-white/40 border-slate-200 text-slate-500 hover:bg-white/70 hover:border-slate-300"
+                          : "premium-card text-slate-500 hover:bg-slate-50 hover:border-slate-350"
                       }`}
                     >
                       <div
@@ -260,7 +262,7 @@ export default function OnboardingPage() {
                         <ShoppingCart className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-slate-800">Consumer</p>
+                        <p className="font-bold text-sm text-slate-800">{t("consumer1")}</p>
                         <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
                           Order fresh produce, track deliveries live
                         </p>
@@ -272,7 +274,7 @@ export default function OnboardingPage() {
                 {/* Form Fields */}
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Full Name</label>
+                    <label className="text-xs font-semibold text-slate-600 mb-1.5 block">{t("fullName")}</label>
                     <div className="relative">
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input
@@ -280,7 +282,7 @@ export default function OnboardingPage() {
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="glass-input pl-10"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 pl-10"
                         placeholder="e.g. Rajesh Kumar"
                         required
                         autoComplete="name"
@@ -297,7 +299,7 @@ export default function OnboardingPage() {
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="glass-input pl-10"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 pl-10"
                         placeholder="e.g. 9876543210"
                         maxLength={15}
                         required
@@ -332,9 +334,9 @@ export default function OnboardingPage() {
                   }}
                 >
                   {submitting ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Completing Setup...</>
+                    <><Loader2 className="w-4 h-4 animate-spin" /> {t("completingSetup")}</>
                   ) : (
-                    <>Complete Profile <ArrowRight className="w-4.5 h-4.5" /></>
+                    <>{t("completeProfile")} <ArrowRight className="w-4.5 h-4.5" /></>
                   )}
                 </button>
               </form>
@@ -377,7 +379,7 @@ export default function OnboardingPage() {
               </p>
 
               {/* Steps Checklist */}
-              <div className="glass-panel rounded-2xl p-6 space-y-4 mb-6 text-left">
+              <div className="premium-card rounded-3xl shadow-sm p-6 space-y-4 mb-6 text-left">
                 {steps.map((s, i) => {
                   const Icon = s.icon;
                   const done = animationStep > i;

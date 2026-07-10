@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -61,6 +62,7 @@ async function toggleUserSuspension(payload: { profileId: string; verify: boolea
 }
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -86,13 +88,14 @@ export default function AdminUsersPage() {
   };
 
   const getRoleBadge = (role: string) => {
+  const { t } = useTranslation();
     switch (role) {
       case "admin":
-        return <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold text-[10px]">ADMIN</span>;
+        return <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold text-[10px]">{t("admin1")}</span>;
       case "farmer":
-        return <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">FARMER</span>;
+        return <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">{t("farmer")}</span>;
       case "consumer":
-        return <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 font-bold text-[10px]">CONSUMER</span>;
+        return <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 font-bold text-[10px]">{t("consumer1")}</span>;
       default:
         return <span className="px-2 py-0.5 rounded bg-slate-500/20 text-slate-400 font-bold text-[10px]">{role}</span>;
     }
@@ -100,7 +103,7 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div className="p-6 text-center text-red-400 glass-panel rounded-2xl">
+      <div className="p-6 text-center text-red-400 premium-card rounded-3xl shadow-sm">
         <p>Error loading users: {(error as Error).message}</p>
       </div>
     );
@@ -109,10 +112,10 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white/[0.01] p-4 rounded-2xl border border-white/5">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white/[0.01] p-4 rounded-2xl border-white/5">
         <div className="relative w-full sm:max-w-xs">
           <input
-            className="glass-input pl-10 py-2 text-xs"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
             placeholder="Search by name or phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -124,7 +127,7 @@ export default function AdminUsersPage() {
           <span className="text-xs text-slate-500 font-semibold self-center mr-1">
             Role:
           </span>
-          <div className="flex glass-panel rounded-xl overflow-hidden border border-white/5">
+          <div className="flex premium-card shadow-sm rounded-xl overflow-hidden border-white/5">
             {["", "farmer", "consumer", "admin"].map((role) => (
               <button
                 key={role}
@@ -143,7 +146,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users table */}
-      <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
+      <div className="premium-card rounded-3xl shadow-sm overflow-hidden border-white/5">
         <div className="overflow-x-auto">
           {isLoading ? (
             <div className="h-48 flex items-center justify-center">
@@ -153,14 +156,14 @@ export default function AdminUsersPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-white/5 text-slate-400 uppercase tracking-wider text-[10px] font-semibold bg-white/[0.02]">
-                  <th className="py-3 px-4">Avatar</th>
-                  <th className="py-3 px-4">Full Name</th>
+                  <th className="py-3 px-4">{t("avatar")}</th>
+                  <th className="py-3 px-4">{t("fullName")}</th>
                   <th className="py-3 px-4">Phone Number</th>
                   <th className="py-3 px-4">Role</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-center">Trust Score</th>
+                  <th className="py-3 px-4 text-center">{t("schemeStatus")}</th>
+                  <th className="py-3 px-4 text-center">{t("trustScore")}</th>
                   <th className="py-3 px-4">Joined Date</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
+                  <th className="py-3 px-4 text-center">{t("actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -175,7 +178,7 @@ export default function AdminUsersPage() {
                     <tr key={user.id} className="hover:bg-white/[0.01] transition-colors">
                       {/* Avatar */}
                       <td className="py-3.5 px-4">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 font-semibold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border-purple-500/30 flex items-center justify-center text-purple-300 font-semibold text-xs">
                           {user.full_name?.charAt(0).toUpperCase()}
                         </div>
                       </td>
@@ -198,11 +201,11 @@ export default function AdminUsersPage() {
                       {/* Status */}
                       <td className="py-3.5 px-4 text-center">
                         {user.is_verified ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">
-                            <CheckCircle className="w-3 h-3" /> Active
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
+                            <CheckCircle className="w-3 h-3" /> {t("active")}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[10px]">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-500/10 text-red-400 border-red-500/20 text-[10px]">
                             <XCircle className="w-3 h-3" /> Suspended
                           </span>
                         )}
@@ -236,7 +239,7 @@ export default function AdminUsersPage() {
                             </>
                           ) : (
                             <>
-                              <ShieldCheck className="w-3.5 h-3.5" /> Activate
+                              <ShieldCheck className="w-3.5 h-3.5" /> {t("activate")}
                             </>
                           )}
                         </button>

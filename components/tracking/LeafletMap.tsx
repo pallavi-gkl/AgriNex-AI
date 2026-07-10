@@ -1,3 +1,5 @@
+"use client";
+import { useTranslation } from "@/hooks/useTranslation";
 /**
  * @fileoverview LeafletMap — Client-only Leaflet map for live order tracking.
  * Dynamically imported (no SSR) to avoid window-is-not-defined errors.
@@ -9,7 +11,7 @@
  *
  * Uses CartoDB Dark Matter tile layer to match AgriNex dark theme.
  */
-"use client";
+
 
 import { useEffect } from "react";
 import {
@@ -85,6 +87,7 @@ export default function LeafletMap({
   consumerCoords,
   courierCoords,
 }: LeafletMapProps) {
+  const { t } = useTranslation();
   return (
     <MapContainer
       center={[farmerCoords.lat, farmerCoords.lng]}
@@ -97,7 +100,7 @@ export default function LeafletMap({
       {/* CartoDB Dark Matter tile layer */}
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">{t("carto")}</a>'
         subdomains="abcd"
         maxZoom={19}
       />

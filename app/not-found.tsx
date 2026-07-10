@@ -1,44 +1,48 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
+
 
 /**
  * @fileoverview Custom 404 Not Found page for AgriNex AI.
- * Displays a premium glass-morphism 404 with navigation back to home.
+ * Displays a premium light emerald themed 404 page.
  */
 import { motion } from "framer-motion";
+import PageBackground from "@/components/ui/PageBackground";
 import Link from "next/link";
 import { Home, ArrowLeft, Leaf } from "lucide-react";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen flex items-center justify-center px-4"
+      className="min-h-screen flex items-center justify-center bg-transparent px-4 relative"
     >
-      <div className="text-center max-w-md">
+      <PageBackground variant="marketing" />
+      <div className="text-center max-w-md w-full relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md"
             style={{
               background: "linear-gradient(135deg, #10b981, #059669)",
-              boxShadow: "0 0 30px rgba(16,185,129,0.4)",
             }}
           >
             <Leaf className="w-6 h-6 text-white" />
           </div>
-          <span className="text-2xl font-bold text-white">
-            Agri<span className="gradient-text-green">Nex</span> AI
+          <span className="text-2xl font-extrabold text-slate-800">
+            Agri<span className="text-emerald-600">Nex</span> {t("ai")}
           </span>
         </div>
 
         {/* 404 Display */}
-        <div className="glass-panel rounded-3xl p-10 mb-8">
+        <div className="premium-card shadow-sm rounded-3xl p-10 mb-8">
           <div
-            className="text-8xl font-bold mb-4"
+            className="text-8xl font-black mb-4 tracking-tight"
             style={{
-              background: "linear-gradient(135deg, #34d399 0%, #0ea5e9 50%, #8b5cf6 100%)",
+              background: "linear-gradient(135deg, #10b981 0%, #0ea5e9 50%, #6366f1 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -47,10 +51,10 @@ export default function NotFound() {
             404
           </div>
 
-          <h1 className="text-xl font-bold text-white mb-3">
+          <h1 className="text-xl font-bold text-slate-800 mb-3">
             Page Not Found
           </h1>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <p className="text-slate-500 text-sm leading-relaxed font-semibold">
             The page you&apos;re looking for doesn&apos;t exist or has been moved.
             Let&apos;s get you back to the harvest.
           </p>
@@ -60,21 +64,17 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/"
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105"
-            style={{
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              boxShadow: "0 0 20px rgba(16,185,129,0.3)",
-            }}
+            className="btn-primary no-underline"
           >
             <Home className="w-4 h-4" />
-            Go Home
+            {t("goHome")}
           </Link>
           <button
             onClick={() => window.history.back()}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-300 transition-all duration-300 hover:text-white glass-panel"
+            className="btn-ghost"
           >
             <ArrowLeft className="w-4 h-4" />
-            Go Back
+            {t("goBack")}
           </button>
         </div>
       </div>

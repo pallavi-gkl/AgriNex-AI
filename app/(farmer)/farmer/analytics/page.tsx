@@ -1,13 +1,18 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
-import { BarChart3, TrendingUp, DollarSign, Award, ChevronDown, Download, FileSpreadsheet } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Award, ChevronDown, Download, FileSpreadsheet, Sparkles, Target, Zap } from "lucide-react";
 import { DEMO_CHART_DATA, DEMO_SUMMARY } from "@/lib/demoData";
+import { cn } from "@/lib/utils";
+import { exportToPDF, exportToExcel } from "@/lib/exporter";
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation("farmer");
   const [timeframe, setTimeframe] = useState("monthly");
 
   const pieData = [
@@ -17,74 +22,185 @@ export default function AnalyticsPage() {
   ];
 
   const handleExport = (format: "pdf" | "excel") => {
-    alert(`Generating AgriNex ${format.toUpperCase()} analytics report simulation... Download will start automatically.`);
+    const columns = [
+      { header: "Month", key: "month", format: "string" as const },
+      { header: "Your Earnings (Rs.)", key: "personalEarnings", format: "currency" as const },
+      { header: "Mandi Benchmark Avg (Rs.)", key: "marketAverage", format: "currency" as const },
+      { header: "Dispatches Volume (Orders)", key: "orders", format: "number" as const },
+    ];
+
+    const title = "Performance Analytics Ledger";
+    const executiveSummary = "AgriNex AI quarterly performance report. Summary of personal monthly mandi sales volume dispatches and mandi wholesale benchmark index averages.";
+    const totals = {
+      month: "Total Summary",
+      personalEarnings: 384000,
+      marketAverage: 371000,
+      orders: 78,
+    };
+
+    if (format === "pdf") {
+      exportToPDF(title, DEMO_CHART_DATA, columns, {
+        platform: "Farmer Platform",
+        userName: "Devendra P. (Potato Cultivator)",
+        executiveSummary,
+        totals,
+      });
+    } else {
+      exportToExcel(title, DEMO_CHART_DATA, columns, {
+        platform: "Farmer Platform",
+        userName: "Devendra P. (Potato Cultivator)",
+        executiveSummary,
+        totals,
+      });
+    }
+  };
+
+  const statCardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.1,
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    })
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header & Export controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Performance Analytics</h1>
-          <p className="text-slate-400 text-xs mt-0.5">
-            Detailed reports of your operational earnings, margins, order dispatch rates, and product sales.
-          </p>
-        </div>
-
-        <div className="flex gap-2 self-start sm:self-auto shrink-0">
-          <button
-            onClick={() => handleExport("pdf")}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 text-xs font-mono rounded-xl transition"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Export PDF Report
-          </button>
-          <button
-            onClick={() => handleExport("excel")}
-            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 text-xs font-mono rounded-xl transition"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            Excel Ledger
-          </button>
+    <div className="space-y-8">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-white to-purple-50 border border-blue-100 p-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                Performance Analytics
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                {t("detailedReportsOfEarningsMargi")}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-blue-200 shadow-sm">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-semibold text-slate-700">{t("aiPoweredInsights")}</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-purple-200 shadow-sm">
+              <Target className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-semibold text-slate-700">Real-time Tracking</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-emerald-200 shadow-sm">
+              <Zap className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-slate-700">Live Updates</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Export Controls */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-end gap-3"
+      >
+        <button
+          onClick={() => handleExport("pdf")}
+          className="flex items-center gap-2 px-5 py-2.5 premium-card hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-xl transition shadow-sm"
+        >
+          <Download className="w-4 h-4" />
+          {t("exportPdf")}
+        </button>
+        <button
+          onClick={() => handleExport("excel")}
+          className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-xl transition shadow-sm"
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          {t("excelLedger")}
+        </button>
+      </motion.div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono">
-        <div className="glass-panel p-4 rounded-2xl">
-          <p className="text-[10px] text-slate-500">AGGREGATE EARNINGS</p>
-          <p className="text-xl font-bold text-white mt-1">₹{DEMO_SUMMARY.totalEarnings.toLocaleString()}</p>
-        </div>
-        <div className="glass-panel p-4 rounded-2xl">
-          <p className="text-[10px] text-slate-500">PROFITABILITY MARGIN</p>
-          <p className="text-xl font-bold text-emerald-400 mt-1">83.8%</p>
-        </div>
-        <div className="glass-panel p-4 rounded-2xl">
-          <p className="text-[10px] text-slate-500">REVENUE GROWTH RATE</p>
-          <p className="text-xl font-bold text-white mt-1">+{DEMO_SUMMARY.revenueGrowth}%</p>
-        </div>
-        <div className="glass-panel p-4 rounded-2xl">
-          <p className="text-[10px] text-slate-500">DISPATCHED UNITS</p>
-          <p className="text-xl font-bold text-white mt-1">{DEMO_SUMMARY.bagsSold} Kg</p>
-        </div>
-      </div>
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-2 md:grid-cols-4 gap-6"
+      >
+        <motion.div custom={0} variants={statCardVariants} className="premium-card rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-emerald-600" />
+            </div>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{t("aggregateEarnings")}</p>
+          </div>
+          <p className="text-3xl font-extrabold text-slate-800">₹{DEMO_SUMMARY.totalEarnings.toLocaleString()}</p>
+          <p className="text-xs text-emerald-600 font-semibold mt-2">↑ Lifetime</p>
+        </motion.div>
+        
+        <motion.div custom={1} variants={statCardVariants} className="premium-card rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-sky-100 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+            </div>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Profit Margin</p>
+          </div>
+          <p className="text-3xl font-extrabold text-emerald-600">83.8%</p>
+          <p className="text-xs text-emerald-600 font-semibold mt-2">↑ Above average</p>
+        </motion.div>
+        
+        <motion.div custom={2} variants={statCardVariants} className="premium-card rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center">
+              <Award className="w-5 h-5 text-purple-600" />
+            </div>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Revenue Growth</p>
+          </div>
+          <p className="text-3xl font-extrabold text-slate-800">+{DEMO_SUMMARY.revenueGrowth}%</p>
+          <p className="text-xs text-emerald-600 font-semibold mt-2">↑ YoY growth</p>
+        </motion.div>
+        
+        <motion.div custom={3} variants={statCardVariants} className="premium-card rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+              <Zap className="w-5 h-5 text-amber-600" />
+            </div>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{t("dispatchedUnits")}</p>
+          </div>
+          <p className="text-3xl font-extrabold text-slate-800">{DEMO_SUMMARY.bagsSold} Kg</p>
+          <p className="text-xs text-blue-600 font-semibold mt-2">Total shipped</p>
+        </motion.div>
+      </motion.div>
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Earnings area chart */}
-        <div className="lg:col-span-2 glass-panel p-5 rounded-2xl space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="lg:col-span-2 premium-card rounded-3xl p-6 shadow-sm space-y-4"
+        >
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-white">Monthly Revenue Trends</h3>
+            <h3 className="text-lg font-bold text-slate-800">Monthly Revenue Trends</h3>
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-none"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer hover:border-slate-300 transition-colors"
             >
-              <option value="weekly">Weekly View</option>
-              <option value="monthly">Monthly View</option>
+              <option value={t("weekly")}>Weekly View</option>
+              <option value={t("monthly")}>Monthly View</option>
             </select>
           </div>
-          <div className="h-64 w-full">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={DEMO_CHART_DATA}>
                 <defs>
@@ -93,30 +209,35 @@ export default function AnalyticsPage() {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="month" stroke="#475569" fontSize={11} tickLine={false} />
-                <YAxis stroke="#475569" fontSize={11} tickLine={false} />
+                <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: "#0d1426", borderColor: "rgba(255,255,255,0.08)", borderRadius: "12px" }}
-                  itemStyle={{ fontSize: "11px" }}
+                  contentStyle={{ background: "#fff", borderColor: "#e2e8f0", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
+                  itemStyle={{ fontSize: "12px", color: "#334155" }}
                 />
-                <Area type="monotone" dataKey="personalEarnings" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#revenue)" />
+                <Area type="monotone" dataKey="personalEarnings" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#revenue)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Sales by crop breakdown donut */}
-        <div className="glass-panel p-5 rounded-2xl space-y-4 flex flex-col justify-between">
-          <h3 className="text-sm font-bold text-white">Sales Breakdown by Crop</h3>
-          <div className="h-44 w-full relative flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="premium-card rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between"
+        >
+          <h3 className="text-lg font-bold text-slate-800">Sales Breakdown by Crop</h3>
+          <div className="h-48 w-full relative flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={45}
-                  outerRadius={65}
+                  innerRadius={50}
+                  outerRadius={70}
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -127,79 +248,89 @@ export default function AnalyticsPage() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute text-center">
-              <p className="text-[10px] text-slate-500 font-mono">TOTAL SALES</p>
-              <p className="text-xs font-bold text-white">₹5.29L</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">TOTAL SALES</p>
+              <p className="text-sm font-extrabold text-slate-800">₹5.29L</p>
             </div>
           </div>
           
-          <div className="space-y-1.5 text-xs font-mono">
+          <div className="space-y-2 text-sm">
             {pieData.map((item, index) => (
-              <div key={index} className="flex justify-between items-center">
-                <span className="flex items-center gap-1.5 text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index] }} />
+              <div key={index} className="flex justify-between items-center p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                <span className="flex items-center gap-2 text-slate-600 font-semibold">
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index] }} />
                   {item.name}
                 </span>
-                <span className="text-white font-bold">₹{item.value.toLocaleString()}</span>
+                <span className="text-slate-800 font-bold">₹{item.value.toLocaleString()}</span>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Grid Row 3: Orders count + Top buyers */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monthly Orders Count Bar Chart */}
-        <div className="lg:col-span-2 glass-panel p-5 rounded-2xl space-y-4">
-          <h3 className="text-sm font-bold text-white">Volume Order Dispatches (Count)</h3>
-          <div className="h-60 w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="lg:col-span-2 premium-card rounded-3xl p-6 shadow-sm space-y-4"
+        >
+          <h3 className="text-lg font-bold text-slate-800">Volume Order Dispatches (Count)</h3>
+          <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={DEMO_CHART_DATA}>
-                <XAxis dataKey="month" stroke="#475569" fontSize={11} tickLine={false} />
-                <YAxis stroke="#475569" fontSize={11} tickLine={false} />
+                <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: "#0d1426", borderColor: "rgba(255,255,255,0.08)", borderRadius: "12px" }}
-                  itemStyle={{ fontSize: "11px" }}
+                  contentStyle={{ background: "#fff", borderColor: "#e2e8f0", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}
+                  itemStyle={{ fontSize: "12px", color: "#334155" }}
                 />
-                <Bar dataKey="orders" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="orders" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Crop Rank Cards */}
-        <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="premium-card rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+        >
           <div>
-            <h3 className="text-sm font-bold text-white mb-4">Crop Sales Rankings</h3>
-            <div className="space-y-3 font-mono text-xs">
-              <div className="flex justify-between items-center p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] text-emerald-400 font-bold">#1 BEST SELLER</span>
-                  <p className="text-xs font-bold text-white font-sans">Basmati Rice</p>
+            <h3 className="text-lg font-bold text-slate-800 mb-4">{t("cropSalesRankings")}</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">{t("str_1BestSeller")}</span>
+                  <p className="text-sm font-bold text-slate-800">{t("basmatiRiceTitle")}</p>
                 </div>
-                <span className="text-emerald-400 font-bold">₹3.50L Earned</span>
+                <span className="text-emerald-700 font-bold">₹3.50L</span>
               </div>
               
-              <div className="flex justify-between items-center p-3 bg-white/5 border border-white/5 rounded-xl">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] text-slate-500">#2 RUNNER UP</span>
-                  <p className="text-xs font-bold text-white font-sans">Alphonso Mango</p>
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-slate-50 to-gray-50 border border-slate-200 rounded-2xl">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{t("str_2RunnerUp")}</span>
+                  <p className="text-sm font-bold text-slate-800">{t("alphonsoMangoTitle")}</p>
                 </div>
-                <span className="text-white font-bold">₹1.20L Earned</span>
+                <span className="text-slate-700 font-bold">₹1.20L</span>
               </div>
 
-              <div className="flex justify-between items-center p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] text-red-400">#6 LOWEST REVENUE</span>
-                  <p className="text-xs font-bold text-white font-sans">Hybrid Tomatoes</p>
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-rose-50 to-red-50 border border-rose-200 rounded-2xl">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider">{t("str_6LowestRevenue")}</span>
+                  <p className="text-sm font-bold text-slate-800">{t("hybridTomatoes")}</p>
                 </div>
-                <span className="text-red-400 font-bold">₹0 Earned</span>
+                <span className="text-rose-600 font-bold">₹0</span>
               </div>
             </div>
           </div>
-          <div className="text-[10px] text-slate-500 text-center font-mono mt-4 pt-3 border-t border-white/5">
+          <div className="text-xs text-slate-400 text-center font-semibold mt-4 pt-4 border-t border-slate-100">
             Updated automatically at APMC Mandi settlement.
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

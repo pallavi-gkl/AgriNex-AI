@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview Product Detail Page — /consumer/marketplace/[id]
@@ -23,7 +24,8 @@ import { useCreateOrder } from "@/hooks/useOrders";
 import { useWishlist } from "@/hooks/useWishlist";
 import { supabase } from "@/lib/supabase";
 import { DEMO_CROPS } from "@/lib/demoData";
-import OrderDialog from "@/components/consumer/marketplace/OrderDialog";
+import { useLocationWeather } from "@/context/LocationWeatherContext";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ChatMessage { role: "user" | "ai"; text: string; }
@@ -78,14 +80,14 @@ function TraceabilityStep({ step, isLast }: { step: { label: string; date: strin
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 transition-all ${step.done ? "scale-110" : "opacity-40"}`}
-          style={{ background: step.done ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${step.done ? "rgba(16,185,129,0.4)" : "rgba(255,255,255,0.08)"}` }}>
+          style={{ background: step.done ? "rgba(16,185,129,0.1)" : "rgba(0,0,0,0.03)", border: `1px solid ${step.done ? "rgba(16,185,129,0.25)" : "rgba(0,0,0,0.06)"}` }}>
           {step.icon}
         </div>
-        {!isLast && <div className="w-0.5 flex-1 mt-1" style={{ background: step.done ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.06)" }} />}
+        {!isLast && <div className="w-0.5 flex-1 mt-1" style={{ background: step.done ? "#10b981" : "rgba(0,0,0,0.06)" }} />}
       </div>
       <div className="pb-4 min-w-0">
-        <p className={`text-sm font-medium ${step.done ? "text-white" : "text-slate-500"}`}>{step.label}</p>
-        <p className="text-slate-500 text-xs mt-0.5">{step.date}</p>
+        <p className={`text-sm font-bold ${step.done ? "text-slate-805 text-slate-800" : "text-slate-400 font-medium"}`}>{step.label}</p>
+        <p className="text-slate-450 text-slate-400 text-xs font-semibold mt-0.5">{step.date}</p>
       </div>
     </div>
   );
@@ -93,19 +95,15 @@ function TraceabilityStep({ step, isLast }: { step: { label: string; date: strin
 
 // ─── AI Chat Message ──────────────────────────────────────────────────────────
 function ChatBubble({ msg }: { msg: ChatMessage }) {
+  const isAi = msg.role === "ai";
   return (
     <div className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs ${msg.role === "ai" ? "text-emerald-400" : "text-white"}`}
-        style={{ background: msg.role === "ai" ? "rgba(16,185,129,0.2)" : "rgba(139,92,246,0.2)" }}>
-        {msg.role === "ai" ? <Bot className="w-4 h-4" /> : <User className="w-3 h-3" />}
+      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${isAi ? "text-emerald-700 bg-emerald-50 border border-emerald-150" : "text-purple-700 bg-purple-50 border border-purple-150"}`}>
+        {isAi ? <Bot className="w-4 h-4" /> : <User className="w-3.5 h-3.5" />}
       </div>
-      <div className={`max-w-xs px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
-        msg.role === "ai" ? "text-slate-200 rounded-tl-none" : "text-white rounded-tr-none"
+      <div className={`max-w-xs px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap font-medium ${
+        isAi ? "text-slate-700 rounded-tl-none bg-emerald-50/40 border border-emerald-100/50" : "text-slate-750 text-slate-700 rounded-tr-none bg-purple-50/40 border border-purple-100/50"
       }`}
-        style={{
-          background: msg.role === "ai" ? "rgba(16,185,129,0.08)" : "rgba(139,92,246,0.15)",
-          border: `1px solid ${msg.role === "ai" ? "rgba(16,185,129,0.15)" : "rgba(139,92,246,0.2)"}`,
-        }}
         dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>") }}
       />
     </div>
@@ -114,6 +112,7 @@ function ChatBubble({ msg }: { msg: ChatMessage }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ProductDetailPage() {
+  const { t } = useTranslation("consumer");
   const params = useParams();
   const router = useRouter();
   const productId = params.id as string;
@@ -135,7 +134,7 @@ export default function ProductDetailPage() {
 
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { mutate: createOrder, isPending: isCheckingOut } = useCreateOrder();
-  const [orderOpen, setOrderOpen] = useState(false);
+  const { location: userLocation, weather: userWeather } = useLocationWeather();
   const [mounted, setMounted] = useState(false);
   const [qrPattern, setQrPattern] = useState<boolean[]>([
     true, false, true, false, true,
@@ -270,21 +269,40 @@ export default function ProductDetailPage() {
           question,
           product: {
             title: product?.title,
+            description: product?.description,
             category: product?.category,
+            variety: product?.variety ?? product?.cropType,
             pricePerUnit: product?.pricePerUnit,
             unitType: product?.unitType,
             qualityGrade: product?.qualityGrade,
             freshnessScore: product?.aiFreshnessScore,
+            aiConfidenceScore: product?.aiConfidenceScore,
+            diseaseStatus: product?.diseaseStatus,
+            pestStatus: product?.pestStatus,
             farmerName: product?.farmer?.fullName,
+            farmerRating: product?.farmer?.trustScore,
+            farmerVerified: product?.farmer?.isVerified,
+            farmer: product?.farmer,
             location: product?.location || product?.farmer?.address,
             isOrganic: product?.isOrganic,
             quantityAvailable: product?.quantityAvailable,
             harvestDate: product?.harvestDate,
             shelfLifeDays: product?.shelfLifeDays,
+            storageCondition: product?.storageCondition,
+            storageTemp: product?.storageTemp,
             certificates: product?.certificates,
             marketPrice: product?.marketPrice,
             aiRecommendedPrice: product?.aiRecommendedPrice,
+            rating: product?.rating,
+            reviewsCount: product?.reviewsCount,
+            cookingUses: product?.cookingUses,
+            healthBenefits: product?.healthBenefits,
+            nutrition: product?.nutrition,
+            deliveryTime: product?.deliveryTime,
+            traceabilityCode: product?.traceabilityCode,
           },
+          location: userLocation,
+          weather: userWeather,
         }),
       });
       const data = await res.json();
@@ -353,7 +371,7 @@ export default function ProductDetailPage() {
           <AlertCircle className="w-12 h-12 text-red-400/40 mx-auto mb-3" />
           <p className="text-slate-400">Product not found</p>
           <Link href="/consumer/marketplace" className="mt-4 inline-flex items-center gap-2 text-emerald-400 text-sm">
-            <ArrowLeft className="w-4 h-4" /> Back to Marketplace
+            <ArrowLeft className="w-4 h-4" /> {t("backToMarketplace")}
           </Link>
         </div>
       </div>
@@ -362,7 +380,10 @@ export default function ProductDetailPage() {
 
   const grade = product.qualityGrade ?? product.quality_grade ?? "B";
   const gradeCfg = GRADE_CONFIG[grade] ?? GRADE_CONFIG["B"];
-  const nutrition = NUTRITION_BY_CATEGORY[product.category] ?? NUTRITION_BY_CATEGORY["Vegetables"];
+  const productCategoryNormalized = (product.title?.toLowerCase().includes("pomegranate") || product.category?.toLowerCase().includes("pomegranate"))
+    ? "Fruits"
+    : product.category;
+  const nutrition = NUTRITION_BY_CATEGORY[productCategoryNormalized] ?? NUTRITION_BY_CATEGORY["Vegetables"];
   const wishlistActive = isInWishlist(product.id);
   const timeline = buildTimeline();
   const images = product.images?.filter(Boolean) ?? [product.imageUrl].filter(Boolean);
@@ -371,56 +392,51 @@ export default function ProductDetailPage() {
     <div className="min-h-screen p-4 sm:p-6">
       {/* Back button */}
       <Link href="/consumer/marketplace"
-        className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 text-sm">
+        className="inline-flex items-center gap-2 text-slate-500 hover:text-emerald-700 transition-colors mb-6 text-sm font-bold no-underline">
         <ArrowLeft className="w-4 h-4" />
-        Back to Marketplace
+        {t("backToMarketplace")}
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* ── Image Gallery ─────────────────────────────────────────────────── */}
         <div>
-          <div className="relative aspect-square rounded-2xl overflow-hidden group"
-            style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(14,165,233,0.05))" }}>
+          <div className="relative aspect-square rounded-3xl overflow-hidden group premium-card">
             {images.length > 0 ? (
               <>
                 <img src={images[activeImage]} alt={product.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   onError={(e) => { (e.target as HTMLImageElement).src = ""; }} />
                 {/* Zoom icon */}
-                <div className="absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
-                  <ZoomIn className="w-4 h-4 text-white" />
+                <div className="absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/60 backdrop-blur-sm shadow-sm">
+                  <ZoomIn className="w-4.5 h-4.5 text-white" />
                 </div>
                 {/* Nav arrows */}
                 {images.length > 1 && (
                   <>
                     <button onClick={() => setActiveImage((p) => (p - 1 + images.length) % images.length)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
-                      <ChevronLeft className="w-5 h-5 text-white" />
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center bg-slate-905 bg-white/90 border-slate-250/20 text-slate-800 shadow-md hover:scale-105 active:scale-95 cursor-pointer">
+                      <ChevronLeft className="w-5 h-5 text-slate-800" />
                     </button>
                     <button onClick={() => setActiveImage((p) => (p + 1) % images.length)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}>
-                      <ChevronRight className="w-5 h-5 text-white" />
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center bg-slate-905 bg-white/90 border-slate-250/20 text-slate-800 shadow-md hover:scale-105 active:scale-95 cursor-pointer">
+                      <ChevronRight className="w-5 h-5 text-slate-800" />
                     </button>
                   </>
                 )}
               </>
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Leaf className="w-24 h-24 text-emerald-400/20" />
+              <div className="w-full h-full flex items-center justify-center bg-emerald-50/10">
+                <Leaf className="w-24 h-24 text-emerald-600/20" />
               </div>
             )}
 
             {/* Badges */}
             <div className="absolute top-3 left-3 flex flex-col gap-2">
               {(product.isOrganic || product.is_organic) && (
-                <span className="px-2 py-1 rounded-lg text-xs font-semibold"
-                  style={{ background: "rgba(74,222,128,0.9)", color: "#052e16" }}>🌿 Organic</span>
+                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border-emerald-250 shadow-sm">🌿 Organic</span>
               )}
-              <span className="px-2 py-1 rounded-lg text-xs font-bold"
-                style={{ background: gradeCfg.bg, color: gradeCfg.color, border: `1px solid ${gradeCfg.color}40`, backdropFilter: "blur(8px)" }}>
+              <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold shadow-sm bg-white/90 backdrop-blur-sm"
+                style={{ color: gradeCfg.color, border: `1.5px solid ${gradeCfg.color}35` }}>
                 ⭐ Grade {grade}
               </span>
             </div>
@@ -431,7 +447,7 @@ export default function ProductDetailPage() {
             <div className="flex gap-2 mt-3">
               {images.map((img: string, i: number) => (
                 <button key={i} onClick={() => setActiveImage(i)}
-                  className={`w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 transition-all ${activeImage === i ? "ring-2 ring-emerald-400" : "opacity-50 hover:opacity-80"}`}>
+                  className={`w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 transition-all border cursor-pointer ${activeImage === i ? "ring-2 ring-emerald-500 border-transparent scale-[1.02]" : "border-slate-205 border-slate-200 opacity-60 hover:opacity-90"}`}>
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -444,20 +460,18 @@ export default function ProductDetailPage() {
           {/* Title & Category */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-0.5 rounded-md text-xs text-slate-400"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                {product.category}
+              <span className="px-2.5 py-0.5 rounded-md text-xs text-slate-500 font-bold bg-slate-100 border border-slate-200 uppercase tracking-wider">
+                {productCategoryNormalized}
               </span>
               {product.traceabilityCode && (
-                <span className="px-2 py-0.5 rounded-md text-xs text-amber-400 font-mono"
-                  style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)" }}>
+                <span className="px-2.5 py-0.5 rounded-md text-xs text-amber-700 bg-amber-50 border-amber-200 font-mono font-bold">
                   🔗 {product.traceabilityCode}
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold text-white leading-tight">{product.title}</h1>
+            <h1 className="text-2xl font-extrabold text-slate-800 leading-tight">{product.title}</h1>
             {product.description && (
-              <p className="text-slate-400 text-sm mt-2 leading-relaxed">{product.description}</p>
+              <p className="text-slate-650 text-slate-600 text-sm mt-2 leading-relaxed font-medium">{product.description}</p>
             )}
           </div>
 
@@ -467,122 +481,118 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="w-4 h-4"
-                    style={{ color: i < Math.round(product.rating) ? "#fbbf24" : "#1e293b" }}
+                    style={{ color: i < Math.round(product.rating) ? "#fbbf24" : "#e2e8f0" }}
                     fill={i < Math.round(product.rating) ? "#fbbf24" : "none"} />
                 ))}
               </div>
-              <span className="text-white font-semibold text-sm">{product.rating}</span>
+              <span className="text-slate-800 font-bold text-sm">{product.rating}</span>
               {product.reviewsCount && (
-                <span className="text-slate-500 text-xs">({product.reviewsCount} reviews)</span>
+                <span className="text-slate-450 font-semibold text-slate-400 text-xs">({product.reviewsCount} reviews)</span>
               )}
             </div>
           )}
 
           {/* AI Quality Metrics */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="glass-panel rounded-xl p-3 text-center">
-              <div className="text-lg font-bold" style={{ color: gradeCfg.color }}>Grade {grade}</div>
-              <div className="text-slate-500 text-xs mt-0.5">AI Quality</div>
+            <div className="premium-card rounded-3xl shadow-sm p-3 text-center">
+              <div className="text-lg font-extrabold" style={{ color: gradeCfg.color }}>{t("grade")} {grade}</div>
+              <div className="text-slate-450 font-bold uppercase tracking-wider text-[10px] text-slate-400 mt-1">{t("aiQuality")}</div>
             </div>
-            <div className="glass-panel rounded-xl p-3 text-center">
-              <div className="text-lg font-bold text-sky-400">{product.aiFreshnessScore ?? 95}%</div>
-              <div className="text-slate-500 text-xs mt-0.5">Freshness</div>
+            <div className="premium-card rounded-3xl shadow-sm p-3 text-center">
+              <div className="text-lg font-extrabold text-sky-750 text-sky-600">{product.aiFreshnessScore ?? 95}%</div>
+              <div className="text-slate-450 font-bold uppercase tracking-wider text-[10px] text-slate-400 mt-1">{t("freshness")}</div>
             </div>
-            <div className="glass-panel rounded-xl p-3 text-center">
-              <div className="text-lg font-bold text-purple-400">{product.aiConfidenceScore ?? 94}%</div>
-              <div className="text-slate-500 text-xs mt-0.5">AI Confidence</div>
+            <div className="premium-card rounded-3xl shadow-sm p-3 text-center">
+              <div className="text-lg font-extrabold text-purple-755 text-purple-650">{product.aiConfidenceScore ?? 94}%</div>
+              <div className="text-slate-450 font-bold uppercase tracking-wider text-[10px] text-slate-400 mt-1">{t("aiConfidence")}</div>
             </div>
           </div>
 
           {/* Price */}
-          <div className="glass-panel rounded-2xl p-4">
-            <div className="flex items-end gap-3 mb-3">
+          <div className="premium-card rounded-3xl shadow-sm p-4">
+            <div className="flex items-end gap-3 mb-3 pb-3 border-b border-slate-50">
               <div>
-                <span className="text-3xl font-bold text-emerald-400">₹{product.pricePerUnit}</span>
-                <span className="text-slate-400 text-sm ml-1">/ {product.unitType}</span>
+                <span className="text-3xl font-extrabold text-emerald-600">₹{product.pricePerUnit}</span>
+                <span className="text-slate-450 text-slate-400 text-sm ml-0.5">/ {product.unitType}</span>
               </div>
               {product.marketPrice && (
-                <div className="text-xs text-slate-500 mb-1">
-                  <span className="line-through">Market ₹{product.marketPrice}</span>
-                  <span className="ml-2 text-emerald-400">
+                <div className="text-xs text-slate-500 mb-1.5 font-medium">
+                  <span className="line-through">Retail ₹{product.marketPrice}</span>
+                  <span className="ml-2 text-emerald-600 font-extrabold">
                     Save ₹{product.marketPrice - product.pricePerUnit}
                   </span>
                 </div>
               )}
             </div>
             {product.aiRecommendedPrice && (
-              <div className="flex items-center gap-2 text-xs mb-3"
-                style={{ color: "#38bdf8" }}>
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 text-xs mb-3 text-sky-700 bg-sky-50/50 border-sky-100/50 px-2.5 py-1.5 rounded-xl font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-sky-600" />
                 AI Recommended: ₹{product.aiRecommendedPrice}/{product.unitType}
               </div>
             )}
 
             {/* Quantity picker */}
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-slate-400 text-sm">Quantity:</span>
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Quantity:</span>
               <div className="flex items-center gap-2">
                 <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <Minus className="w-4 h-4 text-white" />
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-200 transition-colors border-0 cursor-pointer">
+                  <Minus className="w-4 h-4 text-slate-600" />
                 </button>
-                <span className="text-white font-mono w-12 text-center text-sm">{quantity} {product.unitType}</span>
+                <span className="text-slate-800 font-bold font-mono w-12 text-center text-sm">{quantity} {product.unitType}</span>
                 <button onClick={() => setQuantity((q) => Math.min(q + 1, product.quantityAvailable ?? 999))}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <Plus className="w-4 h-4 text-white" />
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-200 transition-colors border-0 cursor-pointer">
+                  <Plus className="w-4 h-4 text-slate-600" />
                 </button>
               </div>
-              <span className="text-slate-500 text-xs">
-                Total: <span className="text-white font-semibold">₹{(product.pricePerUnit * quantity).toFixed(0)}</span>
+              <span className="text-slate-400 text-xs font-medium ml-auto">
+                Total: <span className="text-slate-800 font-extrabold text-sm ml-0.5">₹{(product.pricePerUnit * quantity).toFixed(0)}</span>
               </span>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setOrderOpen(true)}
+              <button onClick={() => router.push(`/consumer/marketplace/checkout?productId=${product.id}&quantity=${quantity}`)}
                 id="buy-now-btn"
-                className="flex-1 py-3 rounded-xl font-semibold text-white text-sm flex items-center justify-center gap-2 transition-all hover:scale-105 disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 20px rgba(16,185,129,0.25)" }}>
-                <ShoppingCart className="w-4 h-4" />Buy Now
+                className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 cursor-pointer border-0"
+                style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.3)" }}>
+                <ShoppingCart className="w-4 h-4" />{t("buyNow")}
               </button>
               <button onClick={() => wishlistActive ? removeFromWishlist(product.id) : addToWishlist({
                   id: product.id, title: product.title, pricePerUnit: product.pricePerUnit,
                   unitType: product.unitType, imageUrl: product.imageUrl, qualityGrade: product.qualityGrade,
-                  farmerName: product.farmer?.fullName, farmerId: product.farmer?.id, category: product.category,
+                  farmerName: product.farmer?.fullName, farmerId: product.farmer?.id, category: productCategoryNormalized,
                 })}
                 id="wishlist-btn"
-                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 cursor-pointer"
                 style={{
-                  background: wishlistActive ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.05)",
-                  border: `1px solid ${wishlistActive ? "rgba(239,68,68,0.4)" : "rgba(255,255,255,0.1)"}`,
+                  background: wishlistActive ? "rgba(239,68,68,0.12)" : "rgba(0,0,0,0.03)",
+                  border: `1px solid ${wishlistActive ? "rgba(239,68,68,0.25)" : "rgba(0,0,0,0.06)"}`,
                 }}>
-                <Heart className={`w-5 h-5 ${wishlistActive ? "text-red-400 fill-red-400" : "text-white/60"}`} />
+                <Heart className={`w-5 h-5 ${wishlistActive ? "text-red-500 fill-red-500" : "text-slate-500"}`} />
               </button>
             </div>
 
             {orderError && (
-              <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-400"
-                style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)" }}>
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />{orderError}
+              <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-650 bg-rose-50 border-rose-100 font-semibold">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />{orderError}
               </div>
             )}
           </div>
 
           {/* Delivery info */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="glass-panel rounded-xl p-3 flex items-center gap-2">
-              <Truck className="w-4 h-4 text-sky-400 shrink-0" />
+            <div className="premium-card rounded-3xl shadow-sm p-3 flex items-center gap-2.5">
+              <Truck className="w-4.5 h-4.5 text-sky-650 text-sky-600 shrink-0" />
               <div>
-                <p className="text-white text-xs font-medium">Free Delivery</p>
-                <p className="text-slate-500 text-[11px]">24–48 hrs farm-to-door</p>
+                <p className="text-slate-805 text-slate-800 text-xs font-bold">{t("freeDelivery")}</p>
+                <p className="text-slate-450 text-slate-400 text-[11px] font-semibold">{t("str_2448HrsFarmToDoor")}</p>
               </div>
             </div>
-            <div className="glass-panel rounded-xl p-3 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="premium-card rounded-3xl shadow-sm p-3 flex items-center gap-2.5">
+              <Shield className="w-4.5 h-4.5 text-emerald-655 text-emerald-600 shrink-0" />
               <div>
-                <p className="text-white text-xs font-medium">Quality Guarantee</p>
-                <p className="text-slate-500 text-[11px]">AI-verified quality</p>
+                <p className="text-slate-805 text-slate-800 text-xs font-bold">Quality Guarantee</p>
+                <p className="text-slate-450 text-slate-400 text-[11px] font-semibold">{t("aiVerifiedQuality")}</p>
               </div>
             </div>
           </div>
@@ -596,10 +606,10 @@ export default function ProductDetailPage() {
         <div className="space-y-5">
           {/* Farmer Profile */}
           {product.farmer && (
-            <div className="glass-panel rounded-2xl p-5">
-              <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-                <User className="w-4 h-4 text-emerald-400" />
-                Farmer Profile
+            <div className="premium-card rounded-3xl shadow-sm p-5">
+              <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
+                <User className="w-4 h-4 text-emerald-600" />
+                {t("farmerProfile")}
               </h3>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
@@ -607,26 +617,26 @@ export default function ProductDetailPage() {
                   {product.farmer.fullName?.charAt(0) || "F"}
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">{product.farmer.fullName}</p>
+                  <p className="text-slate-850 text-slate-800 font-bold text-sm">{product.farmer.fullName}</p>
                   <div className="flex items-center gap-1 mt-0.5">
                     {product.farmer.isVerified && (
-                      <span className="flex items-center gap-1 text-xs text-emerald-400">
-                        <CheckCircle2 className="w-3 h-3" />Verified
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />{t("verified")}
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="space-y-2 text-xs text-slate-400">
+              <div className="space-y-2 text-xs text-slate-500 font-medium">
                 {product.farmer.trustScore && (
                   <div className="flex items-center justify-between">
-                    <span>Trust Score</span>
-                    <span className="text-amber-400 font-semibold">⭐ {product.farmer.trustScore}/5</span>
+                    <span>{t("trustScore")}</span>
+                    <span className="text-amber-700 font-bold">⭐ {product.farmer.trustScore}/5</span>
                   </div>
                 )}
                 {(product.location || product.farmer.address) && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     {product.location || product.farmer.address}
                   </div>
                 )}
@@ -636,15 +646,14 @@ export default function ProductDetailPage() {
 
           {/* Certificates */}
           {product.certificates?.length > 0 && (
-            <div className="glass-panel rounded-2xl p-5">
-              <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
-                <Award className="w-4 h-4 text-amber-400" />
-                Certificates
+            <div className="premium-card rounded-3xl shadow-sm p-5">
+              <h3 className="text-slate-800 font-extrabold text-sm mb-3 flex items-center gap-2">
+                <Award className="w-4 h-4 text-amber-600" />
+                {t("certificates")}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {product.certificates.map((cert: string, i: number) => (
-                  <span key={i} className="px-2 py-1 rounded-lg text-xs font-medium"
-                    style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)", color: "#fbbf24" }}>
+                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 border-amber-200 text-amber-700">
                     🏅 {cert}
                   </span>
                 ))}
@@ -654,24 +663,24 @@ export default function ProductDetailPage() {
 
           {/* Storage Info */}
           {product.storageCondition && (
-            <div className="glass-panel rounded-2xl p-5">
-              <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
-                <Thermometer className="w-4 h-4 text-blue-400" />
+            <div className="premium-card rounded-3xl shadow-sm p-5">
+              <h3 className="text-slate-800 font-extrabold text-sm mb-3 flex items-center gap-2">
+                <Thermometer className="w-4 h-4 text-blue-600" />
                 Storage Guide
               </h3>
-              <div className="space-y-2 text-xs text-slate-400">
+              <div className="space-y-2 text-xs text-slate-500 font-semibold">
                 <div className="flex items-start gap-2">
-                  <Thermometer className="w-3 h-3 shrink-0 mt-0.5 text-blue-400" />
+                  <Thermometer className="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
                   <span>{product.storageTemp}</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Droplets className="w-3 h-3 shrink-0 mt-0.5 text-sky-400" />
+                  <Droplets className="w-3.5 h-3.5 shrink-0 mt-0.5 text-sky-505 text-sky-500" />
                   <span>{product.storageCondition}</span>
                 </div>
                 {product.shelfLifeDays && (
                   <div className="flex items-start gap-2">
-                    <Clock className="w-3 h-3 shrink-0 mt-0.5 text-purple-400" />
-                    <span>Shelf life: {product.shelfLifeDays} days</span>
+                    <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-purple-500" />
+                    <span>Shelf life: {product.shelfLifeDays} {t("days")}</span>
                   </div>
                 )}
               </div>
@@ -682,43 +691,40 @@ export default function ProductDetailPage() {
         {/* Middle col: Nutrition + Traceability */}
         <div className="space-y-5">
           {/* Nutrition Facts */}
-          <div className="glass-panel rounded-2xl p-5">
-            <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-green-400" />
-              Nutrition Facts <span className="text-slate-500 text-xs font-normal">(per 100g)</span>
+          <div className="premium-card rounded-3xl shadow-sm p-5">
+            <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
+              <Scale className="w-4 h-4 text-emerald-600" />
+              Nutrition Facts <span className="text-slate-400 text-xs font-normal capitalize tracking-normal font-sans">{t("per100g")}</span>
             </h3>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Calories", value: `${nutrition.calories} kcal`, color: "#f87171" },
-                { label: "Protein", value: nutrition.protein, color: "#60a5fa" },
-                { label: "Carbs", value: nutrition.carbs, color: "#fbbf24" },
-                { label: "Fiber", value: nutrition.fiber, color: "#4ade80" },
-                { label: "Fat", value: nutrition.fat, color: "#a78bfa" },
-                { label: "Key Vitamins", value: nutrition.vitamin, color: "#34d399" },
+                { label: "Calories", value: `${nutrition.calories} kcal`, color: "#ef4444" },
+                { label: "Protein", value: nutrition.protein, color: "#3b82f6" },
+                { label: "Carbs", value: nutrition.carbs, color: "#d97706" },
+                { label: "Fiber", value: nutrition.fiber, color: "#10b981" },
+                { label: "Fat", value: nutrition.fat, color: "#8b5cf6" },
+                { label: "Key Vitamins", value: nutrition.vitamin, color: "#0d9488" },
               ].map((n) => (
-                <div key={n.label} className="rounded-xl p-2.5"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <p className="text-xs text-slate-500">{n.label}</p>
-                  <p className="text-sm font-semibold mt-0.5" style={{ color: n.color }}>{n.value}</p>
+                <div key={n.label} className="rounded-xl p-2.5 bg-slate-50 border-slate-100">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-450 text-slate-400">{n.label}</p>
+                  <p className="text-sm font-extrabold mt-0.5" style={{ color: n.color }}>{n.value}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-3 px-3 py-2 rounded-xl text-xs text-emerald-300"
-              style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
+            <div className="mt-3 px-3 py-2 rounded-xl text-xs text-emerald-700 bg-emerald-50 border-emerald-100 font-semibold">
               ✅ Health Benefit: {nutrition.benefit}
             </div>
           </div>
 
           {/* Digital Crop Passport */}
-          <div className="glass-panel rounded-2xl p-5">
-            <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-purple-400" />
-              Digital Crop Passport
+          <div className="premium-card rounded-3xl shadow-sm p-5">
+            <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-purple-650 text-purple-600" />
+              {t("digitalCropPassport")}
             </h3>
             {/* QR Code visual (simulated) */}
             <div className="flex items-start gap-4">
-              <div className="w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)" }}>
+              <div className="w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-50 border-slate-150">
                 <div className="grid grid-cols-5 grid-rows-5 gap-0.5 w-14 h-14">
                   {qrPattern.map((isPurple, i) => (
                     <div key={i} className="rounded-sm"
@@ -726,18 +732,18 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex-1 space-y-1.5 text-xs text-slate-400">
+              <div className="flex-1 space-y-1.5 text-xs text-slate-500 font-medium">
                 <div className="flex justify-between">
-                  <span>Crop ID</span>
-                  <span className="text-white font-mono">{product.id?.substring(0, 8).toUpperCase()}</span>
+                  <span>{t("cropId")}</span>
+                  <span className="text-slate-800 font-bold font-mono">{product.id?.substring(0, 8).toUpperCase()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Traceability</span>
-                  <span className="text-amber-400 font-mono text-[10px]">{product.traceabilityCode || "AGX-2026"}</span>
+                  <span className="text-amber-705 text-amber-700 font-mono font-bold text-[10px]">{product.traceabilityCode || "AGX-2026"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Harvest</span>
-                  <span className="text-white">
+                  <span>{t("harvest")}</span>
+                  <span className="text-slate-855 text-slate-800 font-bold">
                     {product.harvestDate
                       ? (mounted
                           ? new Date(product.harvestDate).toLocaleDateString("en-IN")
@@ -747,7 +753,7 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Shelf Life</span>
-                  <span className="text-white">{product.shelfLifeDays ?? "N/A"} days</span>
+                  <span className="text-slate-855 text-slate-800 font-bold">{product.shelfLifeDays ?? "N/A"} {t("days")}</span>
                 </div>
               </div>
             </div>
@@ -757,10 +763,10 @@ export default function ProductDetailPage() {
         {/* Right col: Traceability Timeline */}
         <div className="space-y-5">
           {/* Full Traceability Timeline */}
-          <div className="glass-panel rounded-2xl p-5">
-            <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-sky-400" />
-              Farm-to-Table Journey
+          <div className="premium-card rounded-3xl shadow-sm p-5">
+            <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-sky-655 text-sky-600" />
+              {t("farmToTableJourney")}
             </h3>
             <div>
               {timeline.map((step, i) => (
@@ -775,35 +781,31 @@ export default function ProductDetailPage() {
       <div className="mt-6">
         <button id="ai-assistant-toggle"
           onClick={() => setChatOpen(!chatOpen)}
-          className="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all hover:scale-[1.01]"
+          className="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all hover:scale-[1.005] bg-emerald-50 border-emerald-150 border-emerald-100 text-emerald-705 text-emerald-700 cursor-pointer"
           style={{
-            background: chatOpen ? "rgba(16,185,129,0.12)" : "rgba(16,185,129,0.06)",
-            border: "1px solid rgba(16,185,129,0.25)",
+            boxShadow: "0 2px 8px rgba(16,185,129,0.08)",
           }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
-              <Bot className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100/70 border-emerald-200">
+              <Bot className="w-5 h-5 text-emerald-600" />
             </div>
             <div className="text-left">
-              <p className="text-white font-semibold text-sm">AI Shopping Assistant</p>
-              <p className="text-slate-400 text-xs">Ask me about freshness, price, recipes, nutrition, alternatives...</p>
+              <p className="text-slate-800 font-bold text-sm">{t("aiAssistant")}</p>
+              <p className="text-slate-500 text-xs font-medium">{t("askMeAboutFreshnessPriceRecipe")}</p>
             </div>
           </div>
-          <Sparkles className="w-5 h-5 text-emerald-400" />
+          <Sparkles className="w-5 h-5 text-emerald-600 animate-pulse" />
         </button>
 
         <AnimatePresence>
           {chatOpen && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-              <div className="glass-panel rounded-b-2xl rounded-tl-none rounded-tr-none p-4 border-t-0"
-                style={{ borderTop: "none" }}>
+              <div className="premium-card rounded-b-3xl rounded-tl-none rounded-tr-none p-4 border-t-0 shadow-md">
                 {/* Quick questions */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {QUICK_QUESTIONS.map((q) => (
                     <button key={q} onClick={() => sendChat(q)}
-                      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105"
-                      style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#34d399" }}>
+                      className="px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] bg-emerald-50 hover:bg-emerald-100 border-emerald-100 text-emerald-700 cursor-pointer">
                       {q}
                     </button>
                   ))}
@@ -814,13 +816,13 @@ export default function ProductDetailPage() {
                   {chatMessages.map((msg, i) => <ChatBubble key={i} msg={msg} />)}
                   {chatLoading && (
                     <div className="flex gap-2">
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "rgba(16,185,129,0.2)" }}>
-                        <Bot className="w-4 h-4 text-emerald-400" />
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center bg-emerald-50 border-emerald-100">
+                        <Bot className="w-4 h-4 text-emerald-600" />
                       </div>
-                      <div className="px-3 py-2 rounded-2xl text-xs" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                      <div className="px-3 py-2 rounded-2xl text-xs bg-emerald-50/20 border-emerald-100/50">
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
-                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-550 bg-emerald-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
                           ))}
                         </div>
                       </div>
@@ -834,9 +836,9 @@ export default function ProductDetailPage() {
                   <input value={chatInput} onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && sendChat(chatInput)}
                     placeholder="Ask about freshness, price, recipes..."
-                    className="flex-1 glass-input py-2.5 text-sm" />
+                    className="flex-1 py-2.5 px-4 rounded-xl text-sm bg-slate-50 border-slate-205 text-slate-800 focus:outline-none focus:border-emerald-305 focus:border-emerald-300" />
                   <button onClick={() => sendChat(chatInput)} disabled={chatLoading || !chatInput.trim()}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110 disabled:opacity-40"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-40 border-0 cursor-pointer"
                     style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
                     <Send className="w-4 h-4 text-white" />
                   </button>
@@ -849,34 +851,16 @@ export default function ProductDetailPage() {
 
       {/* ── Similar Products ─────────────────────────────────────────────────── */}
       <div className="mt-8">
-        <h2 className="text-white font-bold text-lg mb-4">🔗 Compare Similar Products</h2>
-        <Link href="/consumer/compare"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105"
-          style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.1))", border: "1px solid rgba(139,92,246,0.35)" }}>
+        <h2 className="text-slate-800 font-extrabold text-lg mb-4">🔗 Compare Similar Products</h2>
+        <Link href={`/consumer/compare?id=${productId}`}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-purple-700 bg-purple-50 border-purple-105 border-purple-200 hover:bg-purple-100 transition-all hover:scale-[1.02] no-underline">
           <BarChart2 className="w-4 h-4" />
-          Compare with Other Farmers
+          {t("compareWithOtherFarmers")}
           <ArrowLeft className="w-4 h-4 rotate-180" />
         </Link>
       </div>
 
-      {/* ── Order Dialog ──────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {orderOpen && (
-          <OrderDialog
-            product={{
-              ...product,
-              // Normalize unitType and pricePerUnit values for OrderDialog if needed
-              pricePerUnit: product.pricePerUnit ?? product.price_per_unit,
-              unitType: product.unitType ?? product.unit_type,
-            }}
-            onClose={() => setOrderOpen(false)}
-            onSuccess={() => {
-              setOrderOpen(false);
-              router.push("/consumer/orders");
-            }}
-          />
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -13,6 +14,7 @@ interface OrderDialogProps {
 }
 
 export default function OrderDialog({ product, onClose, onSuccess }: OrderDialogProps) {
+  const { t } = useTranslation("consumer");
   const [preferredDate, setPreferredDate] = useState("");
   const [estimatedDelivery, setEstimatedDelivery] = useState("Loading...");
   const [minDate, setMinDate] = useState("");
@@ -65,6 +67,7 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
   const totalPrice = price * quantity;
 
   const getEstimatedDelivery = () => {
+  const { t } = useTranslation("consumer");
     return estimatedDelivery;
   };
 
@@ -136,7 +139,7 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
         style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100 bg-white rounded-t-3xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100/80 bg-white/80 backdrop-blur-xl rounded-t-3xl">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-emerald-600" />
             <h2 className="text-lg font-bold text-slate-800">Order Now</h2>
@@ -154,8 +157,8 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
                 style={{ background: "rgba(16,185,129,0.1)" }}>
                 <CheckCircle2 className="w-10 h-10 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Order Placed!</h3>
-              <p className="text-slate-500 text-sm">Your order has been saved. Track it in <strong>My Orders</strong>.</p>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">{t("orderPlaced")}</h3>
+              <p className="text-slate-500 text-sm">Your order has been saved. Track it in <strong>{t("myOrders")}</strong>.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -163,11 +166,11 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
               <div className="rounded-2xl p-4 space-y-2.5 text-xs"
                 style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Product</span>
+                  <span className="text-slate-500">{t("product")}</span>
                   <span className="font-semibold text-slate-800 text-right max-w-[60%] truncate">{product.title}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Farmer</span>
+                  <span className="text-slate-500">{t("farmer")}</span>
                   <span className="font-semibold text-slate-800">{farmerName}</span>
                 </div>
                 <div className="flex justify-between">
@@ -175,7 +178,7 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
                   <span className="font-bold text-emerald-700">₹{price} / {unit}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Available Stock</span>
+                  <span className="text-slate-500">{t("availableStock")}</span>
                   <span className="font-semibold text-slate-800">{stock} {unit}</span>
                 </div>
               </div>
@@ -188,16 +191,16 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
                   </label>
                   <input type="number" min="1" max={stock} value={quantity}
                     onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     required />
                 </div>
                 <div className="col-span-1">
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Customer Name <span className="text-red-500">*</span>
+                    {t("customerName")} <span className="text-red-500">*</span>
                   </label>
                   <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
-                    placeholder="Full Name"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                    placeholder={t("fullName")}
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     required />
                 </div>
                 <div className="col-span-1">
@@ -206,7 +209,7 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
                   </label>
                   <input type="tel" value={mobile} onChange={e => setMobile(e.target.value)}
                     placeholder="10-digit number"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     required />
                 </div>
                 <div className="col-span-1">
@@ -216,52 +219,52 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
                   <input type="text" value={pinCode} maxLength={6}
                     onChange={e => setPinCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="6-digit code"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     required />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Delivery Address <span className="text-red-500">*</span>
+                  {t("deliveryAddress")} <span className="text-red-500">*</span>
                 </label>
                 <input type="text" value={address} onChange={e => setAddress(e.target.value)}
                   placeholder="House no., Street, Area"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                  className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                   required />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    City <span className="text-red-500">*</span>
+                    {t("city")} <span className="text-red-500">*</span>
                   </label>
                   <input type="text" value={city} onChange={e => setCity(e.target.value)}
-                    placeholder="City"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                    placeholder={t("city")}
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     required />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    State <span className="text-red-500">*</span>
+                    {t("state")} <span className="text-red-500">*</span>
                   </label>
                   <input type="text" value={stateVal} onChange={e => setStateVal(e.target.value)}
-                    placeholder="State"
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30"
+                    placeholder={t("state")}
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     required />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Preferred Delivery Date <span className="text-slate-400 font-normal">(optional)</span>
+                    Preferred Delivery Date <span className="text-slate-400 font-normal">{t("optional")}</span>
                   </label>
                   <input type="date" value={preferredDate}
                     min={minDate || undefined}
                     onChange={e => setPreferredDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30" />
+                    className="w-full rounded-full border border-slate-200/80 px-4 py-2.5 text-sm text-slate-800 bg-white/90 backdrop-blur-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
-                    Special Instructions <span className="text-slate-400 font-normal">(optional)</span>
+                    Special Instructions <span className="text-slate-400 font-normal">{t("optional")}</span>
                   </label>
                   <textarea value={specialInstructions} onChange={e => setSpecialInstructions(e.target.value)}
                     placeholder="e.g. Leave with neighbor"
@@ -281,7 +284,7 @@ export default function OrderDialog({ product, onClose, onSuccess }: OrderDialog
               {/* Price summary */}
               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                 <div>
-                  <p className="text-slate-500 text-xs">Estimated Delivery</p>
+                  <p className="text-slate-500 text-xs">{t("estimatedDelivery")}</p>
                   <p className="text-slate-800 text-xs font-semibold flex items-center gap-1 mt-0.5">
                     <Truck className="w-3.5 h-3.5 text-sky-500" />
                     {getEstimatedDelivery()}

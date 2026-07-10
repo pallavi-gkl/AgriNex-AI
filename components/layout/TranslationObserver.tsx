@@ -1,5 +1,4 @@
 "use client";
-
 /**
  * @fileoverview TranslationObserver
  * A lightweight client-side component that watches for the
@@ -10,7 +9,9 @@
  */
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { DICTIONARY } from "@/hooks/useTranslation";
+import { getCurrentLanguage, detectPlatform } from "./LanguageSwitcher";
 
 // Build a flat reverse-lookup: englishText → { langCode: translatedText }
 type ReverseMap = Map<string, Record<string, string>>;
@@ -94,14 +95,15 @@ function translateAttributes(root: Element, lang: string) {
 }
 
 export default function TranslationObserver() {
+  const pathname = usePathname();
+
   useEffect(() => {
     let currentLang = "en";
 
-    // Try to pick up the persisted language immediately
-    try {
-      const cached = sessionStorage.getItem("agrinex-lang");
-      if (cached) currentLang = cached;
-    } catch (_) {}
+    // Detect platform based on the current client pathname
+    const activePlatform = detectPlatform();
+    const cached = getCurrentLanguage(activePlatform);
+    if (cached) currentLang = cached;
 
     function applyTranslation(lang: string) {
       currentLang = lang;
@@ -109,15 +111,21 @@ export default function TranslationObserver() {
       translateAttributes(document.body, lang);
     }
 
-    // Apply on mount if language is non-English
+    // Apply on mount/path change if language is non-English
     if (currentLang !== "en") {
       applyTranslation(currentLang);
     }
 
     // Listen for language-change events
     const handleLangChange = (e: Event) => {
-      const code = (e as CustomEvent).detail?.code;
-      if (code) applyTranslation(code);
+      const ev = e as CustomEvent<{ code: string; platform?: string }>;
+      const { code, platform } = ev.detail ?? {};
+      const currentPlatform = detectPlatform();
+
+      // Only apply translation if it targets all platforms or matches our current platform
+      if (code && (!platform || platform === "all" || platform === currentPlatform)) {
+        applyTranslation(code);
+      }
     };
     window.addEventListener("agrinex:language-change", handleLangChange);
 
@@ -142,7 +150,7 @@ export default function TranslationObserver() {
       window.removeEventListener("agrinex:language-change", handleLangChange);
       observer.disconnect();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

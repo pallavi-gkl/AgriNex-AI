@@ -1,21 +1,23 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview app/(farmer)/farmer/settings/page.tsx
  * Farmer-specific settings — profile info, language, and accessibility.
- * Automatically wrapped by FarmerShell + DemoProvider via the (farmer) layout.
+ * Premium redesign with glassmorphism and animations.
  */
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings, Globe, Accessibility, User, Shield,
-  Star, CheckCircle2, Clock, Save, Loader2, CheckCircle, AlertCircle
+  Star, CheckCircle2, Clock, Save, Loader2, CheckCircle, AlertCircle, Sparkles, Lock, Bell
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/types";
 import AccessibilityPanel from "@/components/settings/AccessibilityPanel";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import { cn } from "@/lib/utils";
 
 type TabId = "general" | "accessibility" | "profile";
 
@@ -26,6 +28,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
 ];
 
 export default function FarmerSettingsPage() {
+  const { t } = useTranslation("farmer");
   const [activeTab, setActiveTab] = useState<TabId>("general");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,189 +93,266 @@ export default function FarmerSettingsPage() {
   if (loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-          <p className="text-sm font-semibold">Loading settings...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full border-4 border-slate-200 border-t-emerald-500 animate-spin" />
+          <p className="text-slate-500 text-sm font-semibold">Loading settings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
-            <Settings className="w-5 h-5 text-white" />
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-50 via-white to-emerald-50 border border-slate-100 p-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-slate-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 shadow-lg shadow-slate-500/30">
+              <Settings className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                {t("farmerSettings1")}
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                Profile, language, and accessibility preferences
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Farmer Settings</h1>
-            <p className="text-slate-500 text-xs mt-0.5">Profile, language, and accessibility preferences</p>
+          
+          <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-slate-200 shadow-sm">
+              <Sparkles className="w-4 h-4 text-slate-600" />
+              <span className="text-sm font-semibold text-slate-700">{t("customizeExperience")}</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-emerald-200 shadow-sm">
+              <Lock className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-slate-700">Secure & Private</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-sky-200 shadow-sm">
+              <Bell className="w-4 h-4 text-sky-600" />
+              <span className="text-sm font-semibold text-slate-700">{t("notifications2")}</span>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Profile Summary Card */}
       {profile && (
-        <div className="glass-panel rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl shrink-0"
-            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="premium-card rounded-3xl shadow-sm p-6 flex items-center gap-6"
+        >
+          <div className="w-20 h-20 rounded-3xl flex items-center justify-center text-white font-bold text-2xl shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30">
             {profile.full_name?.charAt(0)?.toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-white font-bold text-base truncate">{profile.full_name}</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-slate-800 font-bold text-xl">{profile.full_name}</h2>
               {profile.is_verified
-                ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" />
-                : <Clock className="w-4 h-4 text-amber-400 shrink-0" />}
+                ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" fill="currentColor" />
+                : <Clock className="w-5 h-5 text-amber-500 shrink-0" />}
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Farmer</span>
-              <span className="text-slate-500 text-xs flex items-center gap-1">
-                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                {profile.trust_score?.toFixed(1) || "4.9"} Trust Score
+            <div className="flex items-center gap-3 mt-2">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">{t("farmer")}</span>
+              <span className="text-slate-500 text-sm flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span className="font-semibold">{profile.trust_score?.toFixed(1) || "4.9"}</span>
+                <span className="text-slate-400">{t("trustScore")}</span>
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Tabs */}
-      <div role="tablist" className="flex gap-1 p-1 rounded-xl bg-white/5 border border-white/10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        role="tablist" 
+        className="flex gap-2 p-2 rounded-2xl bg-slate-100 border border-slate-200"
+      >
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
             <button key={id} role="tab" aria-selected={isActive} onClick={() => setActiveTab(id)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
-              style={{
-                background: isActive ? "rgba(16,185,129,0.15)" : "transparent",
-                color: isActive ? "#10b981" : "#94a3b8",
-                border: isActive ? "1px solid rgba(16,185,129,0.25)" : "1px solid transparent",
-              }}>
-              <Icon className="w-3.5 h-3.5" />
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-200",
+                isActive 
+                  ? "bg-white text-emerald-600 shadow-sm border border-emerald-200" 
+                  : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
+              )}>
+              <Icon className="w-4 h-4" />
               {label}
             </button>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">
         <motion.div key={activeTab}
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2 }}>
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.3 }}>
           {activeTab === "general" && (
-            <div className="space-y-5">
-              <div className="glass-panel rounded-2xl p-5">
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="premium-card rounded-3xl shadow-sm p-6"
+              >
                 <LanguageSwitcher compact={false} />
-              </div>
-              <div className="glass-panel rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-4 h-4 text-emerald-400" />
-                  <h3 className="text-white font-semibold text-sm">Security & Privacy</h3>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="premium-card rounded-3xl shadow-sm p-6"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <h3 className="text-slate-800 font-bold text-lg">Security & Privacy</h3>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {[
-                    { label: "Email Authentication", status: "Active", color: "#10b981" },
-                    { label: "Row-Level Security (RLS)", status: "Enforced", color: "#10b981" },
-                    { label: "API Rate Limiting", status: "10 req/min", color: "#38bdf8" },
-                    { label: "Farmer KYC", status: profile?.is_verified ? "Verified" : "Pending", color: profile?.is_verified ? "#10b981" : "#f59e0b" },
+                    { label: "Email Authentication", status: "Active", color: "emerald" },
+                    { label: "Row-Level Security (RLS)", status: "Enforced", color: "emerald" },
+                    { label: "API Rate Limiting", status: "10 req/min", color: "sky" },
+                    { label: "Farmer KYC", status: profile?.is_verified ? "Verified" : "Pending", color: profile?.is_verified ? "emerald" : "amber" },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400">{item.label}</span>
-                      <span className="font-medium px-2 py-0.5 rounded-full"
-                        style={{ color: item.color, background: `${item.color}18`, border: `1px solid ${item.color}30` }}>
+                    <div key={item.label} className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-xl">
+                      <span className="text-slate-600 font-semibold">{item.label}</span>
+                      <span className={cn(
+                        "font-bold px-3 py-1.5 rounded-lg text-sm",
+                        item.color === "emerald" ? "bg-emerald-100 text-emerald-700 border border-emerald-200" :
+                        item.color === "sky" ? "bg-sky-100 text-sky-700 border border-sky-200" :
+                        "bg-amber-100 text-amber-700 border border-amber-200"
+                      )}>
                         {item.status}
                       </span>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="rounded-2xl p-4 bg-slate-900/40 border border-white/5">
-                <p className="text-[10px] text-slate-500 font-mono">AgriNex AI v1.0.0 · Farmer Platform · Powered by Google Gemini</p>
-              </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="rounded-2xl p-4 bg-slate-50 border border-slate-200 text-center"
+              >
+                <p className="text-xs text-slate-500 font-mono">AgriNex AI v1.0.0 · Farmer Platform · Powered by Google Gemini</p>
+              </motion.div>
             </div>
           )}
 
           {activeTab === "profile" && (
-            <form onSubmit={handleSaveProfile} className="glass-panel p-6 rounded-2xl space-y-5">
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2">Personal Information</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Full Name</label>
+            <motion.form
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onSubmit={handleSaveProfile} 
+              className="premium-card shadow-sm p-8 rounded-3xl space-y-8"
+            >
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">{t("personalInfo")}</h3>
+                <p className="text-slate-500 text-sm">Update your personal contact details</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t("fullName")}</label>
                   <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Rajesh Kumar" />
+                    className="glass-input w-full px-4 py-3 text-sm" placeholder="e.g. Rajesh Kumar" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Phone Number</label>
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Phone Number</label>
                   <input type="tel" required value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. 9876543210" />
+                    className="glass-input w-full px-4 py-3 text-sm" placeholder="e.g. 9876543210" />
                 </div>
-                <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Farm Address / Location</label>
+                <div className="sm:col-span-2 space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t("farmAddressLocation")}</label>
                   <input type="text" required value={address} onChange={(e) => setAddress(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Karnal Mandi Road, Sector 4, Haryana" />
+                    className="glass-input w-full px-4 py-3 text-sm" placeholder="e.g. Karnal Mandi Road, Sector 4, Haryana" />
                 </div>
               </div>
 
-              <h3 className="text-sm font-bold text-white border-b border-white/5 pb-2 pt-2">Agricultural Profile</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Total Area (Acres)</label>
+              <div className="border-t border-slate-100 pt-8">
+                <h3 className="text-lg font-bold text-slate-800 mb-2">{t("agriculturalProfile")}</h3>
+                <p className="text-slate-500 text-sm">{t("informationAboutYourFarmOperat")}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Area (Acres)</label>
                   <input type="number" step="0.1" required value={farmArea} onChange={(e) => setFarmArea(e.target.value)}
-                    className="glass-input text-xs" />
+                    className="glass-input w-full px-4 py-3 text-sm" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Primary Crops</label>
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">Primary Crops</label>
                   <input type="text" required value={primaryCrops} onChange={(e) => setPrimaryCrops(e.target.value)}
-                    className="glass-input text-xs" placeholder="e.g. Rice, Wheat, Turmeric" />
+                    className="glass-input w-full px-4 py-3 text-sm" placeholder="e.g. Rice, Wheat, Turmeric" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Soil Type</label>
-                  <select value={soilType} onChange={(e) => setSoilType(e.target.value)} className="glass-input text-xs">
-                    <option value="Clay Loam">Clay Loam</option>
-                    <option value="Alluvial">Alluvial Soil</option>
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t("soilType")}</label>
+                  <select value={soilType} onChange={(e) => setSoilType(e.target.value)} className="glass-input w-full px-4 py-3 text-sm cursor-pointer">
+                    <option value={t("clayLoam")}>{t("clayLoam")}</option>
+                    <option value="Alluvial">{t("alluvialSoil")}</option>
                     <option value="Sandy">Sandy Loam</option>
-                    <option value="Black Cotton">Black Cotton Soil</option>
+                    <option value="Black Cotton">{t("blackCottonSoil")}</option>
                     <option value="Laterite">Laterite Soil</option>
                   </select>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-400 font-mono">Irrigation Type</label>
-                  <select value={irrigationType} onChange={(e) => setIrrigationType(e.target.value)} className="glass-input text-xs">
-                    <option value="Drip">Drip Irrigation</option>
-                    <option value="Sprinkler">Sprinkler Irrigation</option>
-                    <option value="Flood">Canal/Flood Irrigation</option>
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t("irrigationType")}</label>
+                  <select value={irrigationType} onChange={(e) => setIrrigationType(e.target.value)} className="glass-input w-full px-4 py-3 text-sm cursor-pointer">
+                    <option value={t("drip")}>{t("dripIrrigation")}</option>
+                    <option value={t("sprinkler")}>Sprinkler Irrigation</option>
+                    <option value={t("flood")}>{t("canalFloodIrrigation")}</option>
                     <option value="Rainfed">Rainfed</option>
                   </select>
                 </div>
               </div>
 
               {message && (
-                <div className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
-                  message.type === "success"
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-red-500/10 text-red-400 border border-red-500/20"
-                }`}>
-                  {message.type === "success" ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn(
+                    "p-4 rounded-xl text-sm font-medium flex items-center gap-3",
+                    message.type === "success"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-rose-50 text-rose-700 border border-rose-200"
+                  )}>
+                  {message.type === "success" ? <CheckCircle className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
                   {message.text}
-                </div>
+                </motion.div>
               )}
 
               <button type="submit" disabled={saving}
-                className="w-full py-3 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 12px rgba(16,185,129,0.2)" }}>
+                className="w-full py-4 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" />Saving...</> : <><Save className="w-4 h-4" />Save Profile</>}
               </button>
-            </form>
+            </motion.form>
           )}
 
           {activeTab === "accessibility" && (
-            <div className="glass-panel rounded-2xl p-5">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="premium-card rounded-3xl shadow-sm p-6"
+            >
               <AccessibilityPanel />
-            </div>
+            </motion.div>
           )}
         </motion.div>
       </AnimatePresence>

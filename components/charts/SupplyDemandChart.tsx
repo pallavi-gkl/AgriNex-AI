@@ -1,5 +1,4 @@
 "use client";
-
 import {
   BarChart,
   Bar,
@@ -23,7 +22,7 @@ interface SupplyDemandChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-panel rounded-xl p-3 text-sm border border-white/10">
+      <div className="premium-card shadow-sm rounded-xl p-3 text-sm border-white/10">
         <p className="text-slate-400 text-xs mb-2 font-mono">{label}</p>
         <p className="text-emerald-400 font-semibold">
           Supply (Listed): {payload[0].value.toLocaleString()} kg
@@ -39,7 +38,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function SupplyDemandChart({ data }: SupplyDemandChartProps) {
   return (
-    <div className="glass-panel rounded-2xl p-6 h-full">
+    <div className="premium-card rounded-3xl shadow-sm p-6 h-full">
       <div className="mb-4">
         <h3 className="gradient-text-green text-base font-semibold">
           Supply vs Demand Volume

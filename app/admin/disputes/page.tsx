@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -51,6 +52,7 @@ async function resolveDispute(payload: {
 }
 
 export default function AdminDisputesPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [filterLevel, setFilterLevel] = useState<string>("ALL");
 
@@ -96,7 +98,7 @@ export default function AdminDisputesPage() {
 
   if (error) {
     return (
-      <div className="p-6 text-center text-red-400 glass-panel rounded-2xl">
+      <div className="p-6 text-center text-red-400 premium-card rounded-3xl shadow-sm">
         <ShieldX className="w-10 h-10 mx-auto mb-2 text-red-500" />
         <p>Error loading disputes: {(error as Error).message}</p>
       </div>
@@ -108,9 +110,9 @@ export default function AdminDisputesPage() {
       {/* Filters bar */}
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-500 font-semibold uppercase">
-          Filter Flag Level:
+          {t("filterFlagLevel")}
         </span>
-        <div className="flex glass-panel rounded-xl overflow-hidden border border-white/5">
+        <div className="flex premium-card shadow-sm rounded-xl overflow-hidden border-white/5">
           {["ALL", "HIGH", "MEDIUM", "LOW"].map((level) => (
             <button
               key={level}

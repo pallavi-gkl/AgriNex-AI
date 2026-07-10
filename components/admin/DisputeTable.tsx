@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useState } from "react";
 import { Star, ShieldAlert, Check, Coins, AlertTriangle, MoreVertical } from "lucide-react";
@@ -28,6 +29,7 @@ interface DisputeTableProps {
 }
 
 export default function DisputeTable({ disputes, onAction }: DisputeTableProps) {
+  const { t } = useTranslation();
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
 
@@ -52,19 +54,19 @@ export default function DisputeTable({ disputes, onAction }: DisputeTableProps) 
     switch (level) {
       case "HIGH":
         return (
-          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-400 border-red-500/30">
             🚨 HIGH
           </span>
         );
       case "MEDIUM":
         return (
-          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-400 border-amber-500/30">
             ⚠️ MEDIUM
           </span>
         );
       case "LOW":
         return (
-          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-yellow-500/10 text-yellow-300 border border-yellow-500/20">
+          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-yellow-500/10 text-yellow-300 border-yellow-500/20">
             ℹ️ LOW
           </span>
         );
@@ -72,6 +74,7 @@ export default function DisputeTable({ disputes, onAction }: DisputeTableProps) 
   };
 
   const getGradeBadge = (grade: string) => {
+  const { t } = useTranslation();
     let color = "text-slate-400 border-white/10";
     if (grade.startsWith("A")) color = "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
     else if (grade.startsWith("B")) color = "text-sky-400 border-sky-500/30 bg-sky-500/10";
@@ -85,18 +88,18 @@ export default function DisputeTable({ disputes, onAction }: DisputeTableProps) 
   };
 
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden border border-white/5 flex flex-col">
+    <div className="premium-card rounded-3xl shadow-sm overflow-hidden border-white/5 flex flex-col">
       <div className="p-5 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-white text-base flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-red-400" />
-            AI Dispute Monitor
+            {t("aiDisputeMonitor")}
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">
             Low-rating transactions flagged against AI crop grades at the time of sale.
           </p>
         </div>
-        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/15 text-red-400 border-red-500/30">
           {disputes.length} Flagged
         </span>
       </div>
@@ -105,14 +108,14 @@ export default function DisputeTable({ disputes, onAction }: DisputeTableProps) 
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-white/5 text-slate-400 uppercase tracking-wider text-[10px] font-semibold bg-white/[0.02]">
-              <th className="py-3 px-4">Order ID</th>
-              <th className="py-3 px-4">Consumer</th>
-              <th className="py-3 px-4">Farmer</th>
+              <th className="py-3 px-4">{t("orderId")}</th>
+              <th className="py-3 px-4">{t("consumer1")}</th>
+              <th className="py-3 px-4">{t("farmer")}</th>
               <th className="py-3 px-4">Reported Issue</th>
-              <th className="py-3 px-4 text-center">AI Grade</th>
+              <th className="py-3 px-4 text-center">{t("aiGrade")}</th>
               <th className="py-3 px-4 text-center">Rating</th>
-              <th className="py-3 px-4 text-center">Flag Level</th>
-              <th className="py-3 px-4 text-center">Actions</th>
+              <th className="py-3 px-4 text-center">{t("flagLevel")}</th>
+              <th className="py-3 px-4 text-center">{t("actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">

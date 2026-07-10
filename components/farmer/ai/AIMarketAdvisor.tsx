@@ -1,9 +1,12 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
+
 
 import React, { useState } from "react";
 import { TrendingUp, User, DollarSign, List, ShieldAlert } from "lucide-react";
 
 export default function AIMarketAdvisor() {
+  const { t } = useTranslation("farmer");
   const [cropType, setCropType] = useState("Basmati Rice");
   const [currentPrice, setCurrentPrice] = useState(85);
   const [quantity, setQuantity] = useState(4200);
@@ -35,75 +38,75 @@ export default function AIMarketAdvisor() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-white flex items-center gap-1.5">
+        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5">
           <TrendingUp className="w-5 h-5 text-blue-400" />
-          AI Mandi Market Sourcing & Pricing Advisor
+          {t("mandiMarketAdvisor")}
         </h2>
         <p className="text-slate-400 text-xs mt-0.5">
-          Discover optimal sales channels, regional pricing markup advice, and smart negotiation guidelines.
+          {t("mandiMarketDesc")}
         </p>
       </div>
 
       <form onSubmit={handleConsult} className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-mono">Crop Variety</label>
+            <label className="text-xs text-slate-400 font-mono">{t("cropVarietyLabel")}</label>
             <select
               value={cropType}
               onChange={(e) => setCropType(e.target.value)}
-              className="glass-input"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             >
-              <option value="Basmati Rice">Basmati Rice</option>
-              <option value="Alphonso Mango">Alphonso Mango</option>
+              <option value={t("basmatiRiceTitle")}>{t("basmatiRiceTitle")}</option>
+              <option value={t("alphonsoMangoTitle")}>{t("alphonsoMangoTitle")}</option>
               <option value="Turmeric Finger">Turmeric Finger</option>
               <option value="Organic Spinach">Organic Spinach</option>
             </select>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-mono">My Spot Price (₹/Kg)</label>
+            <label className="text-xs text-slate-400 font-mono">{t("spotPriceLabel")}</label>
             <input
               type="number"
               required
               value={currentPrice}
               onChange={(e) => setCurrentPrice(Number(e.target.value))}
-              className="glass-input font-mono"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-mono"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-mono">Supply Volume (Kg)</label>
+            <label className="text-xs text-slate-400 font-mono">{t("supplyVolumeLabel")}</label>
             <input
               type="number"
               required
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              className="glass-input font-mono"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-mono"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-slate-400 font-mono">Storage Location</label>
+            <label className="text-xs text-slate-400 font-mono">{t("storageLocLabel")}</label>
             <input
               type="text"
               required
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="glass-input"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             />
           </div>
 
           <div className="space-y-1 col-span-2 sm:col-span-1">
-            <label className="text-xs text-slate-400 font-mono">Primary Target Sourcing</label>
+            <label className="text-xs text-slate-400 font-mono">{t("primaryTargetLabel")}</label>
             <select
               value={targetMarket}
               onChange={(e) => setTargetMarket(e.target.value)}
-              className="glass-input"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             >
-              <option value="APMC Mandi">APMC Mandi Yard</option>
-              <option value="Export Sourcing">Export Houses</option>
+              <option value={t("apmcMandi")}>{t("apmcMandiYard")}</option>
+              <option value="Export Sourcing">{t("exportHouses")}</option>
               <option value="Retail Contract">Retail Aggregators</option>
-              <option value="Direct Consumer">Direct Consumer Market</option>
+              <option value="Direct Consumer">{t("directConsumerMarket")}</option>
             </select>
           </div>
         </div>
@@ -114,11 +117,11 @@ export default function AIMarketAdvisor() {
           className="w-full py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-mono font-bold transition flex items-center justify-center gap-2"
         >
           {loading ? (
-            <span>Fetching mandis order books and index data...</span>
+            <span>{t("fetchingMandisOrderBooksAndInd")}</span>
           ) : (
             <>
               <TrendingUp className="w-4 h-4" />
-              Analyze Pricing Trends
+              {t("analyzePricingTrends")}
             </>
           )}
         </button>
@@ -126,7 +129,7 @@ export default function AIMarketAdvisor() {
 
       {/* Results disclosure */}
       {result && (
-        <div className="mt-6 border-t border-white/5 pt-6 space-y-6">
+        <div className="mt-6 border-t border-slate-100 pt-6 space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="space-y-1">
               <span className="text-[9px] uppercase font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
@@ -136,8 +139,8 @@ export default function AIMarketAdvisor() {
             </div>
             
             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-5 py-3 text-center shrink-0 min-w-[150px]">
-              <p className="text-[10px] text-slate-500 font-mono">AI RECOMMENDED PRICE</p>
-              <p className="text-xl font-bold text-emerald-400 mt-0.5">₹{result.recommended_price} <span className="text-xs font-normal text-slate-400">/ Kg</span></p>
+              <p className="text-[10px] text-slate-500 font-mono">{t("aiRecommendedPrice")}</p>
+              <p className="text-xl font-bold text-emerald-400 mt-0.5">₹{result.recommended_price} <span className="text-xs font-normal text-slate-400">{t("kg")}</span></p>
             </div>
           </div>
 
@@ -150,9 +153,9 @@ export default function AIMarketAdvisor() {
               </h4>
               <div className="space-y-2.5">
                 {result.best_buyers.map((b: any, idx: number) => (
-                  <div key={idx} className="bg-white/5 border border-white/5 p-3 rounded-xl flex justify-between items-start">
+                  <div key={idx} className="bg-slate-50 border border-slate-100 p-3 rounded-xl flex justify-between items-start">
                     <div>
-                      <p className="text-xs font-bold text-white">{b.type}</p>
+                      <p className="text-xs font-bold text-slate-800">{b.type}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {b.pros.map((p: string, pIdx: number) => (
                           <span key={pIdx} className="bg-slate-900 px-2 py-0.5 rounded text-[9px] text-slate-400 font-mono">
@@ -173,9 +176,9 @@ export default function AIMarketAdvisor() {
             <div className="space-y-4">
               <h4 className="text-xs font-bold text-slate-400 font-mono flex items-center gap-1.5">
                 <List className="w-4 h-4 text-blue-400" />
-                AI NEGOTIATION RECOMMENDATIONS
+                {t("aiNegotiationRecommendations")}
               </h4>
-              <ul className="space-y-2 text-xs text-slate-300">
+              <ul className="space-y-2 text-xs text-slate-600">
                 {result.negotiation_tips.map((t: string, idx: number) => (
                   <li key={idx} className="flex gap-2">
                     <span className="text-blue-400 font-bold shrink-0">{idx + 1}.</span>
@@ -186,10 +189,10 @@ export default function AIMarketAdvisor() {
             </div>
           </div>
 
-          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-              <h4 className="text-xs font-bold text-white">Estimated Crop Revenue Impact</h4>
-              <p className="text-slate-400 text-[11px] mt-0.5">Based on recommended listing price and volume supply.</p>
+              <h4 className="text-xs font-bold text-slate-800">{t("estimatedCropRevenueImpact")}</h4>
+              <p className="text-slate-400 text-[11px] mt-0.5">{t("basedOnRecommendedListingPrice")}</p>
             </div>
             <div className="text-right shrink-0">
               <span className="text-[10px] text-slate-500 font-mono uppercase block">Total Net Impact</span>

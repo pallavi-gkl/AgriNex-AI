@@ -1,10 +1,12 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface EnvironmentalGaugeProps {
   percentage: number;
 }
 
 export default function EnvironmentalGauge({ percentage }: EnvironmentalGaugeProps) {
+  const { t } = useTranslation();
   // SVG circle calculations
   const radius = 50;
   const strokeWidth = 10;
@@ -13,10 +15,10 @@ export default function EnvironmentalGauge({ percentage }: EnvironmentalGaugePro
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="glass-panel rounded-2xl p-6 flex flex-col items-center justify-between h-full min-h-[300px]">
+    <div className="premium-card rounded-3xl shadow-sm p-6 flex flex-col items-center justify-between h-full min-h-[300px]">
       <div className="w-full text-left">
         <h3 className="gradient-text-green text-base font-semibold">
-          Eco-Impact Meter
+          {t("ecoImpactMeter")}
         </h3>
         <p className="text-slate-500 text-xs mt-0.5">
           Ratio of direct farm-to-consumer orders
@@ -66,7 +68,7 @@ export default function EnvironmentalGauge({ percentage }: EnvironmentalGaugePro
             {percentage}%
           </span>
           <span className="block text-[10px] text-slate-500 font-medium uppercase mt-0.5 tracking-wider">
-            Direct Path
+            {t("directPath")}
           </span>
         </div>
       </div>

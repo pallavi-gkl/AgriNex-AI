@@ -1,5 +1,4 @@
 "use client";
-
 /**
  * @fileoverview app/settings/page.tsx — Role-based redirect to correct settings page.
  * Farmers are redirected to /farmer/settings

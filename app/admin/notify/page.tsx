@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ async function broadcastNotification(payload: {
 }
 
 export default function AdminNotificationPage() {
+  const { t } = useTranslation();
   const [audience, setAudience] = useState("all");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
@@ -53,6 +55,7 @@ export default function AdminNotificationPage() {
   });
 
   const handleBroadcast = (e: React.FormEvent) => {
+  const { t } = useTranslation();
     e.preventDefault();
     if (!title.trim() || !message.trim()) return;
 
@@ -69,7 +72,7 @@ export default function AdminNotificationPage() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       {/* ── BROADCAST FORM ── */}
-      <div className="glass-panel rounded-2xl p-6 space-y-5">
+      <div className="premium-card rounded-3xl shadow-sm p-6 space-y-5">
         <div>
           <h3 className="font-semibold text-white text-sm flex items-center gap-2">
             <Bell className="w-4 h-4 text-purple-400" />
@@ -88,7 +91,7 @@ export default function AdminNotificationPage() {
             </label>
             <select
               id="audience-select"
-              className="glass-input w-full cursor-pointer py-2 text-xs"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 cursor-pointer focus:outline-none focus:border-emerald-500/50"
               style={{
                 background: "rgba(255, 255, 255, 0.03)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -96,9 +99,9 @@ export default function AdminNotificationPage() {
               value={audience}
               onChange={(e) => setAudience(e.target.value)}
             >
-              <option value="all">📢 All Registered Users</option>
-              <option value="farmers">🌾 All Farmers</option>
-              <option value="consumers">🏠 All Consumers</option>
+              <option value={t("all")}>📢 All Registered Users</option>
+              <option value={t("farmers")}>🌾 All Farmers</option>
+              <option value={t("consumers")}>🏠 All Consumers</option>
               <option value="single">👤 Single User (Phone or User ID)</option>
             </select>
           </div>
@@ -111,7 +114,7 @@ export default function AdminNotificationPage() {
               </label>
               <input
                 id="target-user-input"
-                className="glass-input text-xs"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
                 placeholder="e.g. +919876543210 or user-uuid-abc-123"
                 value={singleUserVal}
                 onChange={(e) => setSingleUserVal(e.target.value)}
@@ -127,7 +130,7 @@ export default function AdminNotificationPage() {
             </label>
             <input
               id="notif-title-input"
-              className="glass-input text-xs"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:border-emerald-500/50"
               placeholder="e.g. 🌾 Price Alert: Tomato demand surges in Pune market"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -142,7 +145,7 @@ export default function AdminNotificationPage() {
             </label>
             <textarea
               id="notif-message-input"
-              className="glass-input h-24 text-xs resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 h-24 resize-none focus:outline-none focus:border-emerald-500/50"
               placeholder="Provide clear message details here..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -178,7 +181,7 @@ export default function AdminNotificationPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-center gap-2"
+              className="p-3 bg-emerald-500/10 border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />
               <span>Broadcast dispatched to {dispatchCount} target users successfully.</span>
@@ -188,23 +191,23 @@ export default function AdminNotificationPage() {
       </div>
 
       {/* ── LIVE PREVIEW PANEL ── */}
-      <div className="glass-panel rounded-2xl p-6 space-y-5">
+      <div className="premium-card rounded-3xl shadow-sm p-6 space-y-5">
         <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
           <Eye className="w-3.5 h-3.5 text-purple-400" />
           Live Mock Preview
         </p>
 
-        <div className="border border-white/5 rounded-xl p-8 bg-black/25 min-h-[220px] flex items-center justify-center">
+        <div className="border-white/5 rounded-xl p-8 bg-black/25 min-h-[220px] flex items-center justify-center">
           {title || message ? (
             <div
-              className="glass-panel w-full max-w-sm rounded-xl p-4 flex gap-3 text-xs"
+              className="premium-card shadow-sm w-full max-w-sm rounded-xl p-4 flex gap-3 text-xs"
               style={{
                 background: "rgba(13, 20, 38, 0.7)",
                 border: "1px solid rgba(139, 92, 246, 0.25)",
                 boxShadow: "0 0 15px rgba(139,92,246,0.1)",
               }}
             >
-              <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center flex-shrink-0 text-purple-300">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/15 border-purple-500/30 flex items-center justify-center flex-shrink-0 text-purple-300">
                 <Bell className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
@@ -221,7 +224,7 @@ export default function AdminNotificationPage() {
             </div>
           ) : (
             <p className="text-slate-600 text-xs italic">
-              Fill in the dispatcher form to preview.
+              {t("fillInTheDispatcherFormToPrevi")}
             </p>
           )}
         </div>

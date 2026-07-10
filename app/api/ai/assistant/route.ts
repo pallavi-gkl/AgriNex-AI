@@ -14,7 +14,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
-    const { messages, currentPath, role, language } = await req.json();
+    const { messages, currentPath, role, language, location, weather } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -71,6 +71,20 @@ The user is an ADMINISTRATOR of AgriNex. You should help them with:
       pageInstructions += " They are viewing their orders page. Help them track order states or write reviews.";
     }
 
+    let locationInstructions = "";
+    if (location && location.city) {
+      locationInstructions = `
+LOCATION & WEATHER CONTEXT:
+- Saved Village/City: ${location.city}
+- State: ${location.state || "N/A"}
+- Country: ${location.country || "India"}
+- Geolocation Coordinates: Lat ${location.latitude || "N/A"}, Lng ${location.longitude || "N/A"}
+${weather ? `- Current Weather: ${weather.condition || "N/A"} (${weather.temperature}°C, ${weather.humidity || "N/A"}% Humidity, ${weather.wind_speed || "N/A"} km/h Wind)` : ""}
+
+INSTRUCTION: You MUST automatically adapt all agricultural (crop recommendations, disease guidance, fertilizer recommendations, irrigation advice, weather-based advice, gov schemes) and consumer (delivery estimates, nearby produce availability, local pricing) recommendations to this saved location. Refer to this location and weather naturally in your response (e.g. "Based on your saved location in Pune, Maharashtra...") instead of asking the user for their location.
+`;
+    }
+
     const systemPrompt = `
 You are AgriNex AI, a premium conversational AI agricultural assistant embedded in the AgriNex platform — an AI-powered marketplace connecting Indian farmers directly with consumers.
 
@@ -84,6 +98,8 @@ ${contextInstructions}
 
 PAGE CONTEXT:
 ${pageInstructions}
+
+${locationInstructions}
 
 LANGUAGE INSTRUCTIONS (CRITICAL):
 - The user's selected language is: "${langCode}" (${langName}).

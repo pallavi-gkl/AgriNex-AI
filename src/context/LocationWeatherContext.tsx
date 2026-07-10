@@ -7,6 +7,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
+
 
 export interface LocationData {
   city: string;
@@ -54,6 +56,7 @@ interface LocationWeatherContextValue {
   error: string | null;
   requestLocation: () => void;
   setManualLocation: (city: string, state: string) => Promise<void>;
+  setModalOpen: (open: boolean) => void;
 }
 
 const LocationWeatherContext = createContext<LocationWeatherContextValue>({
@@ -64,6 +67,7 @@ const LocationWeatherContext = createContext<LocationWeatherContextValue>({
   error: null,
   requestLocation: () => {},
   setManualLocation: async () => {},
+  setModalOpen: () => {},
 });
 
 const CROPS_LIST = [
@@ -154,6 +158,26 @@ function generateMandiPrices(city: string, state: string): MandiPrice[] {
   });
 }
 
+const DEFAULT_WEATHER_DATA: WeatherData = {
+  temperature: 28,
+  feels_like: 31,
+  humidity: 65,
+  wind_speed: 12,
+  uv_index: 6,
+  condition: "Partly Cloudy",
+  condition_icon: "⛅",
+  codeType: "cloud",
+  forecast: [
+    { day: "Today", high: 32, low: 24, condition: "Partly Cloudy", icon: "⛅", rain_chance: 20 },
+    { day: "Mon", high: 33, low: 25, condition: "Sunny", icon: "☀️", rain_chance: 10 },
+    { day: "Tue", high: 31, low: 24, condition: "Rainy", icon: "🌧️", rain_chance: 70 },
+    { day: "Wed", high: 30, low: 23, condition: "Thunderstorms", icon: "⛈️", rain_chance: 80 },
+    { day: "Thu", high: 32, low: 24, condition: "Partly Cloudy", icon: "⛅", rain_chance: 20 },
+    { day: "Fri", high: 33, low: 25, condition: "Sunny", icon: "☀️", rain_chance: 15 },
+    { day: "Sat", high: 34, low: 26, condition: "Sunny", icon: "☀️", rain_chance: 10 }
+  ]
+};
+
 export function LocationWeatherProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -161,53 +185,68 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWeatherAndMandis = useCallback(async (lat: number, lng: number, city: string, state: string, country: string, permission: LocationData["permissionStatus"]) => {
+  const pathname = usePathname();
+
+  // setModalOpen is kept in context for backward-compat; full-page location uses router.push now
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setModalOpenPublic = useCallback((_open: boolean) => {}, []);
+
+  const fetchWeatherAndMandis = useCallback(async (lat: number, lng: number, city: string, state: string, country: string, permission: LocationData["permissionStatus"], district = "", pincode = "") => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch weather from Open-Meteo
-      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max&timezone=auto`;
-      const res = await fetch(weatherUrl);
-      if (!res.ok) throw new Error("Failed to fetch weather data");
-      
-      const data = await res.json();
-      const current = data.current;
-      const daily = data.daily;
-      
-      const mappedCurrent = mapWeatherCode(current.weather_code);
-      
-      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const forecast = (daily.time || []).map((timeStr: string, idx: number) => {
-        const date = new Date(timeStr);
-        const dayName = idx === 0 ? "Today" : daysOfWeek[date.getDay()];
-        const maxTemp = Math.round(daily.temperature_2m_max[idx]);
-        const minTemp = Math.round(daily.temperature_2m_min[idx]);
-        const rainChance = Math.round(daily.precipitation_probability_max[idx] ?? 20);
-        const dailyCode = daily.weather_code?.[idx] ?? 3;
-        const mappedDaily = mapWeatherCode(dailyCode);
-        return {
-          day: dayName,
-          high: maxTemp,
-          low: minTemp,
-          condition: mappedDaily.condition,
-          icon: mappedDaily.icon,
-          rain_chance: rainChance
+      if (typeof lat !== "number" || isNaN(lat) || typeof lng !== "number" || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new Error("Invalid latitude/longitude coordinates");
+      }
+
+      let weatherData = DEFAULT_WEATHER_DATA;
+      try {
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max&timezone=auto`;
+        const res = await fetch(weatherUrl);
+        if (!res.ok) throw new Error("Failed to fetch weather data");
+        
+        const data = await res.json();
+        const current = data.current;
+        const daily = data.daily;
+        
+        const mappedCurrent = mapWeatherCode(current.weather_code);
+        
+        const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const forecast = (daily.time || []).map((timeStr: string, idx: number) => {
+          const date = new Date(timeStr);
+          const dayName = idx === 0 ? "Today" : daysOfWeek[date.getDay()];
+          const maxTemp = Math.round(daily.temperature_2m_max[idx]);
+          const minTemp = Math.round(daily.temperature_2m_min[idx]);
+          const rainChance = Math.round(daily.precipitation_probability_max[idx] ?? 20);
+          const dailyCode = daily.weather_code?.[idx] ?? 3;
+          const mappedDaily = mapWeatherCode(dailyCode);
+          return {
+            day: dayName,
+            high: maxTemp,
+            low: minTemp,
+            condition: mappedDaily.condition,
+            icon: mappedDaily.icon,
+            rain_chance: rainChance
+          };
+        });
+
+        weatherData = {
+          temperature: Math.round(current.temperature_2m),
+          feels_like: Math.round(current.apparent_temperature),
+          humidity: Math.round(current.relative_humidity_2m),
+          wind_speed: Math.round(current.wind_speed_10m),
+          uv_index: Math.round(daily.uv_index_max?.[0] ?? 5),
+          condition: mappedCurrent.condition,
+          condition_icon: mappedCurrent.icon,
+          codeType: mappedCurrent.codeType,
+          forecast
         };
-      });
+      } catch (weatherErr) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("Weather API fetch failed, fallback to mock data:", weatherErr);
+        }
+      }
 
-      const weatherData: WeatherData = {
-        temperature: Math.round(current.temperature_2m),
-        feels_like: Math.round(current.apparent_temperature),
-        humidity: Math.round(current.relative_humidity_2m),
-        wind_speed: Math.round(current.wind_speed_10m),
-        uv_index: Math.round(daily.uv_index_max?.[0] ?? 5),
-        condition: mappedCurrent.condition,
-        condition_icon: mappedCurrent.icon,
-        codeType: mappedCurrent.codeType,
-        forecast
-      };
-
-      // 2. Generate mandi prices based on location
       const mandis = generateMandiPrices(city, state);
 
       setLocation({
@@ -221,20 +260,37 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
       setWeather(weatherData);
       setNearbyMandis(mandis);
 
-      // Save to sessionStorage for fast restore
-      sessionStorage.setItem("agrinex_city", city);
-      sessionStorage.setItem("agrinex_state", state);
-      sessionStorage.setItem("agrinex_country", country);
-      sessionStorage.setItem("agrinex_lat", String(lat));
-      sessionStorage.setItem("agrinex_lng", String(lng));
-      sessionStorage.setItem("agrinex_permission", permission);
+      // Save to localStorage for persistence across logins and refreshes
+      const suffix = pathname?.startsWith("/farmer") ? "_farmer" : "_consumer";
+      localStorage.setItem("agrinex_city" + suffix, city);
+      localStorage.setItem("agrinex_state" + suffix, state);
+      localStorage.setItem("agrinex_country" + suffix, country);
+      localStorage.setItem("agrinex_lat" + suffix, String(lat));
+      localStorage.setItem("agrinex_lng" + suffix, String(lng));
+      localStorage.setItem("agrinex_permission" + suffix, permission);
+      localStorage.setItem("agrinex_district" + suffix, district);
+      localStorage.setItem("agrinex_pincode" + suffix, pincode);
+
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to load weather data");
+      if (process.env.NODE_ENV === "development") {
+        console.error("fetchWeatherAndMandis general error:", err);
+      }
+      
+      setLocation({
+        city: city || "Local Hub",
+        state: state || "",
+        country: country || "India",
+        latitude: lat || 29.6857,
+        longitude: lng || 76.9905,
+        permissionStatus: permission
+      });
+      setWeather(DEFAULT_WEATHER_DATA);
+      setNearbyMandis(generateMandiPrices(city || "Local Hub", state || ""));
+      setError("Weather service is temporarily in offline mode");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pathname]);
 
   const requestLocation = useCallback(() => {
     if (typeof window === "undefined" || !navigator.geolocation) {
@@ -243,43 +299,35 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
     }
 
     setLoading(true);
+    setError(null);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // Reverse geocode using a free & fast API
           const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
           const geoRes = await fetch(geocodeUrl);
           if (!geoRes.ok) throw new Error("Failed to reverse geocode");
           const geoData = await geoRes.json();
-          
+
           const city = geoData.city || geoData.locality || "Your Location";
           const state = geoData.principalSubdivision || "";
           const country = geoData.countryName || "India";
 
           await fetchWeatherAndMandis(latitude, longitude, city, state, country, "granted");
         } catch (err) {
-          // Fallback to coordinates but set permission as granted
           await fetchWeatherAndMandis(latitude, longitude, "Your Location", "", "India", "granted");
         }
       },
       (err) => {
         console.warn("Geolocation error:", err);
-        setLocation((prev) => ({
-          city: prev?.city || "",
-          state: prev?.state || "",
-          country: prev?.country || "India",
-          latitude: prev?.latitude || 0,
-          longitude: prev?.longitude || 0,
-          permissionStatus: "denied"
-        }));
+        setError("GPS access denied.");
         setLoading(false);
       },
       { timeout: 10000, enableHighAccuracy: true }
     );
   }, [fetchWeatherAndMandis]);
 
-  const setManualLocation = useCallback(async (cityInput: string, stateInput: string) => {
+  const setManualLocation = useCallback(async (cityInput: string, stateInput: string, districtInput = "", pincodeInput = "") => {
     setLoading(true);
     setError(null);
     const query = cityInput.trim().toLowerCase();
@@ -290,20 +338,31 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
     let finalState = stateInput;
 
     const hub = DEFAULT_HUBS[query];
-    if (hub) {
+    if (hub && !districtInput && !pincodeInput) {
       lat = hub.lat;
       lng = hub.lng;
       finalCity = hub.name;
       finalState = hub.state;
     } else {
       try {
-        // Query Nominatim OpenStreetMap search API
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput + ", " + stateInput)}&format=json&limit=1`);
+        const parts = [cityInput, districtInput, stateInput, pincodeInput].filter(Boolean);
+        const searchQuery = parts.join(", ");
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.length > 0) {
             lat = parseFloat(data[0].lat);
             lng = parseFloat(data[0].lon);
+          } else {
+            // fallback search
+            const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityInput)}&format=json&limit=1`);
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              if (fallbackData && fallbackData.length > 0) {
+                lat = parseFloat(fallbackData[0].lat);
+                lng = parseFloat(fallbackData[0].lon);
+              }
+            }
           }
         }
       } catch (err) {
@@ -311,19 +370,22 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
       }
     }
 
-    await fetchWeatherAndMandis(lat, lng, finalCity, finalState, "India", "denied");
+    await fetchWeatherAndMandis(lat, lng, finalCity, finalState, "India", "denied", districtInput, pincodeInput);
   }, [fetchWeatherAndMandis]);
 
-  // Auto-request or restore on load
+  // Auto-restore location from localStorage on load or when platform changes
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const cachedCity = sessionStorage.getItem("agrinex_city");
-    const cachedState = sessionStorage.getItem("agrinex_state");
-    const cachedCountry = sessionStorage.getItem("agrinex_country");
-    const cachedLat = sessionStorage.getItem("agrinex_lat");
-    const cachedLng = sessionStorage.getItem("agrinex_lng");
-    const cachedPerm = sessionStorage.getItem("agrinex_permission");
+    const suffix = pathname?.startsWith("/farmer") ? "_farmer" : "_consumer";
+    const cachedCity = localStorage.getItem("agrinex_city" + suffix);
+    const cachedState = localStorage.getItem("agrinex_state" + suffix);
+    const cachedCountry = localStorage.getItem("agrinex_country" + suffix);
+    const cachedLat = localStorage.getItem("agrinex_lat" + suffix);
+    const cachedLng = localStorage.getItem("agrinex_lng" + suffix);
+    const cachedPerm = localStorage.getItem("agrinex_permission" + suffix);
+    const cachedDistrict = localStorage.getItem("agrinex_district" + suffix) || "";
+    const cachedPincode = localStorage.getItem("agrinex_pincode" + suffix) || "";
 
     if (cachedCity && cachedLat && cachedLng) {
       fetchWeatherAndMandis(
@@ -332,13 +394,58 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
         cachedCity,
         cachedState || "",
         cachedCountry || "India",
-        (cachedPerm as any) || "granted"
+        (cachedPerm as any) || "granted",
+        cachedDistrict,
+        cachedPincode
       );
     } else {
-      // Attempt geolocation immediately
-      requestLocation();
+      // Set silent default locations (Farmer: Karnal, Consumer: Kochi) when no location is cached
+      const isFarmer = pathname?.startsWith("/farmer");
+      const defaultCity = isFarmer ? "Karnal" : "Kochi";
+      const defaultState = isFarmer ? "Haryana" : "Kerala";
+      const defaultLat = isFarmer ? 29.6857 : 9.9312;
+      const defaultLng = isFarmer ? 76.9905 : 76.2673;
+
+      setLocation({
+        city: defaultCity,
+        state: defaultState,
+        country: "India",
+        latitude: defaultLat,
+        longitude: defaultLng,
+        permissionStatus: "denied"
+      });
+      setWeather(DEFAULT_WEATHER_DATA);
+      setNearbyMandis(generateMandiPrices(defaultCity, defaultState));
     }
-  }, [requestLocation, fetchWeatherAndMandis]);
+  }, [pathname, fetchWeatherAndMandis]);
+
+  // Listen for storage events fired by /change-location page to immediately refresh context
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleStorage = (e: StorageEvent) => {
+      // Only react to agrinex location keys for the current platform
+      if (!e.key?.startsWith("agrinex_city")) return;
+      const suffix = pathname?.startsWith("/farmer") ? "_farmer" : "_consumer";
+      if (!e.key.endsWith(suffix)) return;
+
+      const city     = localStorage.getItem("agrinex_city"     + suffix) || "";
+      const state    = localStorage.getItem("agrinex_state"    + suffix) || "";
+      const country  = localStorage.getItem("agrinex_country"  + suffix) || "India";
+      const lat      = parseFloat(localStorage.getItem("agrinex_lat" + suffix) || "29.6857");
+      const lng      = parseFloat(localStorage.getItem("agrinex_lng" + suffix) || "76.9905");
+      const perm     = (localStorage.getItem("agrinex_permission" + suffix) || "granted") as LocationData["permissionStatus"];
+      const district = localStorage.getItem("agrinex_district" + suffix) || "";
+      const pincode  = localStorage.getItem("agrinex_pincode"  + suffix) || "";
+
+      if (city) {
+        fetchWeatherAndMandis(lat, lng, city, state, country, perm, district, pincode);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [pathname, fetchWeatherAndMandis]);
 
   return (
     <LocationWeatherContext.Provider
@@ -349,7 +456,8 @@ export function LocationWeatherProvider({ children }: { children: React.ReactNod
         loading,
         error,
         requestLocation,
-        setManualLocation
+        setManualLocation,
+        setModalOpen: setModalOpenPublic,
       }}
     >
       {children}

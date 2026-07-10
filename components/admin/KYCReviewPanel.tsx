@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -17,6 +18,7 @@ export default function KYCReviewPanel({
   onVerify,
   onReject,
 }: KYCReviewPanelProps) {
+  const { t } = useTranslation();
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isZoomed, setIsZoomed] = useState(false);
@@ -81,7 +83,7 @@ export default function KYCReviewPanel({
             initial={{ opacity: 0, scale: 0.8, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: -20 }}
-            className="absolute top-6 right-6 z-30 bg-emerald-500/20 border border-emerald-500 text-emerald-400 font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+            className="absolute top-6 right-6 z-30 bg-emerald-500/20 border-emerald-500 text-emerald-400 font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
           >
             <Check className="w-5 h-5" />
             Profile Verified
@@ -90,8 +92,8 @@ export default function KYCReviewPanel({
       </AnimatePresence>
 
       {/* ── Farmer Info Header ── */}
-      <div className="flex items-center gap-4 bg-white/[0.01] p-4 rounded-2xl border border-white/5">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
+      <div className="flex items-center gap-4 bg-white/[0.01] p-4 rounded-2xl border-white/5">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border-purple-500/30 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
           {application.fullName.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
@@ -108,13 +110,13 @@ export default function KYCReviewPanel({
       </div>
 
       {/* ── Document Viewer ── */}
-      <div className="glass-panel rounded-2xl p-4 flex-1 flex flex-col min-h-[300px]">
+      <div className="premium-card rounded-3xl shadow-sm p-4 flex-1 flex flex-col min-h-[300px]">
         <p className="text-slate-400 text-xs mb-3 font-semibold uppercase tracking-wider flex items-center gap-1.5">
           <Eye className="w-3.5 h-3.5 text-purple-400" />
           Uploaded Land Certificate
         </p>
 
-        <div className="flex-1 bg-black/20 rounded-xl overflow-hidden border border-white/5 relative flex items-center justify-center">
+        <div className="flex-1 bg-black/20 rounded-xl overflow-hidden border-white/5 relative flex items-center justify-center">
           {isPdf ? (
             <iframe
               src={application.landCertificateUrl}
@@ -165,7 +167,7 @@ export default function KYCReviewPanel({
           whileTap={{ scale: 0.98 }}
           onClick={handleVerifyClick}
           disabled={submitting}
-          className="flex-1 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-500/30 transition-all text-sm"
+          className="flex-1 py-3 rounded-xl bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-semibold flex items-center justify-center gap-2 hover:bg-emerald-500/30 transition-all text-sm"
           style={{ boxShadow: "0 0 20px rgba(16,185,129,0.15)" }}
         >
           <Check className="w-4 h-4" />
@@ -177,7 +179,7 @@ export default function KYCReviewPanel({
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowRejectDialog(true)}
           disabled={submitting}
-          className="flex-1 py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 font-semibold hover:bg-red-500/25 transition-all text-sm"
+          className="flex-1 py-3 rounded-xl bg-red-500/15 border-red-500/30 text-red-400 font-semibold hover:bg-red-500/25 transition-all text-sm"
         >
           Reject Application
         </motion.button>
@@ -213,7 +215,7 @@ export default function KYCReviewPanel({
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="glass-panel max-w-md w-full rounded-2xl p-6 relative border border-red-500/20"
+              className="premium-card shadow-sm max-w-md w-full rounded-2xl p-6 relative border-red-500/20"
             >
               <div className="flex items-center gap-2 text-red-400 mb-4">
                 <ShieldAlert className="w-5 h-5" />
@@ -225,7 +227,7 @@ export default function KYCReviewPanel({
               </p>
 
               <textarea
-                className="glass-input w-full h-24 text-xs resize-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 h-24 resize-none focus:outline-none focus:border-emerald-500/50"
                 placeholder="e.g. Land certificate scan is blurry. Please re-upload a clear copy."
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
@@ -235,15 +237,15 @@ export default function KYCReviewPanel({
                 <button
                   onClick={handleRejectSubmit}
                   disabled={submitting || !rejectionReason.trim()}
-                  className="flex-1 py-2.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 font-semibold hover:bg-red-500/30 transition-all text-xs"
+                  className="flex-1 py-2.5 rounded-xl bg-red-500/20 border-red-500/40 text-red-300 font-semibold hover:bg-red-500/30 transition-all text-xs"
                 >
-                  Confirm Reject
+                  {t("confirmReject")}
                 </button>
                 <button
                   onClick={() => setShowRejectDialog(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all text-xs"
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 transition-all text-xs"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
               </div>
             </motion.div>

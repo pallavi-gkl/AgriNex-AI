@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import {
   LineChart,
@@ -24,7 +25,7 @@ interface GrowthChartProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-panel rounded-xl p-3 text-sm border border-white/10">
+      <div className="premium-card shadow-sm rounded-xl p-3 text-sm border-white/10">
         <p className="text-slate-400 text-xs mb-2 font-mono">{label}</p>
         <p className="text-emerald-400 font-semibold">
           Farmers Registered: {payload[0].value}
@@ -42,8 +43,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function GrowthChart({ data }: GrowthChartProps) {
+  const { t } = useTranslation();
   return (
-    <div className="glass-panel rounded-2xl p-6 h-full">
+    <div className="premium-card rounded-3xl shadow-sm p-6 h-full">
       <div className="mb-4">
         <h3 className="gradient-text-purple text-base font-semibold">
           Platform Registration & Order Growth
@@ -57,15 +59,15 @@ export default function GrowthChart({ data }: GrowthChartProps) {
       <div className="flex items-center gap-4 mb-4">
         <span className="flex items-center gap-1.5 text-xs text-slate-400">
           <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
-          Farmers
+          {t("farmers")}
         </span>
         <span className="flex items-center gap-1.5 text-xs text-slate-400">
           <span className="w-3 h-3 rounded-full bg-sky-500 inline-block" />
-          Consumers
+          {t("consumers")}
         </span>
         <span className="flex items-center gap-1.5 text-xs text-slate-400">
           <span className="w-3 h-3 rounded-full bg-purple-500 inline-block" />
-          Orders
+          {t("ordersTitle")}
         </span>
       </div>
 

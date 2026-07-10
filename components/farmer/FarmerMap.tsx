@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
@@ -32,6 +33,7 @@ const SAMPLE_MARKERS: LocationMarker[] = [
 ];
 
 export default function FarmerMap() {
+  const { t } = useTranslation("farmer");
   const [mounted, setMounted] = useState(false);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
@@ -171,11 +173,11 @@ export default function FarmerMap() {
           </div>
           <div className="flex items-center gap-2 text-slate-300">
             <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
-            <span>D2C Buyer</span>
+            <span>{t("d2cBuyer")}</span>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span>Collection Point</span>
+            <span>{t("collectionPoint")}</span>
           </div>
         </div>
       </div>

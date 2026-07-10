@@ -1,5 +1,4 @@
 "use client";
-
 /**
  * @fileoverview StatsCard — individual metric widget for the farmer dashboard.
  * Supports 4 color variants: green, blue, purple, amber.
@@ -21,31 +20,27 @@ interface StatsCardProps {
 
 const colorConfig: Record<
   CardColor,
-  { gradient: string; iconBg: string; hoverClass: string; iconColor: string }
+  { valueClass: string; iconGradient: string; iconColor: string }
 > = {
   green: {
-    gradient: "gradient-text-green",
-    iconBg: "bg-emerald-500/15",
-    hoverClass: "glass-panel-hover",
-    iconColor: "text-emerald-400",
+    valueClass: "gradient-text-emerald",
+    iconGradient: "from-emerald-400 to-emerald-600",
+    iconColor: "text-white",
   },
   blue: {
-    gradient: "text-white",
-    iconBg: "bg-sky-500/15",
-    hoverClass: "glass-panel-hover-blue",
-    iconColor: "text-sky-400",
+    valueClass: "gradient-text-blue",
+    iconGradient: "from-sky-400 to-blue-600",
+    iconColor: "text-white",
   },
   purple: {
-    gradient: "gradient-text-purple",
-    iconBg: "bg-purple-500/15",
-    hoverClass: "glass-panel-hover-purple",
-    iconColor: "text-purple-400",
+    valueClass: "gradient-text-purple",
+    iconGradient: "from-purple-400 to-violet-600",
+    iconColor: "text-white",
   },
   amber: {
-    gradient: "gradient-text-amber",
-    iconBg: "bg-amber-500/15",
-    hoverClass: "glass-panel-hover-amber",
-    iconColor: "text-amber-400",
+    valueClass: "gradient-text-golden",
+    iconGradient: "from-amber-400 to-orange-500",
+    iconColor: "text-white",
   },
 };
 
@@ -55,25 +50,25 @@ export default function StatsCard({ label, value, icon: Icon, color, sublabel }:
   return (
     <motion.div
       variants={listItemVariants}
-      whileHover={{ scale: 1.03 }}
+      whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className={`glass-panel ${cfg.hoverClass} rounded-2xl p-5 flex flex-col gap-3 cursor-default`}
+      className="stat-card flex flex-col gap-3 cursor-default"
     >
       {/* Icon */}
-      <div className={`w-10 h-10 rounded-xl ${cfg.iconBg} flex items-center justify-center`}>
+      <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${cfg.iconGradient} flex items-center justify-center shadow-md`}>
         <Icon className={`w-5 h-5 ${cfg.iconColor}`} strokeWidth={1.8} />
       </div>
 
       {/* Value */}
       <div>
-        <p className={`text-2xl font-bold font-sans ${cfg.gradient}`}>{value}</p>
+        <p className={`text-2xl font-extrabold font-sans ${cfg.valueClass}`}>{value}</p>
         {sublabel && (
-          <p className="text-xs text-slate-500 mt-0.5">{sublabel}</p>
+          <p className="text-xs text-slate-500 mt-0.5 font-semibold">{sublabel}</p>
         )}
       </div>
 
       {/* Label */}
-      <p className="text-sm text-slate-400 font-medium leading-tight">{label}</p>
+      <p className="text-sm text-slate-600 font-semibold leading-tight">{label}</p>
     </motion.div>
   );
 }

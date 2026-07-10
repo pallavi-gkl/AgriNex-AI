@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -23,6 +24,7 @@ async function fetchAdminStats() {
 }
 
 export default function AdminOverviewPage() {
+  const { t } = useTranslation();
   const { data: stats, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["adminStats"],
     queryFn: fetchAdminStats,
@@ -35,13 +37,13 @@ export default function AdminOverviewPage() {
         {/* KPI Grid Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="glass-panel h-28 rounded-2xl anim-shimmer" />
+            <div key={i} className="premium-card shadow-sm h-28 rounded-2xl anim-shimmer" />
           ))}
         </div>
         {/* Charts Grid Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="glass-panel h-96 rounded-2xl col-span-2 anim-shimmer" />
-          <div className="glass-panel h-96 rounded-2xl anim-shimmer" />
+          <div className="premium-card shadow-sm h-96 rounded-2xl col-span-2 anim-shimmer" />
+          <div className="premium-card shadow-sm h-96 rounded-2xl anim-shimmer" />
         </div>
       </div>
     );
@@ -49,13 +51,13 @@ export default function AdminOverviewPage() {
 
   if (error) {
     return (
-      <div className="p-6 text-center text-red-400 glass-panel rounded-2xl">
+      <div className="p-6 text-center text-red-600 premium-card rounded-3xl shadow-sm">
         <p>Error loading analytics: {(error as Error).message}</p>
         <button
           onClick={() => refetch()}
-          className="mt-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs hover:bg-white/10 text-white"
+          className="mt-3 btn-secondary text-xs"
         >
-          Retry
+          {t("retry")}
         </button>
       </div>
     );
@@ -98,7 +100,7 @@ export default function AdminOverviewPage() {
       <div className="flex items-center justify-end">
         <button
           onClick={() => refetch()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-panel text-xs text-slate-400 hover:text-white transition-all border border-white/5"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full premium-card shadow-sm text-xs text-slate-600 hover:text-emerald-700 transition-all"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
           {isFetching ? "Refreshing..." : "Refresh Stats"}
@@ -112,7 +114,7 @@ export default function AdminOverviewPage() {
           return (
             <div
               key={idx}
-              className={`glass-panel p-5 rounded-2xl border flex items-center justify-between transition-all hover:-translate-y-0.5 ${kpi.bg}`}
+              className={`premium-card shadow-sm p-5 rounded-2xl border flex items-center justify-between transition-all hover:-translate-y-0.5 ${kpi.bg}`}
             >
               <div className="min-w-0">
                 <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       await admin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true, // Instantly confirmed — no email verification required
+        email_confirm: false, // Enforce email confirmation verification step
         user_metadata: {
           full_name:    full_name    ?? "Unknown",
           phone_number: phone_number ?? "0000000000",
@@ -145,6 +145,20 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[signup] User created: ${email} (${role}) ID: ${user.id}`);
+
+    // Trigger sending the Supabase email verification confirmation email
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const { error: resendError } = await admin.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+      },
+    });
+
+    if (resendError) {
+      console.error("[signup] Trigger verification resend failed:", resendError.message);
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview Customer Dashboard — /consumer/dashboard
@@ -120,6 +121,7 @@ function RecentOrderRow({ order }: { order: any }) {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function ConsumerDashboardPage() {
+  const { t } = useTranslation("consumer");
   const { data: liveOrders = [], isLoading } = useConsumerOrders();
   const { wishlist } = useWishlist();
   const [profile, setProfile] = useState<any>(null);
@@ -181,7 +183,7 @@ export default function ConsumerDashboardPage() {
             {greeting},
             {" "}<span className="gradient-text-green">{profile?.full_name?.split(" ")[0] ?? "Shopper"}</span>! 👋
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Here's your farm-fresh shopping summary</p>
+          <p className="text-slate-400 text-sm mt-1">{t("hereSYourFarmFreshShoppingSumm")}</p>
         </div>
         <Link href="/consumer/marketplace"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:scale-105"
@@ -196,7 +198,7 @@ export default function ConsumerDashboardPage() {
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-3">
           <Bot className="w-4 h-4 text-emerald-400" />
-          <h2 className="text-slate-400 text-sm">AI Insights for You</h2>
+          <h2 className="text-slate-400 text-sm">{t("aiInsightsForYou")}</h2>
         </div>
         <AIInsightBanner insight={AI_INSIGHTS[insightIdx]} />
         <div className="flex gap-1.5 mt-2">
@@ -210,13 +212,13 @@ export default function ConsumerDashboardPage() {
 
       {/* ── Stats Grid ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={<ShoppingBag className="w-6 h-6" />} value={orders.length} label="Total Orders"
+        <StatCard icon={<ShoppingBag className="w-6 h-6" />} value={orders.length} label={t("totalOrders2")}
           sub={`${activeCount} active`} color="#10b981" href="/consumer/orders" />
-        <StatCard icon={<TrendingUp className="w-6 h-6" />} value={`₹${totalSpent.toLocaleString()}`} label="Total Spent"
+        <StatCard icon={<TrendingUp className="w-6 h-6" />} value={`₹${totalSpent.toLocaleString()}`} label={t("totalSpent")}
           sub={`₹${totalSaved.toLocaleString()} saved!`} color="#f59e0b" />
         <StatCard icon={<Heart className="w-6 h-6" />} value={wishlist.length} label="Wishlist Items"
           sub="Saved for later" color="#ef4444" href="/consumer/wishlist" />
-        <StatCard icon={<Award className="w-6 h-6" />} value={rewardPoints.toLocaleString()} label="Reward Points"
+        <StatCard icon={<Award className="w-6 h-6" />} value={rewardPoints.toLocaleString()} label={t("rewardPoints")}
           sub={`≈ ₹${Math.floor(rewardPoints / 10)}`} color="#8b5cf6" />
       </div>
 
@@ -290,9 +292,9 @@ export default function ConsumerDashboardPage() {
         {/* Recent Orders */}
         <div className="glass-panel rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white font-bold text-sm">Recent Orders</h3>
+            <h3 className="text-white font-bold text-sm">{t("recentOrders")}</h3>
             <Link href="/consumer/orders" className="text-emerald-400 text-xs hover:underline flex items-center gap-1">
-              View all <ChevronRight className="w-3 h-3" />
+              {t("viewAll2")} <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           {isLoading ? (
@@ -310,10 +312,10 @@ export default function ConsumerDashboardPage() {
           <div className="glass-panel rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-bold text-sm flex items-center gap-2">
-                <Heart className="w-4 h-4 text-red-400" />Wishlist
+                <Heart className="w-4 h-4 text-red-400" />{t("wishlist")}
               </h3>
               <Link href="/consumer/wishlist" className="text-red-400 text-xs hover:underline flex items-center gap-1">
-                View all <ChevronRight className="w-3 h-3" />
+                {t("viewAll2")} <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
             {wishlist.length === 0 ? (
@@ -340,7 +342,7 @@ export default function ConsumerDashboardPage() {
           {/* Market flash */}
           <div className="glass-panel rounded-2xl p-5">
             <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-sky-400" />Live Prices
+              <TrendingUp className="w-4 h-4 text-sky-400" />{t("livePrices")}
             </h3>
             <div className="space-y-2">
               {DEMO_MARKET_PRICES.slice(0, 4).map((p) => (

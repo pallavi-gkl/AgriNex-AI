@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /**
  * @fileoverview EarningsAreaChart — Recharts dual-line area chart for the farmer dashboard.
@@ -25,7 +26,7 @@ type Timeframe = "monthly" | "weekly";
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload?.length) {
     return (
-      <div className="glass-panel rounded-xl p-3 text-sm border border-white/10">
+      <div className="premium-card shadow-sm rounded-xl p-3 text-sm border-white/10">
         <p className="text-slate-400 text-xs mb-2 font-mono">{label}</p>
         <p className="text-emerald-400 font-semibold">
           My Sales: ₹{payload[0]?.value?.toLocaleString("en-IN")}
@@ -48,18 +49,19 @@ function ChartSkeleton() {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function EarningsAreaChart() {
+  const { t } = useTranslation();
   const [timeframe, setTimeframe] = useState<Timeframe>("monthly");
   const { data, isLoading, refetch, isFetching } = useFarmerAnalytics(timeframe);
 
   const chartData: ChartDataPoint[] = data?.chartData ?? [];
 
   return (
-    <div className="glass-panel rounded-2xl p-6 col-span-full">
+    <div className="premium-card rounded-3xl shadow-sm p-6 col-span-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="gradient-text-green text-lg font-semibold">
-            Earnings vs Market Average
+            {t("earningsVsMarketAverage")}
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">
             Personal earnings compared to local wholesale market
@@ -67,7 +69,7 @@ export default function EarningsAreaChart() {
         </div>
         <div className="flex items-center gap-2">
           {/* Timeframe toggle */}
-          <div className="flex glass-panel rounded-xl overflow-hidden border border-white/8">
+          <div className="flex premium-card shadow-sm rounded-xl overflow-hidden border-white/8">
             {(["monthly", "weekly"] as Timeframe[]).map((tf) => (
               <button
                 key={tf}
@@ -84,7 +86,7 @@ export default function EarningsAreaChart() {
           </div>
           <button
             onClick={() => refetch()}
-            className="w-8 h-8 rounded-lg glass-panel flex items-center justify-center hover:border-emerald-500/30 transition-all"
+            className="w-8 h-8 rounded-lg premium-card shadow-sm flex items-center justify-center hover:border-emerald-500/30 transition-all"
             title="Refresh data"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${isFetching ? "animate-spin" : ""}`} />
