@@ -21,12 +21,10 @@ async function authHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  // Only set Authorization when we have a real token.
-  // Sending `Bearer ` (empty token) is an invalid header value that
-  // browsers will reject with: Headers.append: "Bearer ..." is an
-  // invalid header value.
-  if (session?.access_token) {
-    headers.Authorization = `Bearer ${session.access_token}`;
+  // Ensure the access token is trimmed and contains a valid value.
+  const token = (session?.access_token ?? "").trim();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
   return headers;
 }
@@ -88,10 +86,10 @@ interface CreateOrderInput {
 }
 
 async function postOrder(payload: CreateOrderInput): Promise<any> {
+  const headers = await authHeaders();
   const res = await fetch(`/api/orders`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",           // sends session cookies for auth
+    headers,
     body: JSON.stringify(payload),
   });
 
@@ -110,6 +108,8 @@ export function useCreateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["consumerOrders"] });
       queryClient.invalidateQueries({ queryKey: ["farmerOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["farmerOrdersDirect"] });
+      queryClient.invalidateQueries({ queryKey: ["farmerAnalytics"] });
       queryClient.invalidateQueries({ queryKey: ["products"] }); // qty may change
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },

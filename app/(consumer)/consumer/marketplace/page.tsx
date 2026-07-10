@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -24,7 +25,7 @@ import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { supabase } from "@/lib/supabase";
 import { DEMO_CROPS, DEMO_MARKET_PRICES } from "@/lib/demoData";
-import OrderDialog from "@/components/consumer/marketplace/OrderDialog";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CartItem {
@@ -589,13 +590,18 @@ export default function MarketplacePage() {
   const [onlyOrganic, setOnlyOrganic] = useState(false);
   const [minGrade, setMinGrade] = useState("All");
   const [activeSection, setActiveSection] = useState("all");
-  const [orderProduct, setOrderProduct] = useState<any | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  const router = useRouter();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { cart, cartCount, addToCart, updateQty, removeFromCart, clearCart } = useCart();
   const { t } = useTranslation();
+
+  // Navigate to checkout page with the selected product
+  const handleOrderNow = (product: any) => {
+    router.push(`/consumer/marketplace/checkout?productId=${product.id}`);
+  };
 
   const getCategoryLabel = (label: string) => {
     const mapping: Record<string, string> = {
@@ -1059,7 +1065,7 @@ export default function MarketplacePage() {
             />
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
               {sortedProducts.slice(0, 6).map((p: any) => (
-                <FlashDealCard key={p.id} product={p} onAddToCart={handleAddToCart} onOrderNow={setOrderProduct} />
+                <FlashDealCard key={p.id} product={p} onAddToCart={handleAddToCart} onOrderNow={handleOrderNow} />
               ))}
             </div>
           </section>
@@ -1078,7 +1084,7 @@ export default function MarketplacePage() {
               {fresh.map((p: any) => (
                 <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
                   isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist}
-                  onOrderNow={setOrderProduct} />
+                  onOrderNow={handleOrderNow} />
               ))}
             </div>
           </section>
@@ -1097,7 +1103,7 @@ export default function MarketplacePage() {
               {organic.map((p: any) => (
                 <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
                   isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist}
-                  onOrderNow={setOrderProduct} />
+                  onOrderNow={handleOrderNow} />
               ))}
             </div>
           </section>
@@ -1116,7 +1122,7 @@ export default function MarketplacePage() {
               {trending.map((p: any) => (
                 <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
                   isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist}
-                  onOrderNow={setOrderProduct} />
+                  onOrderNow={handleOrderNow} />
               ))}
             </div>
           </section>
@@ -1177,7 +1183,7 @@ export default function MarketplacePage() {
                 {sortedProducts.map((p: any) => (
                   <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
                     isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist}
-                    onOrderNow={setOrderProduct} />
+                    onOrderNow={handleOrderNow} />
                 ))}
               </AnimatePresence>
             </motion.div>
@@ -1259,16 +1265,6 @@ export default function MarketplacePage() {
         )}
       </AnimatePresence>
 
-      {/* ── Order Dialog ──────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {orderProduct && (
-          <OrderDialog
-            product={orderProduct}
-            onClose={() => setOrderProduct(null)}
-            onSuccess={() => setOrderProduct(null)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

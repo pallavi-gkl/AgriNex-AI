@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Truck, ShieldCheck, ShoppingBag, CheckCircle,
   AlertCircle, Loader2, User, Phone, Mail, MapPin, CreditCard,
-  Wallet, Landmark, Plus, Minus, Landmark as UpiIcon, HelpCircle,
+  Wallet, Landmark, Plus, Minus, Landmark as UpiIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useCreateOrder } from "@/hooks/useOrders";
@@ -20,7 +20,7 @@ function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId") || "";
   const initialQty = parseInt(searchParams.get("quantity") || "1", 10);
-  const { t } = useTranslation();
+  const { t } = useTranslation("consumer");
 
   const [quantity, setQuantity] = useState<number>(initialQty);
   const [customerName, setCustomerName] = useState("");
@@ -30,7 +30,7 @@ function CheckoutPageContent() {
   const [city, setCity] = useState("");
   const [stateVal, setStateVal] = useState("");
   const [pinCode, setPinCode] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cod"); // cod, upi, card, netbanking, wallet
+  const [paymentMethod, setPaymentMethod] = useState("cod");
   const [formError, setFormError] = useState<string | null>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [generatedOrderId, setGeneratedOrderId] = useState("");
@@ -39,7 +39,7 @@ function CheckoutPageContent() {
   const { data: liveProducts = [], isLoading: productsLoading } = useMarketplaceProducts({});
   const { mutate: createOrder, isPending: isPlacingOrder } = useCreateOrder();
 
-  // Load fallback demo data + format
+  // Demo data fallback
   const demoAsProducts = DEMO_CROPS.filter((c) => c.is_active && c.quantity_available > 0).map((c) => ({
     id: c.id,
     title: c.title,
@@ -72,7 +72,6 @@ function CheckoutPageContent() {
     setEstimatedDelivery(d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }));
 
     async function loadProfile() {
-  const { t } = useTranslation("consumer");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setEmail(user.email ?? "");
@@ -87,12 +86,10 @@ function CheckoutPageContent() {
         if (profile.full_name && profile.full_name !== "Unknown") setCustomerName(profile.full_name);
         if (profile.phone_number && profile.phone_number !== "0000000000") setMobile(profile.phone_number);
         if (profile.address) {
-          // Attempt parsing address if formatted as comma separated
           const parts = profile.address.split(",");
           if (parts.length >= 3) {
             setAddress(parts[0].trim());
             setCity(parts[1].trim());
-            // parse state and pin if formatted "State - PIN"
             const statePin = parts[2].trim().split("-");
             if (statePin.length >= 2) {
               setStateVal(statePin[0].trim());
@@ -113,18 +110,21 @@ function CheckoutPageContent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-        <p className="text-slate-500 text-sm">Loading checkout details...</p>
+        <p className="text-slate-400 text-sm">Loading checkout details...</p>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="max-w-md mx-auto my-12 text-center p-8 bg-white rounded-3xl border border-slate-100 shadow-lg">
-        <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-        <h3 className="text-lg font-bold text-slate-800 mb-2">Product Not Found</h3>
-        <p className="text-slate-500 text-sm mb-6">The product you are trying to purchase does not exist or is currently unavailable.</p>
-        <Link href="/consumer/marketplace" className="btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold no-underline">
+      <div className="max-w-md mx-auto my-12 text-center p-8 rounded-3xl border border-white/10 shadow-lg"
+        style={{ background: "rgba(255,255,255,0.04)" }}>
+        <AlertCircle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-white mb-2">Product Not Found</h3>
+        <p className="text-slate-400 text-sm mb-6">The product you are trying to purchase does not exist or is currently unavailable.</p>
+        <Link href="/consumer/marketplace"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold no-underline text-white"
+          style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
           <ArrowLeft className="w-4 h-4" /> {t("backToMarketplace")}
         </Link>
       </div>
@@ -140,14 +140,13 @@ function CheckoutPageContent() {
   const subtotal = price * quantity;
   const deliveryCharge = subtotal >= 500 ? 0 : 50;
   const platformFee = 5;
-  const discount = 0; // Can be expanded with coupon logic if needed
+  const discount = 0;
   const totalAmount = subtotal + deliveryCharge + platformFee - discount;
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
-    // Form validations
     if (!customerName.trim()) { setFormError("Full Name is required."); return; }
     if (!mobile.trim() || mobile.trim().length < 10) { setFormError("Valid 10-digit Mobile Number is required."); return; }
     if (!email.trim()) { setFormError("Email Address is required."); return; }
@@ -190,7 +189,6 @@ function CheckoutPageContent() {
         },
         {
           onSuccess: (data: any) => {
-            // Generate a mockup order ID if hook doesn't return one directly
             setGeneratedOrderId(data?.id || `AGN-${Math.floor(100000 + Math.random() * 900000)}`);
             setOrderSuccess(true);
           },
@@ -202,18 +200,28 @@ function CheckoutPageContent() {
     }
   };
 
+  // ── Shared card style for dark theme ──────────────────────────────────────
+  const cardStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  };
+  const inputClass = "w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors";
+  const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20">
       
       {/* ── Page Header ─────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-8">
-        <button onClick={() => router.push("/consumer/marketplace")}
-          className="p-2.5 rounded-full hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer"
+        <button
+          onClick={() => router.push("/consumer/marketplace")}
+          className="p-2.5 rounded-full transition-colors border-0 cursor-pointer"
+          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
           title={t("backToMarketplace")}>
-          <ArrowLeft className="w-5 h-5 text-slate-600" />
+          <ArrowLeft className="w-5 h-5 text-slate-300" />
         </button>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">{t("checkoutTitle")}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">{t("checkoutTitle")}</h1>
           <p className="text-xs text-slate-500">Secure Direct Farm-to-Consumer Purchase</p>
         </div>
       </div>
@@ -225,48 +233,52 @@ function CheckoutPageContent() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            className="max-w-xl mx-auto py-12 px-8 rounded-3xl border border-slate-100 shadow-xl bg-white text-center"
+            className="max-w-xl mx-auto py-12 px-8 rounded-3xl text-center"
+            style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.20)" }}
           >
-            <div className="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-emerald-600 animate-bounce" />
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
+              <CheckCircle className="w-10 h-10 text-emerald-400 animate-bounce" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">{t("orderConfirmed")}</h2>
-            <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-              Your direct farm order has been placed successfully with <strong>{farmerName}</strong>{t("theFarmerIsPackingYourHarvest")}
+            <h2 className="text-2xl font-bold text-white mb-2">{t("orderConfirmed")}</h2>
+            <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+              Your direct farm order has been placed successfully with <strong className="text-white">{farmerName}</strong>. The farmer is preparing your harvest for dispatch.
             </p>
 
             {/* Order details snapshot */}
-            <div className="rounded-2xl p-5 mb-8 text-left space-y-3 bg-slate-50 border border-slate-100 text-sm">
+            <div className="rounded-2xl p-5 mb-8 text-left space-y-3 text-sm"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <div className="flex justify-between">
                 <span className="text-slate-500">Order ID:</span>
-                <span className="font-mono font-bold text-slate-800">{generatedOrderId}</span>
+                <span className="font-mono font-bold text-emerald-400">{generatedOrderId}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Produce Ordered:</span>
-                <span className="font-semibold text-slate-800">{product.title} (x{quantity} {unit})</span>
+                <span className="font-semibold text-white">{product.title} (x{quantity} {unit})</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">{t("estimatedDelivery1")}</span>
-                <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-sky-500" />
+                <span className="font-semibold text-white flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-sky-400" />
                   {estimatedDelivery}
                 </span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200/60 font-bold">
-                <span className="text-slate-700">Total Paid:</span>
-                <span className="text-emerald-700">₹{totalAmount.toFixed(0)}</span>
+              <div className="flex justify-between pt-2 border-t border-white/10 font-bold">
+                <span className="text-slate-400">Total Paid:</span>
+                <span className="text-emerald-400">₹{totalAmount.toFixed(0)}</span>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => router.push("/consumer/marketplace")}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors border-0 cursor-pointer">
+                className="flex-1 py-3 rounded-xl text-sm font-bold cursor-pointer border-0 transition-colors text-slate-300 hover:text-white"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 {t("continueShopping")}
               </button>
               <button onClick={() => router.push("/consumer/orders")}
                 className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all border-0 cursor-pointer hover:opacity-90"
                 style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.3)" }}>
-                View Orders
+                View My Orders
               </button>
             </div>
           </motion.div>
@@ -278,21 +290,23 @@ function CheckoutPageContent() {
             <form onSubmit={handlePlaceOrder} className="lg:col-span-8 space-y-6">
               
               {/* Customer Information Card */}
-              <div className="rounded-3xl p-6 bg-white border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 pb-3 border-b border-slate-100">
-                  <User className="w-4.5 h-4.5 text-emerald-600" />
+              <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
+                <h3 className="text-base font-bold text-white flex items-center gap-2 pb-3"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                  <User className="w-4 h-4 text-emerald-400" />
                   {t("customerInformation")}
                 </h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Name */}
-                  <div className="relative">
+                  <div>
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("fullName")}</label>
                     <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className={inputClass}
+                        style={inputStyle}
                         required />
                     </div>
                   </div>
@@ -301,10 +315,11 @@ function CheckoutPageContent() {
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mobile Number</label>
                     <div className="relative">
-                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <input type="tel" value={mobile} onChange={e => setMobile(e.target.value)}
                         placeholder="10-digit number"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className={inputClass}
+                        style={inputStyle}
                         required />
                     </div>
                   </div>
@@ -313,10 +328,11 @@ function CheckoutPageContent() {
                   <div className="sm:col-span-2">
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("emailAddress")}</label>
                     <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                         placeholder="john.doe@example.com"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className={inputClass}
+                        style={inputStyle}
                         required />
                     </div>
                   </div>
@@ -324,9 +340,10 @@ function CheckoutPageContent() {
               </div>
 
               {/* Delivery Address Card */}
-              <div className="rounded-3xl p-6 bg-white border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 pb-3 border-b border-slate-100">
-                  <MapPin className="w-4.5 h-4.5 text-emerald-600" />
+              <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
+                <h3 className="text-base font-bold text-white flex items-center gap-2 pb-3"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                  <MapPin className="w-4 h-4 text-emerald-400" />
                   {t("deliveryAddress")}
                 </h3>
                 
@@ -335,10 +352,11 @@ function CheckoutPageContent() {
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("streetAddress")}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <input type="text" value={address} onChange={e => setAddress(e.target.value)}
                         placeholder="House no., Apartment, Street, Area"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className={inputClass}
+                        style={inputStyle}
                         required />
                     </div>
                   </div>
@@ -349,7 +367,8 @@ function CheckoutPageContent() {
                       <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("city")}</label>
                       <input type="text" value={city} onChange={e => setCity(e.target.value)}
                         placeholder={t("city")}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
+                        style={inputStyle}
                         required />
                     </div>
 
@@ -358,7 +377,8 @@ function CheckoutPageContent() {
                       <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("state")}</label>
                       <input type="text" value={stateVal} onChange={e => setStateVal(e.target.value)}
                         placeholder={t("state")}
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
+                        style={inputStyle}
                         required />
                     </div>
 
@@ -368,7 +388,8 @@ function CheckoutPageContent() {
                       <input type="text" value={pinCode} maxLength={6}
                         onChange={e => setPinCode(e.target.value.replace(/\D/g, ""))}
                         placeholder="6-digit code"
-                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200/80 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                        className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
+                        style={inputStyle}
                         required />
                     </div>
                   </div>
@@ -376,9 +397,10 @@ function CheckoutPageContent() {
               </div>
 
               {/* Payment Section Card */}
-              <div className="rounded-3xl p-6 bg-white border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-base font-bold text-slate-800 flex items-center gap-2 pb-3 border-b border-slate-100">
-                  <CreditCard className="w-4.5 h-4.5 text-emerald-600" />
+              <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
+                <h3 className="text-base font-bold text-white flex items-center gap-2 pb-3"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                  <CreditCard className="w-4 h-4 text-emerald-400" />
                   Select Payment Option
                 </h3>
                 
@@ -393,22 +415,26 @@ function CheckoutPageContent() {
                     <div
                       key={pay.id}
                       onClick={() => setPaymentMethod(pay.id)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 ${
-                        paymentMethod === pay.id
-                          ? "bg-emerald-50/50 border-emerald-500 text-emerald-900 shadow-sm"
-                          : "bg-white border-slate-200 hover:bg-slate-50/50"
-                      }`}
+                      className="p-4 rounded-2xl transition-all cursor-pointer flex flex-col gap-2"
+                      style={{
+                        background: paymentMethod === pay.id
+                          ? "rgba(16,185,129,0.12)"
+                          : "rgba(255,255,255,0.03)",
+                        border: paymentMethod === pay.id
+                          ? "1px solid rgba(16,185,129,0.40)"
+                          : "1px solid rgba(255,255,255,0.08)",
+                      }}
                     >
                       <div className="flex items-center justify-between">
-                        <pay.icon className={`w-5 h-5 ${paymentMethod === pay.id ? "text-emerald-600" : "text-slate-400"}`} />
+                        <pay.icon className={`w-5 h-5 ${paymentMethod === pay.id ? "text-emerald-400" : "text-slate-500"}`} />
                         <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          paymentMethod === pay.id ? "border-emerald-500 bg-emerald-500" : "border-slate-300"
+                          paymentMethod === pay.id ? "border-emerald-500 bg-emerald-500" : "border-slate-600"
                         }`}>
                           {paymentMethod === pay.id && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                         </span>
                       </div>
                       <div>
-                        <p className="font-bold text-xs text-slate-800">{pay.label}</p>
+                        <p className={`font-bold text-xs ${paymentMethod === pay.id ? "text-emerald-300" : "text-slate-300"}`}>{pay.label}</p>
                         <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{pay.desc}</p>
                       </div>
                     </div>
@@ -422,104 +448,113 @@ function CheckoutPageContent() {
             <div className="lg:col-span-4 space-y-6">
               
               {/* Product Summary Card */}
-              <div className="rounded-3xl p-5 bg-white border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100 flex items-center justify-between">
+              <div className="rounded-3xl p-5 space-y-4" style={cardStyle}>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider pb-3 flex items-center justify-between"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <span>Product Summary</span>
                   {product.isOrganic && (
-                    <span className="text-[9px] bg-emerald-100 text-emerald-800 border-emerald-200 rounded px-1.5 py-0.5 font-extrabold font-mono uppercase tracking-wider">{t("organic")}</span>
+                    <span className="text-[9px] rounded px-1.5 py-0.5 font-extrabold font-mono uppercase tracking-wider"
+                      style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.30)", color: "#34d399" }}>
+                      {t("organic")}
+                    </span>
                   )}
                 </h3>
 
                 <div className="flex gap-4">
-                  {/* Image mock */}
                   <div className="w-16 h-16 rounded-2xl shrink-0 flex items-center justify-center text-3xl"
                     style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(6,182,212,0.08))" }}>
                     {product.imageUrl ? <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover rounded-2xl" /> : "🌱"}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 text-sm leading-tight">{product.title}</h4>
-                    <p className="text-xs text-slate-400 mt-1">Category: {product.category}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 font-medium">Farmer: {farmerName}</p>
+                    <h4 className="font-bold text-white text-sm leading-tight">{product.title}</h4>
+                    <p className="text-xs text-slate-500 mt-1">Category: {product.category}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 font-medium">Farmer: {farmerName}</p>
                   </div>
                 </div>
 
-                <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100 text-xs space-y-2">
+                <div className="rounded-2xl p-4 text-xs space-y-2"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Unit Price</span>
-                    <span className="font-bold text-slate-800">₹{price} / {unit}</span>
+                    <span className="font-bold text-white">₹{price} / {unit}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">{t("availability")}</span>
-                    <span className="font-semibold text-emerald-600">{stock > 0 ? `In Stock (${stock} ${unit})` : "Out of Stock"}</span>
+                    <span className="font-semibold text-emerald-400">{stock > 0 ? `In Stock (${stock} ${unit})` : "Out of Stock"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">{t("estDelivery")}</span>
-                    <span className="font-semibold text-slate-800">{estimatedDelivery}</span>
+                    <span className="font-semibold text-white">{estimatedDelivery}</span>
                   </div>
                 </div>
 
                 {/* Qty Selector */}
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs font-semibold text-slate-600">{t("quantity")}</span>
+                  <span className="text-xs font-semibold text-slate-400">{t("quantity")}</span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       disabled={quantity <= 1}
                       onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                      className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+                      className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
                     >
-                      <Minus className="w-3.5 h-3.5 text-slate-500" />
+                      <Minus className="w-3.5 h-3.5 text-slate-400" />
                     </button>
-                    <span className="w-8 text-center text-sm font-bold text-slate-800">{quantity}</span>
+                    <span className="w-8 text-center text-sm font-bold text-white">{quantity}</span>
                     <button
                       type="button"
                       disabled={quantity >= stock}
                       onClick={() => setQuantity(prev => Math.min(stock, prev + 1))}
-                      className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+                      className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
+                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
                     >
-                      <Plus className="w-3.5 h-3.5 text-slate-500" />
+                      <Plus className="w-3.5 h-3.5 text-slate-400" />
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Order Summary Card */}
-              <div className="rounded-3xl p-5 bg-white border border-slate-100 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100">
+              <div className="rounded-3xl p-5 space-y-4" style={cardStyle}>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider pb-3"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   {t("billDetails")}
                 </h3>
 
                 <div className="text-xs space-y-3">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Subtotal ({quantity} {unit})</span>
-                    <span className="font-medium text-slate-800">₹{subtotal.toFixed(0)}</span>
+                    <span className="font-medium text-white">₹{subtotal.toFixed(0)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">{t("deliveryCharge")}</span>
-                    <span className="font-medium text-slate-800">
-                      {deliveryCharge === 0 ? <span className="text-emerald-600 font-bold">{t("free")}</span> : `₹${deliveryCharge}`}
+                    <span className="font-medium text-white">
+                      {deliveryCharge === 0 ? <span className="text-emerald-400 font-bold">{t("free")}</span> : `₹${deliveryCharge}`}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Platform Handling Fee</span>
-                    <span className="font-medium text-slate-800">₹{platformFee}</span>
+                    <span className="font-medium text-white">₹{platformFee}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-emerald-600 font-bold">
+                    <div className="flex justify-between text-emerald-400 font-bold">
                       <span>{t("discount")}</span>
                       <span>-₹{discount}</span>
                     </div>
                   )}
-                  <div className="flex justify-between pt-3 border-t border-slate-100 text-sm font-black">
-                    <span className="text-slate-800">{t("finalTotal")}</span>
-                    <span className="text-emerald-700 text-lg">₹{totalAmount.toFixed(0)}</span>
+                  <div className="flex justify-between pt-3 text-sm font-black"
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                    <span className="text-slate-300">{t("finalTotal")}</span>
+                    <span className="text-emerald-400 text-lg">₹{totalAmount.toFixed(0)}</span>
                   </div>
                 </div>
 
                 {/* Error */}
                 {formError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl text-xs text-red-700 bg-red-50 border border-red-100 font-medium">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <div className="flex items-center gap-2 p-3 rounded-xl text-xs font-medium"
+                    style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.20)", color: "#f87171" }}>
+                    <AlertCircle className="w-4 h-4 shrink-0" />
                     {formError}
                   </div>
                 )}
@@ -532,7 +567,7 @@ function CheckoutPageContent() {
                     className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed border-0 cursor-pointer"
                     style={{
                       background: "linear-gradient(135deg, #10b981, #059669)",
-                      boxShadow: "0 4px 20px rgba(16,185,129,0.25)",
+                      boxShadow: "0 4px 20px rgba(16,185,129,0.30)",
                     }}
                   >
                     {isPlacingOrder ? (
@@ -545,7 +580,7 @@ function CheckoutPageContent() {
                   <button
                     type="button"
                     onClick={() => router.push("/consumer/marketplace")}
-                    className="w-full py-3 rounded-2xl font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors text-xs border-0 bg-transparent cursor-pointer"
+                    className="w-full py-3 rounded-2xl font-bold transition-colors text-xs border-0 bg-transparent cursor-pointer text-slate-500 hover:text-slate-300"
                   >
                     {t("cancelOrder")}
                   </button>
@@ -553,8 +588,8 @@ function CheckoutPageContent() {
               </div>
 
               {/* Secure payment shield indicator */}
-              <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-slate-400">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-slate-600">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 Verified direct payout to local farmers.
               </div>
 
@@ -574,7 +609,7 @@ export default function CheckoutPage() {
     <Suspense fallback={
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-        <p className="text-slate-500 text-sm">{t("loading")}</p>
+        <p className="text-slate-400 text-sm">{t("loading")}</p>
       </div>
     }>
       <CheckoutPageContent />

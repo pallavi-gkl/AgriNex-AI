@@ -53,6 +53,13 @@ router.post(
     const cropCode = title.replace(/\s+/g, "").toUpperCase().slice(0, 4);
     const traceabilityCode = `ANX-${cropCode}-${nanoid(6).toUpperCase()}`;
 
+    // Normalize pomegranate to Fruits category
+    let finalCategory = category;
+    const isPomegranate = title.toLowerCase().includes("pomegranate") || category.toLowerCase().includes("pomegranate");
+    if (isPomegranate) {
+      finalCategory = "Fruits";
+    }
+
     try {
       const { data, error } = await supabase
         .from("products")
@@ -60,7 +67,7 @@ router.post(
           farmer_id: farmerId,
           title,
           description: description ?? null,
-          category,
+          category: finalCategory,
           price_per_unit: parseFloat(pricePerUnit),
           unit_type: unitType,
           quantity_available: parseFloat(quantityAvailable),
@@ -168,32 +175,37 @@ router.get(
       }
 
       // Normalize field names for frontend camelCase convention
-      const normalized = products.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        description: p.description,
-        category: p.category,
-        pricePerUnit: p.price_per_unit,
-        unitType: p.unit_type,
-        quantityAvailable: p.quantity_available,
-        imageUrl: p.image_url,
-        qualityGrade: p.quality_grade,
-        qualityReport: p.quality_report,
-        recommendedPrice: p.recommended_price,
-        traceabilityCode: p.traceability_code,
-        createdAt: p.created_at,
-        farmer: p.farmer
-          ? {
-              id: p.farmer.id,
-              fullName: p.farmer.full_name,
-              avatarUrl: p.farmer.avatar_url,
-              isVerified: p.farmer.is_verified,
-              trustScore: p.farmer.trust_score,
-              locationLat: p.farmer.location_lat,
-              locationLng: p.farmer.location_lng,
-            }
-          : null,
-      }));
+      const normalized = products.map((p: any) => {
+        const titleLower = (p.title ?? "").toLowerCase();
+        const categoryLower = (p.category ?? "").toLowerCase();
+        const isPomegranate = titleLower.includes("pomegranate") || categoryLower.includes("pomegranate");
+        return {
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          category: isPomegranate ? "Fruits" : p.category,
+          pricePerUnit: p.price_per_unit,
+          unitType: p.unit_type,
+          quantityAvailable: p.quantity_available,
+          imageUrl: p.image_url,
+          qualityGrade: p.quality_grade,
+          qualityReport: p.quality_report,
+          recommendedPrice: p.recommended_price,
+          traceabilityCode: p.traceability_code,
+          createdAt: p.created_at,
+          farmer: p.farmer
+            ? {
+                id: p.farmer.id,
+                fullName: p.farmer.full_name,
+                avatarUrl: p.farmer.avatar_url,
+                isVerified: p.farmer.is_verified,
+                trustScore: p.farmer.trust_score,
+                locationLat: p.farmer.location_lat,
+                locationLng: p.farmer.location_lng,
+              }
+            : null,
+        };
+      });
 
       res.json(normalized);
     } catch (err: any) {

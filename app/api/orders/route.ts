@@ -16,20 +16,36 @@ const adminSupabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    // ── Authenticate the request via the session cookie ──────────────────────
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll() {},
-        },
-      }
-    );
+    // ── Authenticate the request via the Authorization header or session cookie ──
+    let user = null;
+    const authHeader = req.headers.get("authorization");
 
-    const { data: { user } } = await supabase.auth.getUser();
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1]?.trim();
+      if (token) {
+        const { data: { user: authUser }, error: authError } = await adminSupabase.auth.getUser(token);
+        if (!authError && authUser) {
+          user = authUser;
+        }
+      }
+    }
+
+    if (!user) {
+      const cookieStore = await cookies();
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() { return cookieStore.getAll(); },
+            setAll() {},
+          },
+        }
+      );
+      const { data: { user: cookieUser } } = await supabase.auth.getUser();
+      user = cookieUser;
+    }
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
