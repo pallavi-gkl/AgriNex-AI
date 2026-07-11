@@ -11,11 +11,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function fetchDisputes() {
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token ?? "";
+  const token = (session?.access_token ?? "").trim();
+
+  if (!token) {
+    throw new Error("Please login to continue.");
+  }
 
   const res = await fetch(`${API_URL}/api/admin/disputes`, {
     headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
   });
   if (!res.ok) throw new Error("Failed to fetch dispute logs");
@@ -29,13 +33,17 @@ async function resolveDispute(payload: {
   orderId: string;
 }) {
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token ?? "";
+  const token = (session?.access_token ?? "").trim();
+
+  if (!token) {
+    throw new Error("Please login to continue.");
+  }
 
   const res = await fetch(`${API_URL}/api/admin/disputes/${payload.disputeId}/resolve`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       action: payload.action,

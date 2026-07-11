@@ -15,13 +15,17 @@ async function broadcastNotification(payload: {
   message: string;
 }) {
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token ?? "";
+  const token = (session?.access_token ?? "").trim();
+
+  if (!token) {
+    throw new Error("Please login to continue.");
+  }
 
   const res = await fetch(`${API_URL}/api/admin/notify`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });

@@ -12,10 +12,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function fetchFarmerAnalytics(timeframe: string): Promise<FarmerAnalyticsResponse> {
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
+  const token = (session?.access_token ?? "").trim();
+
+  if (!token) {
+    throw new Error("Please login to continue.");
+  }
 
   const res = await fetch(`${API_URL}/api/farmer/analytics?timeframe=${timeframe}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (!res.ok) throw new Error(`Analytics fetch failed: ${res.statusText}`);

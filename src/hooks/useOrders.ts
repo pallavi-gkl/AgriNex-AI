@@ -23,9 +23,10 @@ async function authHeaders(): Promise<Record<string, string>> {
   };
   // Ensure the access token is trimmed and contains a valid value.
   const token = (session?.access_token ?? "").trim();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  if (!token) {
+    throw new Error("Please login to continue.");
   }
+  headers.Authorization = `Bearer ${token}`;
   return headers;
 }
 

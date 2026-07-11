@@ -20,13 +20,17 @@ async function postProduct(payload: CreateProductInput): Promise<Product> {
   const { token, ...body } = payload;
 
   const { data: { session } } = await supabase.auth.getSession();
-  const authToken = token || session?.access_token;
+  const authToken = (token || session?.access_token || "").trim();
+
+  if (!authToken) {
+    throw new Error("Please login to continue.");
+  }
 
   const res = await fetch(`${API_URL}/api/products`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      Authorization: `Bearer ${authToken}`,
     },
     body: JSON.stringify(body),
   });
