@@ -4,9 +4,10 @@
  */
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
+import { cleanEnvVar } from "./env";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = cleanEnvVar(process.env.NEXT_PUBLIC_SUPABASE_URL);
+let supabaseAnonKey = cleanEnvVar(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 // Proactive security check: ensure browser does not initialize client with service_role key
 if (supabaseAnonKey) {

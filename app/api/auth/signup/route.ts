@@ -18,6 +18,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { cleanEnvVar } from "@/lib/env";
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,8 +53,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = cleanEnvVar(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const serviceKey  = cleanEnvVar(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     if (!supabaseUrl || !serviceKey) {
       console.error("[signup] Missing Supabase env vars");
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
     console.log(`[signup] User created: ${email} (${role}) ID: ${user.id}`);
 
     // Trigger sending the Supabase email verification confirmation email
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = cleanEnvVar(process.env.NEXT_PUBLIC_SITE_URL) || "http://localhost:3000";
     const { error: resendError } = await admin.auth.resend({
       type: "signup",
       email,

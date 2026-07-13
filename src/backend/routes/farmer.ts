@@ -6,14 +6,15 @@ import { Router, Response } from "express";
 import { createClient } from "@supabase/supabase-js";
 import { requireFarmer, AuthenticatedRequest } from "../middleware/auth";
 import dotenv from "dotenv";
+import { cleanEnvVar } from "../../lib/env";
 
 dotenv.config();
 
 const router = Router();
 
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  cleanEnvVar(process.env.SUPABASE_URL),
+  cleanEnvVar(process.env.SUPABASE_SERVICE_ROLE_KEY)
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

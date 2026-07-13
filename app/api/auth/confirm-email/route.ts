@@ -33,8 +33,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const { cleanEnvVar } = await import("@/lib/env");
+    const supabaseUrl = cleanEnvVar(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    const serviceKey  = cleanEnvVar(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
     if (!supabaseUrl || !serviceKey) {
       console.error("[confirm-email] Missing SUPABASE env vars");

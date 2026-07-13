@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DemoProvider } from "@/context/DemoContext";
 import FarmerShell from "@/components/farmer/shell/FarmerShell";
+import { cleanEnvVar } from "@/lib/env";
 
 export default async function FarmerLayout({
   children,
@@ -17,8 +18,8 @@ export default async function FarmerLayout({
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    cleanEnvVar(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    cleanEnvVar(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     {
       cookies: {
         getAll() { return cookieStore.getAll(); },

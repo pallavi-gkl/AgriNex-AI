@@ -5,13 +5,14 @@
 import type { Request, Response, NextFunction } from "express";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import { cleanEnvVar } from "../../lib/env";
 
 dotenv.config();
 
 // Service-role client to validate JWTs server-side
 const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  cleanEnvVar(process.env.SUPABASE_URL),
+  cleanEnvVar(process.env.SUPABASE_SERVICE_ROLE_KEY),
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
