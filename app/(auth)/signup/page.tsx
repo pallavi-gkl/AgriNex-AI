@@ -32,6 +32,16 @@ export default function SignUpPage() {
     }
   }, []);
 
+  // Clear any stale session so a previous user's token is never injected
+  // into the signup fetch call, which would trigger "invalid header value".
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        supabase.auth.signOut().catch(() => {});
+      }
+    });
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});

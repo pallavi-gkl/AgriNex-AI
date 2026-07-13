@@ -132,7 +132,14 @@ export default function VoiceAssistantModal() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const token = (session?.access_token ?? "").trim();
+      let rawToken = session?.access_token;
+      let token = "";
+      if (rawToken && typeof rawToken === "string") {
+        token = rawToken.trim().replace(/[\r\n]+/g, "");
+        if (token.startsWith("Bearer ")) {
+          token = token.substring(7).trim().replace(/[\r\n]+/g, "");
+        }
+      }
 
       // Build message history in the correct format for /api/ai/assistant
       const allMessages = [

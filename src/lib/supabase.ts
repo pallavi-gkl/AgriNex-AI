@@ -39,5 +39,20 @@ if (process.env.NODE_ENV === "development") {
  */
 export const supabase = createBrowserClient<Database>(
   supabaseUrl ?? "",
-  supabaseAnonKey ?? ""
+  supabaseAnonKey ?? "",
+  {
+    global: {
+      fetch: (url, options) => {
+        if (options?.headers) {
+          const headers = new Headers(options.headers);
+          const auth = headers.get("Authorization");
+          if (auth) {
+            headers.set("Authorization", auth.replace(/[\r\n]/g, ""));
+          }
+          options.headers = headers;
+        }
+        return fetch(url, options);
+      },
+    },
+  }
 );

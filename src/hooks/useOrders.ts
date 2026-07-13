@@ -22,11 +22,25 @@ async function authHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  // Ensure the access token is trimmed and contains a valid value.
-  const token = (session?.access_token ?? "").trim();
+  
+  // Retrieve raw token and ensure it's not null or undefined
+  let rawToken = session?.access_token;
+  if (!rawToken || typeof rawToken !== "string") {
+    throw new Error("Please login to continue.");
+  }
+
+  // Trim whitespace and remove any newline or carriage return characters
+  let token = rawToken.trim().replace(/[\r\n]+/g, "");
+
+  // Do not prepend "Bearer " if it already exists
+  if (token.startsWith("Bearer ")) {
+    token = token.substring(7).trim().replace(/[\r\n]+/g, "");
+  }
+
   if (!token) {
     throw new Error("Please login to continue.");
   }
+
   headers.Authorization = `Bearer ${token}`;
   return headers;
 }

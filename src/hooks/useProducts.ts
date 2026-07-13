@@ -20,7 +20,15 @@ async function postProduct(payload: CreateProductInput): Promise<Product> {
   const { token, ...body } = payload;
 
   const { data: { session } } = await supabase.auth.getSession();
-  const authToken = (token || session?.access_token || "").trim();
+  let rawToken = token || session?.access_token;
+  if (!rawToken || typeof rawToken !== "string") {
+    throw new Error("Please login to continue.");
+  }
+
+  let authToken = rawToken.trim().replace(/[\r\n]+/g, "");
+  if (authToken.startsWith("Bearer ")) {
+    authToken = authToken.substring(7).trim().replace(/[\r\n]+/g, "");
+  }
 
   if (!authToken) {
     throw new Error("Please login to continue.");
