@@ -72,3 +72,61 @@ export function useMarkAllRead() {
     },
   });
 }
+
+// ─── Clear all read notifications ──────────────────────────────────────────
+async function clearRead(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("notifications")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("is_read", true);
+
+  if (error) {
+    console.error("[useClearRead] delete error:", error);
+    throw error;
+  }
+}
+
+export function useClearRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: clearRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+}
+
+// ─── Create a notification in the database ──────────────────────────────────
+export async function createDbNotification(
+  title: string,
+  message: string,
+  type: string = "order_update"
+): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await (supabase.from("notifications") as any).insert({
+      user_id: user.id,
+      title,
+      message,
+      type,
+      is_read: false,
+    });
+
+    if (error) {
+      console.error("[createDbNotification] insert error:", error);
+    }
+  } catch (err) {
+    console.error("[createDbNotification] error:", err);
+  }
+}
+

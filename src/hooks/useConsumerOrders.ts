@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { createDbNotification } from "./useNotifications";
 
 // ─── Fetch consumer orders ─────────────────────────────────────────────────────
 async function fetchConsumerOrders() {
@@ -134,6 +135,14 @@ export function useSubmitReview() {
     mutationFn: submitReview,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["consumerOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+
+      // Trigger review success notification
+      createDbNotification(
+        "⭐ Review Submitted",
+        "Thank you for submitting your review. Your feedback helps build trust in the community.",
+        "review"
+      );
     },
   });
 }

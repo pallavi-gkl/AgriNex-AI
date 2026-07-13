@@ -10,9 +10,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Design System Colors
+        primary: {
+          DEFAULT: "#22c55e",
+          hover: "#16a34a",
+          light: "#dcfce7",
+        },
+        sidebar: {
+          bg: "#f4fdf7",
+          hover: "#dcfce7",
+          text: "#1f2937",
+        },
         brand: {
-          green: "#16a34a",
-          "dark-green": "#14532d",
+          green: "#22c55e",
+          "dark-green": "#16a34a",
           "ai-blue": "#2563eb",
           "sky-blue": "#38bdf8",
           golden: "#fbbf24",
@@ -23,18 +34,18 @@ const config: Config = {
           "dark-section": "#0f172a",
         },
         emerald: {
-          DEFAULT: "#16a34a",
+          DEFAULT: "#22c55e",
           50:  "#ecfdf5",
           100: "#d1fae5",
           200: "#a7f3d0",
           300: "#6ee7b7",
           400: "#4ade80",
-          500: "#16a34a",
-          600: "#15803d",
-          700: "#166534",
-          800: "#14532d",
-          900: "#052e16",
-          glow: "rgba(22,163,74,0.2)",
+          500: "#22c55e",
+          600: "#16a34a",
+          700: "#15803d",
+          800: "#166534",
+          900: "#14532d",
+          glow: "rgba(34,197,94,0.2)",
         },
         sky: {
           DEFAULT: "#0ea5e9",
@@ -126,6 +137,12 @@ const config: Config = {
         xs:    "2px",
       },
       borderRadius: {
+        card: "18px",
+        btn: "12px",
+        input: "12px",
+        dialog: "18px",
+        dropdown: "12px",
+        table: "16px",
         "2xl": "1rem",
         "3xl": "1.5rem",
         "4xl": "2rem",

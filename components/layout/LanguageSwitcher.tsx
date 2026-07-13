@@ -10,10 +10,11 @@
  */
 
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 
 // Inline language code map (replaces deleted speech.ts)
 const LANGUAGE_CODES: Record<string, string> = {
@@ -77,12 +78,27 @@ interface LanguageSwitcherProps {
   compact?: boolean;
   /** Explicit platform target */
   platform?: Platform;
+  /** Dropdown position alignment */
+  align?: "top" | "bottom";
 }
 
-export default function LanguageSwitcher({ compact = false, platform }: LanguageSwitcherProps) {
+export default function LanguageSwitcher({ compact = false, platform, align = "top" }: LanguageSwitcherProps) {
   const [currentCode, setCurrentCode] = useState("en");
   const [isOpen, setIsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const clickHandler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", clickHandler);
+    return () => document.removeEventListener("mousedown", clickHandler);
+  }, [isOpen]);
 
   const activePlatform = platform || detectPlatform() || "consumer";
 
@@ -151,7 +167,7 @@ export default function LanguageSwitcher({ compact = false, platform }: Language
   // ── Compact sidebar version ───────────────────────────────────────────────
   if (compact) {
     return (
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         <div className="flex items-center gap-2 mb-2">
           <Globe className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
@@ -188,33 +204,50 @@ export default function LanguageSwitcher({ compact = false, platform }: Language
             <motion.ul
               role="listbox"
               aria-label="Select language"
-              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              initial={{ opacity: 0, y: align === "top" ? 8 : -8, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              exit={{ opacity: 0, y: align === "top" ? 8 : -8, scale: 0.97 }}
               transition={{ duration: 0.15 }}
-              className="absolute bottom-full left-0 right-0 mb-1 rounded-xl overflow-hidden z-50"
+              className={cn(
+                "absolute z-[1000] rounded-xl list-none m-0",
+                align === "top" ? "bottom-full mb-2 right-0" : "top-full mt-2 left-0"
+              )}
               style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                gap: "4px",
+                padding: "8px",
                 background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 -8px 24px rgba(0,0,0,0.12)",
+                border: "1px solid #E5E7EB",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                width: "200px",
+                minWidth: "200px",
+                whiteSpace: "normal",
+                overflow: "visible",
               }}
             >
               {LANGUAGE_OPTIONS.map((lang) => (
-                <li key={lang.code}>
+                <li key={lang.code} className="m-0 p-0 list-none">
                   <button
                     role="option"
                     aria-selected={lang.code === currentCode}
                     onClick={() => handleSelect(lang.code)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-left text-xs transition-all duration-150 hover:bg-emerald-50"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-xs transition-all duration-150 hover:bg-slate-100"
                     style={{
-                      color: lang.code === currentCode ? "#059669" : "#475569",
+                      height: "40px",
+                      border: "none",
+                      outline: "none",
+                      background: "transparent",
+                      color: lang.code === currentCode ? "#059669" : "#1F2937",
                       fontWeight: lang.code === currentCode ? 600 : 400,
+                      cursor: "pointer",
                     }}
                   >
-                    <span className="text-base leading-none">{lang.flag}</span>
-                    <span className="flex-1">{lang.nativeLabel}</span>
+                    <span className="text-base leading-none shrink-0">{lang.flag}</span>
+                    <span className="flex-1 truncate">{lang.nativeLabel}</span>
                     {lang.code === currentCode && (
-                      <Check className="w-3 h-3 text-emerald-600" aria-hidden="true" />
+                      <Check className="w-3 h-3 text-emerald-600 shrink-0" aria-hidden="true" />
                     )}
                   </button>
                 </li>

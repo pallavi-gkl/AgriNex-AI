@@ -84,7 +84,6 @@ export default function VoiceAssistantModal() {
   }, []);
 
   const scrollToBottom = () => {
-  const { t } = useTranslation();
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -133,7 +132,7 @@ export default function VoiceAssistantModal() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const token = (session?.access_token ?? "").trim();
 
       // Build message history in the correct format for /api/ai/assistant
       const allMessages = [
@@ -145,7 +144,7 @@ export default function VoiceAssistantModal() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           messages: allMessages,
@@ -448,19 +447,6 @@ export default function VoiceAssistantModal() {
         )}
       </AnimatePresence>
 
-      {/* Floating trigger button (only when not open) */}
-      {!isOpen && (
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => closeModal()}
-          className="mt-3 w-14 h-14 rounded-full flex items-center justify-center cursor-pointer border-0 shadow-lg"
-          style={{ background: brandGradient }}
-          aria-label="Open AI Chat"
-        >
-          <Bot className="w-6 h-6 text-white" />
-        </motion.button>
-      )}
     </div>
   );
 }

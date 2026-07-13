@@ -85,9 +85,6 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
 
   // ── Form submission ──────────────────────────────────────────────────────────
   const onSubmit = (formData: ProductFormData) => {
-  const { t } = useTranslation("farmer");
-    const token = localStorage.getItem("sb-access-token") ??
-      document.cookie.match(/sb-.*-auth-token=([^;]+)/)?.[1] ?? "";
 
     createProduct(
       {
@@ -103,7 +100,6 @@ export default function ProductListingForm({ aiGradeResult, className = "" }: Pr
             }
           : undefined,
         recommendedPrice: aiGradeResult?.recommendedPrice,
-        token,
       },
       {
         onSuccess: () => {

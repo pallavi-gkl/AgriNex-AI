@@ -39,7 +39,6 @@ export default function NotificationsPage() {
   };
 
   const getBorderColor = (n: typeof DEMO_NOTIFICATIONS[0]) => {
-  const { t } = useTranslation("farmer");
     if (n.is_read) return "border-slate-100 opacity-65";
     switch (n.type) {
       case "disease": return "border-purple-200 bg-purple-50/50";

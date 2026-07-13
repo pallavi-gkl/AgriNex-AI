@@ -5,7 +5,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import React, { useState } from "react";
 import { Compass, AlertTriangle, Sparkles, Plus, Trash2 } from "lucide-react";
 
-export default function AIFertilizerAdvisor() {
+interface Props { onComplete?: (data: any, cropName: string) => void; }
+export default function AIFertilizerAdvisor({ onComplete }: Props = {}) {
   const { t } = useTranslation("farmer");
   const [cropType, setCropType] = useState("Basmati Rice");
   const [soilN, setSoilN] = useState(45);
@@ -30,6 +31,7 @@ export default function AIFertilizerAdvisor() {
       });
       const data = await res.json();
       setResult(data);
+      onComplete?.(data, cropType);
     } catch (err) {
       console.error(err);
     } finally {

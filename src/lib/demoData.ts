@@ -144,9 +144,9 @@ export const DEMO_CROPS = [
     location: "Erode, Tamil Nadu",
     gps_lat: 11.3410,
     gps_lng: 77.7172,
-    image_url: "https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?w=800",
+    image_url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800",
     images: [
-      "https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?w=800",
+      "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800",
       "https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=800",
     ],
     traceability_code: "AGX-2026-TN-003",
@@ -337,7 +337,7 @@ export const DEMO_ORDERS = [
     payment_status: "completed" as const,
     delivery_address: "22, Banjara Hills, Hyderabad - 500034",
     created_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    order_items: [{ id: "oi-3", quantity: 150, price_at_purchase: 145, product: { id: "crop-003", title: "Organic Turmeric", unit_type: "Kg", image_url: "https://images.unsplash.com/photo-1615485925600-97237c4fc1ec?w=800" } }],
+    order_items: [{ id: "oi-3", quantity: 150, price_at_purchase: 145, product: { id: "crop-003", title: "Organic Turmeric", unit_type: "Kg", image_url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800" } }],
     tracking_history: [
       { status: "pending", timestamp: new Date(Date.now() - 50 * 60 * 60 * 1000).toISOString() },
       { status: "accepted", timestamp: new Date(Date.now() - 49 * 60 * 60 * 1000).toISOString() },
@@ -535,9 +535,9 @@ export const DEMO_FARM_TWIN = {
 // ─── Demo Reviews ─────────────────────────────────────────────────────────────
 
 export const DEMO_REVIEWS = [
-  { id: "r1", reviewer: "Priya Sharma", rating: 5, comment: "Best quality Basmati I've ever bought! Fast delivery, well-packed. Will order again!", product: "Premium Basmati Rice", date: "2026-06-25" },
-  { id: "r2", reviewer: "Rahul Mehta", rating: 5, comment: "The Alphonso mangoes are absolutely divine. Real Ratnagiri quality!", product: "Alphonso Mangoes", date: "2026-06-20" },
-  { id: "r3", reviewer: "Suresh Kumar", rating: 5, comment: "Genuine Kashmir saffron. Used in biryani — the color and aroma are unmatched.", product: "Kesar Saffron", date: "2026-06-18" },
+  { id: "r1", reviewer: "Priya Sharma", rating: 5, comment: "Best quality Basmati I've ever bought! Fast delivery, well-packed. Will order again!", product: "Premium Basmati Rice", date: "2026-06-25", likes: 24 },
+  { id: "r2", reviewer: "Rahul Mehta", rating: 5, comment: "The Alphonso mangoes are absolutely divine. Real Ratnagiri quality!", product: "Alphonso Mangoes", date: "2026-06-20", likes: 15 },
+  { id: "r3", reviewer: "Suresh Kumar", rating: 5, comment: "Genuine Kashmir saffron. Used in biryani — the color and aroma are unmatched.", product: "Kesar Saffron", date: "2026-06-18", likes: 8 },
 ];
 
 // ─── Demo Government Schemes ──────────────────────────────────────────────────

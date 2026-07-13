@@ -132,6 +132,8 @@ function ChangeLocationInner() {
   const [district, setDistrict] = useState("");
   const [village,  setVillage]  = useState("");
   const [pincode,  setPincode]  = useState("");
+  const [country,  setCountry]  = useState("India");
+  const [mandal,   setMandal]   = useState("");
 
   const [stateSearch, setStateSearch] = useState("");
   const [showStateDropdown, setShowStateDropdown] = useState(false);
@@ -154,6 +156,8 @@ function ChangeLocationInner() {
     setDistrict(get("district"));
     setVillage(get("city"));
     setPincode(get("pincode"));
+    setCountry(get("country") || "India");
+    setMandal(get("mandal"));
   }, [platform]);
 
   /* Click outside to close custom dropdown */
@@ -212,18 +216,18 @@ function ChangeLocationInner() {
 
   /* ── Save manual location ── */
   const handleSave = useCallback(async () => {
-    if (!village.trim() || !district.trim() || !state.trim()) return;
+    if (!village.trim() || !district.trim() || !state.trim() || !country.trim() || !mandal.trim()) return;
     setLoading(true);
     setStatus(null);
 
     try {
       const { lat, lng } = await geocodeLocation(village, district, state, pincode);
-      saveAndReturn(village.trim(), state.trim(), district.trim(), pincode.trim(), lat, lng, "denied");
+      saveAndReturn(village.trim(), state.trim(), district.trim(), pincode.trim(), lat, lng, "denied", country.trim(), mandal.trim());
     } catch (_) {
       setStatus({ type: "error", text: "Failed to geocode location. Please check spelling or enter again." });
       setLoading(false);
     }
-  }, [village, district, state, pincode]);
+  }, [village, district, state, pincode, country, mandal]);
 
   /* ── Shared persist + redirect ── */
   const saveAndReturn = (
@@ -233,7 +237,9 @@ function ChangeLocationInner() {
     pin: string,
     lat: number,
     lng: number,
-    perm: string
+    perm: string,
+    co = "India",
+    md = ""
   ) => {
     const set = (field: string, val: string) =>
       localStorage.setItem(storageKey(field, platform), val);
@@ -241,7 +247,8 @@ function ChangeLocationInner() {
     set("state",      st);
     set("district",   dist);
     set("pincode",    pin);
-    set("country",    "India");
+    set("country",    co);
+    set("mandal",     md);
     set("lat",        String(lat));
     set("lng",        String(lng));
     set("permission", perm);
@@ -261,20 +268,21 @@ function ChangeLocationInner() {
 
   /* ── Quick-pick a popular hub ── */
   const pickHub = (key: string) => {
-  const { t } = useTranslation();
     const hub = POPULAR_HUBS[key];
     setState(hub.state);
     setStateSearch(hub.state);
     setDistrict(hub.name);
     setVillage(hub.name);
     setPincode("");
+    setCountry("India");
+    setMandal("");
   };
 
   const filteredStates = INDIAN_STATES.filter(st =>
     st.toLowerCase().includes(stateSearch.toLowerCase())
   );
 
-  const canSave = village.trim() && district.trim() && state.trim() && !loading;
+  const canSave = village.trim() && district.trim() && state.trim() && country.trim() && mandal.trim() && !loading;
 
   return (
     <div
@@ -388,6 +396,20 @@ function ChangeLocationInner() {
 
             {/* Manual Form fields */}
             <div className="space-y-5">
+              {/* Country Field */}
+              <div>
+                <label className="block text-xs font-black text-slate-805 uppercase mb-1.5 ml-1 tracking-wider">
+                  Country <span className="text-rose-605 font-extrabold">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. India"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
+                />
+              </div>
+
               {/* State Dropdown Picker */}
               <div className="relative" ref={dropdownRef}>
                 <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
@@ -459,6 +481,20 @@ function ChangeLocationInner() {
                   placeholder="e.g. Chittoor"
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
+                />
+              </div>
+
+              {/* Mandal / Taluk Field */}
+              <div>
+                <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
+                  Mandal / Taluk <span className="text-rose-600 font-extrabold">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mudivedu"
+                  value={mandal}
+                  onChange={(e) => setMandal(e.target.value)}
                   className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
                 />
               </div>

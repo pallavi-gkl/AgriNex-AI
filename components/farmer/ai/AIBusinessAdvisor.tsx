@@ -6,7 +6,8 @@ import React, { useState } from "react";
 import { Briefcase, DollarSign, Award, ShieldAlert, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function AIBusinessAdvisor() {
+interface Props { onComplete?: (data: any, cropName: string) => void; }
+export default function AIBusinessAdvisor({ onComplete }: Props = {}) {
   const { t } = useTranslation("farmer");
   const [crops, setCrops] = useState(["Basmati Rice"]);
   const [totalRevenue, setTotalRevenue] = useState(529000);
@@ -30,6 +31,7 @@ export default function AIBusinessAdvisor() {
       });
       const data = await res.json();
       setResult(data);
+      onComplete?.(data, crops[0] ?? "Farm");
     } catch (err) {
       console.error(err);
     } finally {

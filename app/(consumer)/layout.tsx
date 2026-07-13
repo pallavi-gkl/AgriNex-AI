@@ -6,8 +6,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import UnifiedDashboardLayout from "@/components/layout/UnifiedDashboardLayout";
-import { CartProvider } from "@/context/CartContext";
+import ConsumerShell from "@/components/consumer/shell/ConsumerShell";
 
 export default async function ConsumerLayout({
   children,
@@ -64,9 +63,5 @@ export default async function ConsumerLayout({
     redirect("/onboarding");
   }
 
-  return (
-    <CartProvider>
-      <UnifiedDashboardLayout profile={profile}>{children}</UnifiedDashboardLayout>
-    </CartProvider>
-  );
+  return <ConsumerShell profile={profile}>{children}</ConsumerShell>;
 }

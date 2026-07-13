@@ -5,7 +5,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import React, { useState } from "react";
 import { FileText, Copy, CheckCircle, Sparkles } from "lucide-react";
 
-export default function AIProductWriter() {
+interface Props { onComplete?: (data: any, cropName: string) => void; }
+export default function AIProductWriter({ onComplete }: Props = {}) {
   const { t } = useTranslation("farmer");
   const [cropName, setCropName] = useState("Alphonso Mango");
   const [grade, setGrade] = useState("A+");
@@ -46,6 +47,7 @@ export default function AIProductWriter() {
       });
       const data = await res.json();
       setResult(data);
+      onComplete?.(data, cropName);
     } catch (err) {
       console.error(err);
     } finally {

@@ -6,7 +6,8 @@ import React, { useState } from "react";
 import { Brain, HelpCircle, Activity, Sparkles, CheckCircle, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function AIDiseaseDetector() {
+interface Props { onComplete?: (data: any, cropName: string) => void; }
+export default function AIDiseaseDetector({ onComplete }: Props = {}) {
   const { t } = useTranslation("farmer");
   const [cropType, setCropType] = useState("Rice");
   const [description, setDescription] = useState("");
@@ -26,6 +27,7 @@ export default function AIDiseaseDetector() {
       });
       const data = await res.json();
       setResult(data);
+      onComplete?.(data, cropType);
     } catch (err) {
       console.error(err);
     } finally {

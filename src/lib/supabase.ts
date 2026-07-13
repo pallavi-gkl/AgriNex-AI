@@ -6,7 +6,27 @@ import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Proactive security check: ensure browser does not initialize client with service_role key
+if (supabaseAnonKey) {
+  try {
+    const parts = supabaseAnonKey.split(".");
+    if (parts.length === 3) {
+      const payloadStr =
+        typeof window !== "undefined"
+          ? atob(parts[1])
+          : Buffer.from(parts[1], "base64").toString("binary");
+      const payload = JSON.parse(payloadStr);
+      if (payload.role === "service_role") {
+        console.error(
+          "CRITICAL SECURITY WARNING: NEXT_PUBLIC_SUPABASE_ANON_KEY is configured with the service_role key! Disabling client-side access to protect secrets."
+        );
+        supabaseAnonKey = "";
+      }
+    }
+  } catch (e) {}
+}
 
 if (process.env.NODE_ENV === "development") {
   if (!supabaseUrl) console.warn("[AgriNex] NEXT_PUBLIC_SUPABASE_URL is not set.");

@@ -6,7 +6,8 @@ import React, { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Sprout, BarChart3, TrendingUp, HelpCircle } from "lucide-react";
 
-export default function AIYieldPredictor() {
+interface Props { onComplete?: (data: any, cropName: string) => void; }
+export default function AIYieldPredictor({ onComplete }: Props = {}) {
   const { t } = useTranslation("farmer");
   const [cropType, setCropType] = useState("Basmati Rice");
   const [areaAcres, setAreaAcres] = useState(10);
@@ -30,6 +31,7 @@ export default function AIYieldPredictor() {
       });
       const data = await res.json();
       setResult(data);
+      onComplete?.(data, cropType);
     } catch (err) {
       console.error(err);
     } finally {

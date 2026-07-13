@@ -5,7 +5,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import React, { useState } from "react";
 import { TrendingUp, User, DollarSign, List, ShieldAlert } from "lucide-react";
 
-export default function AIMarketAdvisor() {
+interface Props { onComplete?: (data: any, cropName: string) => void; }
+export default function AIMarketAdvisor({ onComplete }: Props = {}) {
   const { t } = useTranslation("farmer");
   const [cropType, setCropType] = useState("Basmati Rice");
   const [currentPrice, setCurrentPrice] = useState(85);
@@ -28,6 +29,7 @@ export default function AIMarketAdvisor() {
       });
       const data = await res.json();
       setResult(data);
+      onComplete?.(data, cropType);
     } catch (err) {
       console.error(err);
     } finally {

@@ -35,50 +35,25 @@ export default function LocationHeader({ platform = "farmer" }: LocationHeaderPr
     );
   }
 
-  /* ─── No location yet — prompt strip with message pointing to sidebar ─── */
+  /* ─── No location yet — prompt strip with message pointing to top navigation ─── */
   if (!location) {
     return (
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-emerald-50/50 border border-emerald-200/50 relative z-20 text-left"
+        className="mb-6 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-emerald-50/50 border border-emerald-200/50 relative z-20 text-left"
       >
-        <div className="flex items-center gap-2 text-emerald-800">
-          <MapPin className="w-4 h-4 shrink-0 text-emerald-600 animate-pulse" />
+        <div className="flex items-center gap-2 text-emerald-850 dark:text-emerald-300">
+          <MapPin className="w-4 h-4 shrink-0 text-emerald-600 animate-pulse dark:text-emerald-450" />
           <span className="text-sm font-bold">{t("locationNotSet")}</span>
-          <span className="text-xs text-emerald-600 hidden sm:inline">
-            — Set your location in the left sidebar for personalized weather, market prices &amp; AI recommendations
+          <span className="text-xs text-emerald-600 hidden sm:inline dark:text-emerald-400">
+            — Click the Location widget in the top navigation bar to choose your location and unlock local weather &amp; AI insights.
           </span>
         </div>
       </motion.div>
     );
   }
 
-  /* ─── Location is set — show details strip ─── */
-  const cityDisplay = location.city || "Your Location";
-  const stateDisplay = location.state ? `, ${location.state}` : "";
-  const tempDisplay = weather?.temperature !== undefined ? `${weather.temperature}°C` : "--°C";
-  const condIcon = weather?.condition_icon || "🌤";
-  const condText = weather?.condition || "Unknown";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="mb-6 flex items-center justify-between border-b border-slate-100 pb-3 relative z-20"
-    >
-      {/* Left: city + weather */}
-      <div className="flex flex-col gap-0.5 text-left">
-        <div className="flex items-center gap-1.5 text-sm font-extrabold text-slate-800">
-          <span>📍</span>
-          <span>{cityDisplay}{stateDisplay}</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
-          <span>{condIcon}</span>
-          <span>{tempDisplay} | {condText}</span>
-        </div>
-      </div>
-    </motion.div>
-  );
+  /* ─── Location is set — Hide the header since weather is displayed in Top Navigation ─── */
+  return null;
 }

@@ -10,6 +10,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { OrderStatus } from "@/types";
+import { createDbNotification } from "./useNotifications";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -106,13 +107,28 @@ export function useCreateOrder() {
 
   return useMutation({
     mutationFn: postOrder,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["consumerOrders"] });
       queryClient.invalidateQueries({ queryKey: ["farmerOrders"] });
       queryClient.invalidateQueries({ queryKey: ["farmerOrdersDirect"] });
       queryClient.invalidateQueries({ queryKey: ["farmerAnalytics"] });
       queryClient.invalidateQueries({ queryKey: ["products"] }); // qty may change
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+
+      // Generate Placed Order notification
+      const orderId = data?.id ? `#ORD-${data.id.substring(0, 4).toUpperCase()}` : "#ORD-1023";
+      createDbNotification(
+        "🛒 Order Placed",
+        `Your order ${orderId} has been placed successfully.`,
+        "order_update"
+      );
+
+      // Generate Rewards notification
+      createDbNotification(
+        "🎁 Rewards Earned",
+        "Congratulations! You earned +50 Reward Points on your purchase.",
+        "rewards"
+      );
     },
   });
 }

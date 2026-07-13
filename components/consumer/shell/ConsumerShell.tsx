@@ -6,7 +6,8 @@ import { X, Bot } from "lucide-react";
 import ConsumerSidebar from "./ConsumerSidebar";
 import ConsumerTopbar from "./ConsumerTopbar";
 import NotificationsPanel from "@/components/layout/NotificationsPanel";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications, createDbNotification } from "@/hooks/useNotifications";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/types";
 import { useVoiceAssistant } from "@/context/VoiceAssistantContext";
@@ -34,6 +35,67 @@ export default function ConsumerShell({
 
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const queryClient = useQueryClient();
+
+  // ─── Live Smart Notifications Simulator ───
+  useEffect(() => {
+    const SIM_ITEMS = [
+      {
+        title: "⚡ Flash Deal Started",
+        message: "Premium Basmati Rice is now 15% OFF. Shop Now →",
+        type: "flash_deal"
+      },
+      {
+        title: "🔥 Limited Time Offer",
+        message: "Alphonso Mangoes are available at a special price. Shop Now →",
+        type: "flash_deal"
+      },
+      {
+        title: "📉 Price Drop Alert",
+        message: "An item from your Wishlist has dropped in price. Buy Now →",
+        type: "price_alert"
+      },
+      {
+        title: "❤️ Back In Stock",
+        message: "A saved product from your Wishlist is back in stock. View Wishlist →",
+        type: "wishlist"
+      },
+      {
+        title: "🤖 Smart AI Recommendation",
+        message: "AI found a better farmer for one of your saved products. Compare Now →",
+        type: "ai"
+      },
+      {
+        title: "🌱 Seasonal Veggies Arrived",
+        message: "Fresh organic vegetables have arrived near your location. Shop Now →",
+        type: "seasonal"
+      }
+    ];
+
+    // Trigger welcome rewards after 3 seconds of mount
+    const timerRewards = setTimeout(async () => {
+      await createDbNotification(
+        "🎁 Session Rewards",
+        "Congratulations! You earned +50 Reward Points for logging in today.",
+        "rewards"
+      );
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }, 3000);
+
+    // Auto loop simulated deals & price drops every 75 seconds
+    let index = 0;
+    const intervalSim = setInterval(async () => {
+      const target = SIM_ITEMS[index];
+      await createDbNotification(target.title, target.message, target.type);
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      index = (index + 1) % SIM_ITEMS.length;
+    }, 75000);
+
+    return () => {
+      clearTimeout(timerRewards);
+      clearInterval(intervalSim);
+    };
+  }, [queryClient]);
 
   // Fetch profile client-side if not provided
   useEffect(() => {
@@ -134,7 +196,7 @@ export default function ConsumerShell({
           .join(" ")}
       >
         {/* Topbar sticky header */}
-        <div className="ag-topbar-wrapper shrink-0">
+        <div className="ag-topbar-wrapper shrink-0" style={{ overflow: "visible", position: "relative", zIndex: 50 }}>
           <ConsumerTopbar
             title={getPageTitle()}
             profile={profile}
@@ -146,7 +208,7 @@ export default function ConsumerShell({
         </div>
 
         {/* Main scrollable view */}
-        <main className="ag-main-scroll flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+        <main className="ag-main-scroll flex-1 overflow-y-auto" style={{ padding: "32px 40px 48px" }}>
           <div className="max-w-[1600px] w-full mx-auto relative z-10">
             <CartProvider>
               <LocationHeader platform="consumer" />
@@ -163,21 +225,7 @@ export default function ConsumerShell({
         profile={profile}
       />
 
-      <button
-        onClick={() => setAiPanelOpen((prev) => !prev)}
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 border-0 cursor-pointer"
-        style={{
-          background: aiPanelOpen
-            ? "linear-gradient(135deg, #1e40af 0%, #2563eb 100%)"
-            : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-          boxShadow: "0 10px 25px rgba(37, 99, 235, 0.45)",
-        }}
-        title={aiPanelOpen ? "Close AI Assistant" : "Open AI Assistant"}
-        aria-label={aiPanelOpen ? "Close AI Assistant" : "Open AI Assistant"}
-        aria-expanded={aiPanelOpen}
-      >
-        <Bot className="w-6 h-6 text-white" />
-      </button>
+
 
       {/* Notifications Drawer */}
       <NotificationsPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />

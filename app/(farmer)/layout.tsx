@@ -7,7 +7,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DemoProvider } from "@/context/DemoContext";
-import UnifiedDashboardLayout from "@/components/layout/UnifiedDashboardLayout";
+import FarmerShell from "@/components/farmer/shell/FarmerShell";
 
 export default async function FarmerLayout({
   children,
@@ -59,7 +59,7 @@ export default async function FarmerLayout({
 
   return (
     <DemoProvider>
-      <UnifiedDashboardLayout profile={profile}>{children}</UnifiedDashboardLayout>
+      <FarmerShell profile={profile}>{children}</FarmerShell>
     </DemoProvider>
   );
 }
