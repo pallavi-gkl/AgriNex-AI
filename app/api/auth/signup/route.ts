@@ -69,16 +69,18 @@ export async function POST(request: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    const DEMO_MODE = true; // College demo mode
+
     // --- Create User via Admin API ---
     // Using admin.createUser ensures:
     // 1. The auth.users record is created
     // 2. The identity record is created (critical for password login!)
-    // 3. Email is immediately confirmed (no email verification step)
+    // 3. Email is immediately confirmed if DEMO_MODE is true
     const { data: newUserData, error: createError } =
       await admin.auth.admin.createUser({
         email,
         password,
-        email_confirm: false, // Enforce email confirmation verification step
+        email_confirm: DEMO_MODE ? true : false, // Auto-confirm email if in demo mode
         user_metadata: {
           full_name:    full_name    ?? "Unknown",
           phone_number: phone_number ?? "0000000000",
@@ -147,18 +149,20 @@ export async function POST(request: NextRequest) {
 
     console.log(`[signup] User created: ${email} (${role}) ID: ${user.id}`);
 
-    // Trigger sending the Supabase email verification confirmation email
-    const siteUrl = cleanEnvVar(process.env.NEXT_PUBLIC_SITE_URL) || "http://localhost:3000";
-    const { error: resendError } = await admin.auth.resend({
-      type: "signup",
-      email,
-      options: {
-        emailRedirectTo: `${siteUrl}/auth/callback`,
-      },
-    });
+    // Trigger sending the Supabase email verification confirmation email (bypassed in demo mode)
+    if (!DEMO_MODE) {
+      const siteUrl = cleanEnvVar(process.env.NEXT_PUBLIC_SITE_URL) || "http://localhost:3000";
+      const { error: resendError } = await admin.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/callback`,
+        },
+      });
 
-    if (resendError) {
-      console.error("[signup] Trigger verification resend failed:", resendError.message);
+      if (resendError) {
+        console.error("[signup] Trigger verification resend failed:", resendError.message);
+      }
     }
 
     return NextResponse.json({

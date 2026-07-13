@@ -88,7 +88,8 @@ export default function SignUpPage() {
         );
       }
 
-      router.push(`/check-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+      // router.push(`/check-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+      router.push(`/signin?registered=demo`);
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {

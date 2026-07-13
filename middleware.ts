@@ -50,8 +50,9 @@ export async function middleware(request: NextRequest) {
       url.search = request.nextUrl.search;
       return NextResponse.redirect(url);
     }
-    // Block sign-in/access if user email is not verified
-    if (!user.email_confirmed_at) {
+    // Block sign-in/access if user email is not verified (bypassed in college demo mode)
+    const DEMO_MODE = true;
+    if (!user.email_confirmed_at && !DEMO_MODE) {
       url.pathname = "/signin";
       url.search = `?error=${encodeURIComponent("Please verify your email before signing in.")}`;
       return NextResponse.redirect(url);

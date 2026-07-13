@@ -29,6 +29,8 @@ export default function SignInPage() {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get("registered") === "true") {
         setSuccess("Verification email sent. Please verify your email before signing in.");
+      } else if (searchParams.get("registered") === "demo") {
+        setSuccess("Account created successfully! You can sign in immediately.");
       }
       const errParam = searchParams.get("error");
       if (errParam) {
@@ -82,6 +84,8 @@ export default function SignInPage() {
     setSuccess("");
     setShowResend(false);
 
+    const DEMO_MODE = true; // College demo mode
+
     try {
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
@@ -98,8 +102,10 @@ export default function SignInPage() {
           );
         }
         if (
-          signInError.message.toLowerCase().includes("email not confirmed") ||
-          signInError.message.toLowerCase().includes("email not verified")
+          !DEMO_MODE && (
+            signInError.message.toLowerCase().includes("email not confirmed") ||
+            signInError.message.toLowerCase().includes("email not verified")
+          )
         ) {
           setShowResend(true);
           throw new Error("Please verify your email before signing in.");
@@ -114,7 +120,7 @@ export default function SignInPage() {
         throw new Error("Login succeeded but session creation failed. Please try again.");
       }
 
-      if (!user.email_confirmed_at) {
+      if (!user.email_confirmed_at && !DEMO_MODE) {
         await supabase.auth.signOut();
         setShowResend(true);
         throw new Error("Please verify your email before signing in.");
@@ -370,15 +376,12 @@ export default function SignInPage() {
             </div>
           </div>
 
-          {/* Remember Me & Forgot Password mockup */}
-          <div className="flex items-center justify-between px-1">
+          {/* Remember Me mockup */}
+          <div className="flex items-center px-1">
             <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer select-none">
               <input type="checkbox" className="rounded border-white/10 bg-white/5 text-emerald-500 focus:ring-emerald-500/30" />
               Remember Me
             </label>
-            <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-slate-400 hover:text-emerald-400 transition-colors">
-              Forgot Password?
-            </a>
           </div>
 
           {/* Alerts */}
