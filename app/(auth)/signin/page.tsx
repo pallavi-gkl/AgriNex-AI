@@ -640,15 +640,15 @@ export default function SignInPage() {
                 color: "#f1f5f9", margin: "0 0 8px 0",
                 letterSpacing: "-0.02em", lineHeight: 1.2,
               }}>
-                {urlRole === "farmer" ? "Farmer Sign In 🌾"
-                  : urlRole === "consumer" ? "Consumer Sign In 🛒"
+                {urlRole === "farmer" ? "🌾 Farmer Sign In"
+                  : urlRole === "consumer" ? "🛒 Consumer Sign In"
                   : "Welcome Back 👋"}
               </h2>
               <p style={{ fontSize: 13.5, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
                 {urlRole === "farmer"
                   ? "Access your crop dashboard & AI grading tools."
                   : urlRole === "consumer"
-                  ? "Buy fresh agricultural products at wholesale prices."
+                  ? "Access your orders, wishlist, AI shopping assistant & marketplace."
                   : "Sign in to continue your AgriNex journey."}
               </p>
 
@@ -660,7 +660,7 @@ export default function SignInPage() {
                   borderRadius: 100, padding: "4px 12px",
                 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: "#34d399", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                    {urlRole === "farmer" ? "🌾 Farmer Portal" : "🛒 Consumer Platform"}
+                    {urlRole === "farmer" ? "🌾 Farmer Portal" : "🛒 Consumer Portal"}
                   </span>
                 </div>
               )}

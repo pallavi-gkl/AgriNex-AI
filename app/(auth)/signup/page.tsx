@@ -118,7 +118,7 @@ export default function SignUpPage() {
       }
 
       // router.push(`/check-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
-      router.push(`/signin?registered=demo`);
+      router.push(`/signin?registered=demo&role=${role}`);
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -717,7 +717,7 @@ export default function SignUpPage() {
                       {error}
                       {error.toLowerCase().includes("already exists") && (
                         <Link
-                          href={`/signin${urlRole ? `?role=${urlRole}` : ""}`}
+                          href={`/signin?role=${role}`}
                           style={{ marginLeft: 6, color: "#34d399", fontWeight: 700, textDecoration: "underline" }}
                         >
                           Sign In →
@@ -754,7 +754,7 @@ export default function SignUpPage() {
               <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
                 Already have an account?{" "}
                 <Link
-                  href={`/signin${urlRole ? `?role=${urlRole}` : ""}`}
+                  href={`/signin?role=${role}`}
                   style={{
                     color: "#10b981", fontWeight: 700, textDecoration: "none",
                     borderBottom: "1px solid rgba(16,185,129,0.3)",
