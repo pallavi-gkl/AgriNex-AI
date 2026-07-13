@@ -3,7 +3,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import { Send, Eye, Bell, Loader2, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,12 +14,7 @@ async function broadcastNotification(payload: {
   title: string;
   message: string;
 }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/notify`, {
     method: "POST",

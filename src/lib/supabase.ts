@@ -56,3 +56,40 @@ export const supabase = createBrowserClient<Database>(
     },
   }
 );
+
+/**
+ * Safely retrieves a valid access token from the current session.
+ * If no session exists or the token is invalid:
+ * - Redirects to Sign In (/signin) if in a browser context.
+ * - Throws an error.
+ * Strips whitespace and newline/carriage return characters.
+ * Ensures the token is never undefined, null, or empty.
+ */
+export async function getValidAuthToken(): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session || !session.access_token) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/signin";
+    }
+    throw new Error("No active session. Redirecting to sign in.");
+  }
+  
+  const token = session.access_token;
+  if (typeof token !== "string") {
+    if (typeof window !== "undefined") {
+      window.location.href = "/signin";
+    }
+    throw new Error("Invalid token type. Redirecting to sign in.");
+  }
+  
+  const cleanedToken = token.trim().replace(/[\r\n]+/g, "");
+  if (!cleanedToken) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/signin";
+    }
+    throw new Error("Token is empty after cleaning. Redirecting to sign in.");
+  }
+  
+  return cleanedToken;
+}

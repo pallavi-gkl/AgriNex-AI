@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import { CheckCircle2, ShieldX, Loader2 } from "lucide-react";
 import KYCApplicationList, { KYCApp } from "@/components/admin/KYCApplicationList";
 import KYCReviewPanel from "@/components/admin/KYCReviewPanel";
@@ -9,12 +9,7 @@ import KYCReviewPanel from "@/components/admin/KYCReviewPanel";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function fetchKYCApplications() {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/kyc`, {
     headers: {
@@ -30,12 +25,7 @@ async function verifyFarmerKYC(payload: {
   status: "APPROVED" | "REJECTED";
   rejectionReason?: string;
 }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/verify-farmer`, {
     method: "POST",

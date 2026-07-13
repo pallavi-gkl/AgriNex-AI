@@ -8,7 +8,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import type { OrderStatus } from "@/types";
 import { createDbNotification } from "./useNotifications";
 
@@ -16,32 +16,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 // ─── Shared auth header helper ────────────────────────────────────────────────
 async function authHeaders(): Promise<Record<string, string>> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const token = await getValidAuthToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
   };
-  
-  // Retrieve raw token and ensure it's not null or undefined
-  let rawToken = session?.access_token;
-  if (!rawToken || typeof rawToken !== "string") {
-    throw new Error("Please login to continue.");
-  }
-
-  // Trim whitespace and remove any newline or carriage return characters
-  let token = rawToken.trim().replace(/[\r\n]+/g, "");
-
-  // Do not prepend "Bearer " if it already exists
-  if (token.startsWith("Bearer ")) {
-    token = token.substring(7).trim().replace(/[\r\n]+/g, "");
-  }
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
-
-  headers.Authorization = `Bearer ${token}`;
   return headers;
 }
 

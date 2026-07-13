@@ -2,7 +2,7 @@
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import { Sprout, Users, Package, Recycle, RefreshCw } from "lucide-react";
 import SupplyDemandChart from "@/components/charts/SupplyDemandChart";
 import GrowthChart from "@/components/charts/GrowthChart";
@@ -11,12 +11,7 @@ import EnvironmentalGauge from "@/components/charts/EnvironmentalGauge";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function fetchAdminStats() {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/stats`, {
     headers: {

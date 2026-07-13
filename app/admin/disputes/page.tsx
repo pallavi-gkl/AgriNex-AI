@@ -2,7 +2,7 @@
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import { Loader2, ShieldX, Check } from "lucide-react";
 import DisputeTable, { Dispute } from "@/components/admin/DisputeTable";
 import { useState } from "react";
@@ -10,12 +10,7 @@ import { useState } from "react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function fetchDisputes() {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/disputes`, {
     headers: {
@@ -32,12 +27,7 @@ async function resolveDispute(payload: {
   farmerId: string;
   orderId: string;
 }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/disputes/${payload.disputeId}/resolve`, {
     method: "POST",

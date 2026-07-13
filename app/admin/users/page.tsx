@@ -3,7 +3,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import { Search, Loader2, ShieldAlert, CheckCircle, XCircle, Ban, ShieldCheck } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -19,12 +19,7 @@ interface UserProfile {
 }
 
 async function fetchUsers(filters: { search: string; role: string }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const params = new URLSearchParams();
   if (filters.search) params.append("search", filters.search);
@@ -40,12 +35,7 @@ async function fetchUsers(filters: { search: string; role: string }) {
 }
 
 async function toggleUserSuspension(payload: { profileId: string; verify: boolean }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = (session?.access_token ?? "").trim();
-
-  if (!token) {
-    throw new Error("Please login to continue.");
-  }
+  const token = await getValidAuthToken();
 
   const res = await fetch(`${API_URL}/api/admin/verify-farmer`, {
     method: "POST",

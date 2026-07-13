@@ -6,7 +6,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, getValidAuthToken } from "@/lib/supabase";
 import type { CreateProductPayload, Product } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -19,15 +19,14 @@ interface CreateProductInput extends CreateProductPayload {
 async function postProduct(payload: CreateProductInput): Promise<Product> {
   const { token, ...body } = payload;
 
-  const { data: { session } } = await supabase.auth.getSession();
-  let rawToken = token || session?.access_token;
-  if (!rawToken || typeof rawToken !== "string") {
-    throw new Error("Please login to continue.");
-  }
-
-  let authToken = rawToken.trim().replace(/[\r\n]+/g, "");
-  if (authToken.startsWith("Bearer ")) {
-    authToken = authToken.substring(7).trim().replace(/[\r\n]+/g, "");
+  let authToken = "";
+  if (token && typeof token === "string") {
+    authToken = token.trim().replace(/[\r\n]+/g, "");
+    if (authToken.startsWith("Bearer ")) {
+      authToken = authToken.substring(7).trim().replace(/[\r\n]+/g, "");
+    }
+  } else {
+    authToken = await getValidAuthToken();
   }
 
   if (!authToken) {
