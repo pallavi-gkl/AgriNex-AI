@@ -176,53 +176,56 @@ export default function MapsPage() {
         initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
         style={{
           position: "relative", overflow: "hidden",
-          background: "linear-gradient(135deg, #022c22 0%, #064e3b 40%, #065f46 70%, #0f766e 100%)",
+          background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 50%, #BBF7D0 100%)",
           borderRadius: "24px", padding: "36px 40px", marginBottom: "28px",
-          boxShadow: "0 8px 32px rgba(6,78,59,0.25)",
+          border: "2px solid #22C55E",
+          boxShadow: "0 8px 32px rgba(34,197,94,0.12), 0 2px 8px rgba(0,0,0,0.04)",
         }}
       >
-        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "220px", height: "220px", borderRadius: "50%", background: "rgba(16,185,129,0.12)", filter: "blur(40px)" }} />
-        <div style={{ position: "absolute", bottom: "-30px", left: "30%", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(14,165,233,0.1)", filter: "blur(40px)" }} />
+        {/* Soft decorative blobs */}
+        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "220px", height: "220px", borderRadius: "50%", background: "rgba(34,197,94,0.10)", filter: "blur(50px)" }} />
+        <div style={{ position: "absolute", bottom: "-30px", left: "30%", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(16,185,129,0.08)", filter: "blur(40px)" }} />
 
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
-            {[`?? ${locationLabel}`, `?? ${weatherLabel}`, "?? Live Logistics"].map((pill) => (
+            {[`📍 ${locationLabel}`, `🌤 ${weatherLabel}`, "🚛 Live Logistics"].map((pill) => (
               <div key={pill} style={{
-                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.75)", border: "1px solid #86EFAC",
                 borderRadius: "99px", padding: "5px 14px", fontSize: "12px", fontWeight: 600,
-                color: "rgba(255,255,255,0.9)", backdropFilter: "blur(8px)",
+                color: "#16A34A", backdropFilter: "blur(8px)",
               }}>{pill}</div>
             ))}
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "20px" }}>
             <div>
-              <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#ffffff", margin: "0 0 10px", letterSpacing: "-0.5px", lineHeight: 1.2 }}>
-                ?? Smart Logistics & Supply Command Center
+              <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#14532D", margin: "0 0 10px", letterSpacing: "-0.5px", lineHeight: 1.2 }}>
+                🗺️ Smart Logistics &amp; Supply Command Center
               </h1>
-              <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: 0, maxWidth: "560px", lineHeight: 1.65 }}>
+              <p style={{ fontSize: "14px", color: "#334155", margin: 0, maxWidth: "560px", lineHeight: 1.65 }}>
                 AI-powered logistics, buyer discovery, warehouse availability and route optimisation for smarter agricultural deliveries.
               </p>
               <div style={{ display: "flex", gap: "10px", marginTop: "18px", flexWrap: "wrap" }}>
                 {["Real-time Tracking", "Multi-layer View", "Smart Routes", "AI Optimisation"].map((tag) => (
                   <span key={tag} style={{
-                    background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+                    background: "rgba(255,255,255,0.8)", border: "1px solid #86EFAC",
                     borderRadius: "99px", padding: "4px 14px", fontSize: "11px", fontWeight: 700,
-                    color: "rgba(255,255,255,0.9)", letterSpacing: "0.02em",
+                    color: "#16A34A", letterSpacing: "0.02em",
                   }}>{tag}</span>
                 ))}
               </div>
             </div>
             <div style={{
-              background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: "18px", padding: "16px 20px", minWidth: "190px", backdropFilter: "blur(8px)",
+              background: "rgba(255,255,255,0.80)", border: "1px solid #86EFAC",
+              borderRadius: "18px", padding: "16px 20px", minWidth: "190px",
+              boxShadow: "0 2px 12px rgba(34,197,94,0.10)",
             }}>
-              <p style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", margin: "0 0 10px", letterSpacing: "0.08em" }}>Your Active Crops</p>
+              <p style={{ fontSize: "10px", fontWeight: 700, color: "#16A34A", textTransform: "uppercase", margin: "0 0 10px", letterSpacing: "0.08em" }}>Your Active Crops</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 {farmerCropNames.map((crop: string) => (
                   <div key={crop} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Leaf style={{ width: "12px", height: "12px", color: "#6EE7B7" }} />
-                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>{crop}</span>
+                    <Leaf style={{ width: "12px", height: "12px", color: "#16A34A" }} />
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#14532D" }}>{crop}</span>
                   </div>
                 ))}
               </div>
