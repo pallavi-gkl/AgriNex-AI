@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
   const executiveSummary = `Based on ${farmerName}'s farm profile, ${cropNames.length} active inventory crops, ${orderCount} orders on record, AI diagnostics history, irrigation schedule and logistics performance, your farm is performing above the regional average. ${topCrop} is currently your highest-contributing crop category. Marketplace demand is trending upward. Water usage is efficient at ${waterEfficiency}% score. ${weatherNote} Your next opportunity is improving logistics route efficiency to reduce delivery time.`;
 
   const kpiCards = [
-    { icon: DollarSign, label: "Total Revenue",      val: `Rs.${(totalRevenue / 100000).toFixed(1)}L`, trend: 23.4, color: "#22C55E", bg: "#F0FDF4", border: "#86EFAC", spark: revSpark },
+    { icon: DollarSign, label: "Total Revenue",      val: `₹${(totalRevenue / 100000).toFixed(1)}L`, trend: 23.4, color: "#22C55E", bg: "#F0FDF4", border: "#86EFAC", spark: revSpark },
     { icon: TrendingUp, label: "Net Profit Margin",  val: `${profitMargin}%`,                         trend: 5.2,  color: "#3B82F6", bg: "#EFF6FF", border: "#BFDBFE", spark: revSpark.map(v => v * 0.83) },
     { icon: Leaf,       label: "Active Crops",       val: `${cropNames.length}`,                      trend: 0,    color: "#10B981", bg: "#F0FDF4", border: "#6EE7B7", spark: [2,2,3,3,3,cropNames.length] },
     { icon: Package,    label: "Orders Completed",   val: `${deliveredOrders || 28}`,                 trend: 12.1, color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A", spark: ordSpark },
@@ -215,8 +215,8 @@ export default function AnalyticsPage() {
   const handleExport = (format: "pdf" | "excel") => {
     const columns = [
       { header: "Month",                  key: "month",            format: "string" as const },
-      { header: "Your Earnings (Rs.)",    key: "personalEarnings", format: "currency" as const },
-      { header: "Market Avg (Rs.)",       key: "marketAverage",    format: "currency" as const },
+      { header: "Your Earnings (₹)",    key: "personalEarnings", format: "currency" as const },
+      { header: "Market Avg (₹)",       key: "marketAverage",    format: "currency" as const },
       { header: "Dispatches (Orders)",    key: "orders",           format: "number" as const },
     ];
     const title = "AI Farm Intelligence Report";
@@ -426,13 +426,13 @@ export default function AnalyticsPage() {
                 <Pie data={cropPieData} cx="50%" cy="50%" innerRadius={44} outerRadius={65} paddingAngle={4} dataKey="value">
                   {cropPieData.map((_: any, i: number) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
                 </Pie>
-                <Tooltip {...ttStyle} formatter={(v: any) => [`Rs.${Number(v).toLocaleString()}`, "Revenue"]} />
+                <Tooltip {...ttStyle} formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, "Revenue"]} />
               </PieChart>
             </ResponsiveContainer>
             <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
               <p style={{ fontSize: "9px", color: "#94A3B8", fontWeight: 700, margin: 0 }}>TOTAL</p>
               <p style={{ fontSize: "13px", fontWeight: 900, color: "#1F2937", margin: 0 }}>
-                Rs.{(cropPieData.reduce((a: number, c: any) => a + c.value, 0) / 100000).toFixed(1)}L
+                ₹{(cropPieData.reduce((a: number, c: any) => a + c.value, 0) / 100000).toFixed(1)}L
               </p>
             </div>
           </div>
@@ -443,7 +443,7 @@ export default function AnalyticsPage() {
                   <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: PALETTE[i % PALETTE.length], flexShrink: 0, display: "inline-block" }} />
                   {c.name}
                 </span>
-                <span style={{ fontWeight: 800, color: "#1F2937" }}>Rs.{(c.value / 1000).toFixed(0)}K</span>
+                <span style={{ fontWeight: 800, color: "#1F2937" }}>₹{(c.value / 1000).toFixed(0)}K</span>
               </div>
             ))}
           </div>
@@ -503,7 +503,7 @@ export default function AnalyticsPage() {
               <div key={m.crop} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", background: i % 2 === 0 ? "#F8FAFC" : "#ffffff", borderRadius: "10px", border: "1px solid #F1F5F9" }}>
                 <span style={{ fontSize: "12px", fontWeight: 700, color: "#374151" }}>{m.crop}</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 800, color: "#1F2937" }}>Rs.{m.price}/{m.unit}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 800, color: "#1F2937" }}>₹{m.price}/{m.unit}</span>
                   <Trend val={m.change} />
                 </div>
               </div>
@@ -535,9 +535,9 @@ export default function AnalyticsPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "7px", marginBottom: "10px" }}>
                 {[
-                  { label: "Revenue", val: `Rs.${(c.revenue/1000).toFixed(0)}K` },
+                  { label: "Revenue", val: `₹${(c.revenue/1000).toFixed(0)}K` },
                   { label: "Orders",  val: `${c.orders}` },
-                  { label: "Profit",  val: `Rs.${(c.profit/1000).toFixed(0)}K` },
+                  { label: "Profit",  val: `₹${(c.profit/1000).toFixed(0)}K` },
                   { label: "Rating",  val: `${c.rating} stars` },
                 ].map(stat => (
                   <div key={stat.label} style={{ background: "#ffffff", borderRadius: "8px", padding: "7px 10px", border: "1px solid #F1F5F9" }}>
@@ -641,7 +641,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               <div style={{ textAlign: "right" as const }}>
-                <p style={{ fontSize: "16px", fontWeight: 900, color: "#1F2937", margin: 0 }}>Rs.{(c.revenue/1000).toFixed(0)}K</p>
+                <p style={{ fontSize: "16px", fontWeight: 900, color: "#1F2937", margin: 0 }}>₹{(c.revenue/1000).toFixed(0)}K</p>
                 <Trend val={c.trend} />
               </div>
             </div>

@@ -19,6 +19,7 @@ import {
   getCurrentLanguage,
 } from "@/components/layout/LanguageSwitcher";
 import { motion } from "framer-motion";
+import { DEMO_CROPS } from "@/lib/demoData";
 
 /* ─── Shared icon button style ───────────────────────────────── */
 const iconBtnCls =
@@ -115,6 +116,100 @@ export default function ConsumerTopbar({
   const [langOpen, setLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("en");
   const langRef = useRef<HTMLDivElement>(null);
+
+  /* Search state and logic */
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ type: "page" | "product"; label: string; url: string }>>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const getConsumerPages = () => [
+    { label: "Marketplace Homepage", url: "/consumer/marketplace", keywords: ["marketplace", "shop", "buy", "products", "fruits", "vegetables", "grains"] },
+    { label: "My Orders", url: "/consumer/orders", keywords: ["orders", "purchases", "history", "tracking"] },
+    { label: "Wishlist", url: "/consumer/wishlist", keywords: ["wishlist", "favorites", "heart"] },
+    { label: "Compare Products", url: "/consumer/compare", keywords: ["compare", "prices", "ratings"] },
+    { label: "My Reviews", url: "/consumer/reviews", keywords: ["reviews", "ratings", "feedback"] },
+    { label: "Settings & Profile", url: "/consumer/settings", keywords: ["settings", "profile", "account"] },
+    { label: "Notifications", url: "/consumer/notifications", keywords: ["notifications", "alerts", "bell"] },
+  ];
+
+  // Close search suggestions on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (!val.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    const q = val.toLowerCase().trim();
+    const matches: Array<{ type: "page" | "product"; label: string; url: string }> = [];
+
+    // Search pages
+    getConsumerPages().forEach(p => {
+      if (p.label.toLowerCase().includes(q) || p.keywords.some(k => k.includes(q))) {
+        matches.push({ type: "page", label: p.label, url: p.url });
+      }
+    });
+
+    // Search marketplace product listings
+    DEMO_CROPS.forEach(c => {
+      if (c.title.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)) {
+        matches.push({ type: "product", label: c.title, url: `/consumer/marketplace/${c.id}` });
+      }
+    });
+
+    setSuggestions(matches.slice(0, 8));
+    setShowSuggestions(true);
+  };
+
+  const selectSuggestion = (item: { type: "page" | "product"; label: string; url: string }) => {
+    setSearchQuery(item.label);
+    setShowSuggestions(false);
+    router.push(item.url);
+  };
+
+  const triggerSearch = (query: string) => {
+    const q = query.trim();
+    if (!q) return;
+    setShowSuggestions(false);
+
+    // 1. Exact or keyword match page
+    const matchedPage = getConsumerPages().find(p => p.label.toLowerCase() === q.toLowerCase() || p.keywords.some(k => k.toLowerCase() === q.toLowerCase()));
+    if (matchedPage) {
+      router.push(matchedPage.url);
+      return;
+    }
+
+    // 2. Exact match product
+    const matchedProduct = DEMO_CROPS.find(c => c.title.toLowerCase() === q.toLowerCase());
+    if (matchedProduct) {
+      router.push(`/consumer/marketplace/${matchedProduct.id}`);
+      return;
+    }
+
+    // 3. Fallback: navigate with search query
+    router.push(`/consumer/marketplace?search=${encodeURIComponent(q)}`);
+  };
+
+  const executeSearch = () => {
+    triggerSearch(searchQuery);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      executeSearch();
+    }
+  };
 
   /* ── Sync current language on mount ─────────────────────────── */
   useEffect(() => {
@@ -259,21 +354,42 @@ export default function ConsumerTopbar({
         
         {/* Search Bar */}
         <div
+          ref={searchRef}
           className="hidden md:flex items-center relative"
           style={{ width: "320px", height: "40px" }}
         >
-          <Search
+          <button
+            type="button"
+            onClick={executeSearch}
             style={{
               position: "absolute",
-              left: "14px",
-              width: "16px",
-              height: "16px",
-              color: "#94A3B8",
-              pointerEvents: "none",
+              left: "10px",
+              width: "28px",
+              height: "28px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              zIndex: 10,
             }}
-          />
+            title="Search"
+          >
+            <Search
+              style={{
+                width: "16px",
+                height: "16px",
+                color: "#94A3B8",
+              }}
+            />
+          </button>
           <input
             type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setShowSuggestions(true)}
             placeholder={t("searchPlaceholder") || "Search products, farmers…"}
             aria-label={t("search") || "Search"}
             style={{
@@ -291,17 +407,100 @@ export default function ConsumerTopbar({
               boxShadow: "0 1px 2px rgba(0, 0, 0, 0.02)",
               transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "#10B981";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.08), 0 0 0 3px rgba(16, 185, 129, 0.1)";
-              e.currentTarget.style.background = "#fff";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "#E2E8F0";
-              e.currentTarget.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.02)";
-              e.currentTarget.style.background = "#F8FAFC";
-            }}
           />
+
+          {/* Search suggestions dropdown */}
+          {showSuggestions && (
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: "100%",
+                marginTop: "6px",
+                borderRadius: "16px",
+                border: "1px solid #E2E8F0",
+                background: "#FFFFFF",
+                boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                zIndex: 1000,
+                padding: "8px",
+                maxHeight: "320px",
+                overflowY: "auto",
+              }}
+            >
+              {suggestions.length > 0 ? (
+                suggestions.map((item, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => selectSuggestion(item)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "8px 12px",
+                      borderRadius: "10px",
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      color: "#334155",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#F0FDF4";
+                      e.currentTarget.style.color = "#10B981";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#334155";
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{item.label}</span>
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        padding: "2px 6px",
+                        borderRadius: "6px",
+                        background: item.type === "page" ? "#EFF6FF" : "#E8F5E9",
+                        color: item.type === "page" ? "#1E40AF" : "#1B5E20",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {item.type}
+                    </span>
+                  </button>
+                ))
+              ) : searchQuery.trim() ? (
+                <div style={{ padding: "14px", textAlign: "center", fontSize: "13px", color: "#64748B" }}>
+                  <p style={{ margin: 0, fontWeight: 600 }}>No matching products, pages, or records found.</p>
+                  <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "12px" }}>
+                    <button
+                      type="button"
+                      onClick={() => { setShowSuggestions(false); router.push("/consumer/marketplace"); }}
+                      style={{ fontSize: "11px", fontWeight: 700, padding: "5px 10px", borderRadius: "8px", border: "1px solid #A7F3D0", background: "#E8F5E9", color: "#10B981", cursor: "pointer" }}
+                    >
+                      Marketplace
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowSuggestions(false); router.push("/consumer/orders"); }}
+                      style={{ fontSize: "11px", fontWeight: 700, padding: "5px 10px", borderRadius: "8px", border: "1px solid #E0E7FF", background: "#EEF2FF", color: "#4F46E5", cursor: "pointer" }}
+                    >
+                      My Orders
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: "10px 12px", fontSize: "11px", color: "#94A3B8", fontWeight: 600 }}>
+                  Type to search products, orders, or pages...
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

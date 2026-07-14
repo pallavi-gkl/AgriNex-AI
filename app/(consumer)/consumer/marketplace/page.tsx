@@ -6,8 +6,8 @@
  * ALL business logic, hooks, handlers, state, and routing preserved 100%.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -130,14 +130,34 @@ function ProductSkeleton() {
 
 /* ─── Product Card ───────────────────────────────────────────────────────────── */
 function ProductCard({
-  product, onAddToCart, isInWishlist, onToggleWishlist, onOrderNow,
+  product, onAddToCart, isInWishlist, onToggleWishlist, onOrderNow, search = "",
 }: {
   product: any;
   onAddToCart: (p: any) => void;
   isInWishlist: boolean;
   onToggleWishlist: (p: any) => void;
   onOrderNow: (p: any) => void;
+  search?: string;
 }) {
+  const highlightText = (text: string, highlight: string) => {
+    if (!highlight.trim()) return text;
+    const regex = new RegExp(`(${highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, "gi");
+    const parts = text.split(regex);
+    return (
+      <>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <span key={i} style={{ backgroundColor: "#FEF08A", color: "#1E293B", borderRadius: "2px", padding: "0 2px" }}>
+              {part}
+            </span>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
+
   const grade    = product.qualityGrade ?? product.quality_grade ?? "N/A";
   const gradeCfg = GRADE_CONFIG[grade] ?? { color: "#64748b", bg: "#f8fafc", border: "#e2e8f0" };
   const isOrganic = product.isOrganic ?? product.is_organic ?? false;
@@ -225,7 +245,7 @@ function ProductCard({
         {/* Name */}
         <Link href={`/consumer/marketplace/${product.id}`} style={{ textDecoration: "none" }}>
           <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "#1e293b", lineHeight: 1.3, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-            {product.title}
+            {search ? highlightText(product.title, search) : product.title}
           </h3>
         </Link>
 
@@ -499,11 +519,20 @@ function MarketInsightCard({ item }: { item: any }) {
   );
 }
 
-/* ─── Main Marketplace Page ──────────────────────────────────────────────────── */
-export default function MarketplacePage() {
+function MarketplacePageContent() {
   // ── All original state preserved 100% ──────────────────────────────────────
   const [searchInput,    setSearchInput]    = useState("");
   const [search,         setSearch]         = useState("");
+
+  const searchParams = useSearchParams();
+
+  // Sync search state from URL searchParams
+  useEffect(() => {
+    const query = searchParams.get("search") || searchParams.get("q") || "";
+    setSearchInput(query);
+    setSearch(query);
+  }, [searchParams]);
+
   const [category,       setCategory]       = useState("All");
   const [cartOpen,       setCartOpen]       = useState(false);
   const [checkoutSuccess,setCheckoutSuccess]= useState(false);
@@ -594,6 +623,14 @@ export default function MarketplacePage() {
     if (onlyOrganic && !(p.isOrganic || p.is_organic)) return false;
     const price = p.pricePerUnit ?? p.price_per_unit ?? 0;
     if (price < priceRange[0] || price > priceRange[1]) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const title = (p.title ?? "").toLowerCase();
+      const desc = (p.description ?? "").toLowerCase();
+      const cat = (p.category ?? "").toLowerCase();
+      const farm = (p.farmer?.fullName ?? p.farmerName ?? "").toLowerCase();
+      if (!title.includes(q) && !desc.includes(q) && !cat.includes(q) && !farm.includes(q)) return false;
+    }
     return true;
   });
 
@@ -963,7 +1000,7 @@ export default function MarketplacePage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "18px" }}>
               {fresh.map((p: any) => (
                 <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
-                  isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} />
+                  isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} search={search} />
               ))}
             </div>
           </section>
@@ -982,7 +1019,7 @@ export default function MarketplacePage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "18px" }}>
               {organic.map((p: any) => (
                 <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
-                  isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} />
+                  isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} search={search} />
               ))}
             </div>
           </section>
@@ -1001,7 +1038,7 @@ export default function MarketplacePage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "18px" }}>
               {trending.map((p: any) => (
                 <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
-                  isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} />
+                  isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} search={search} />
               ))}
             </div>
           </section>
@@ -1060,7 +1097,7 @@ export default function MarketplacePage() {
               <AnimatePresence>
                 {sortedProducts.map((p: any) => (
                   <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart}
-                    isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} />
+                    isInWishlist={isInWishlist(p.id)} onToggleWishlist={handleToggleWishlist} onOrderNow={handleOrderNow} search={search} />
                 ))}
               </AnimatePresence>
             </motion.div>
@@ -1142,5 +1179,13 @@ export default function MarketplacePage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "40px", color: "#64748B" }}>Loading Marketplace...</div>}>
+      <MarketplacePageContent />
+    </Suspense>
   );
 }

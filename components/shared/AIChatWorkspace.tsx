@@ -43,19 +43,19 @@ interface AIChatWorkspaceProps {
 
 const THEME = {
   farmer: {
-    accentColor: "#059669",
-    accentMid:   "#10b981",
-    pulseColor:  "bg-emerald-400",
-    inputRing:   "focus:ring-emerald-400/30",
-    suggestBg:   "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100",
+    accentColor: "#16A34A",
+    accentMid:   "#22C55E",
+    pulseColor:  "bg-green-400",
+    inputRing:   "focus:ring-green-400/30",
+    suggestBg:   "bg-white border-[#DCFCE7] text-[#0F172A] hover:bg-[#F0FDF4] hover:border-[#22C55E]",
     welcomeIcon: Sprout,
   },
   consumer: {
-    accentColor: "#0891b2",
-    accentMid:   "#06b6d4",
-    pulseColor:  "bg-cyan-400",
-    inputRing:   "focus:ring-cyan-400/30",
-    suggestBg:   "bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100",
+    accentColor: "#16A34A",
+    accentMid:   "#22C55E",
+    pulseColor:  "bg-green-400",
+    inputRing:   "focus:ring-green-400/30",
+    suggestBg:   "bg-white border-[#DCFCE7] text-[#0F172A] hover:bg-[#F0FDF4] hover:border-[#22C55E]",
     welcomeIcon: ShoppingBag,
   },
 };
@@ -211,7 +211,8 @@ export default function AIChatWorkspace({ platform, currentPath, onClose }: AICh
   };
 
   const handleClear = () => {
-  const { t } = useTranslation(); setMessages([]); setInput(""); };
+    setMessages([]); setInput("");
+  };
 
   // ── Translated text helpers ───────────────────────────────────────────────
   const isFarmer    = platform === "farmer";
@@ -516,17 +517,18 @@ export default function AIChatWorkspace({ platform, currentPath, onClose }: AICh
           <p className="text-[11px] text-slate-400">
             <span className="font-semibold">{t("aiTip")}</span> {t("aiTipText")}
           </p>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] text-slate-400 font-semibold">{t("aiActiveLanguage")}</span>
-            <span
-              className="text-[10px] font-bold border px-1.5 py-0.5 rounded uppercase"
-              style={{
-                color: theme.accentColor,
-                borderColor: `${theme.accentColor}50`,
-                background: `${theme.accentMid}10`,
-              }}
-            >
-              {language}
+          <div className="flex items-center gap-1.5">
+            <span style={{
+              fontSize: "11px", fontWeight: 700,
+              background: "#F0FDF4",
+              color: "#16A34A",
+              border: "1px solid #BBF7D0",
+              borderRadius: "999px",
+              padding: "2px 10px",
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+            }}>
+              🌐 {language}
             </span>
           </div>
         </div>

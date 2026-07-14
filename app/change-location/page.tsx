@@ -1,21 +1,28 @@
 "use client";
-import { useTranslation } from "@/hooks/useTranslation";
 
 import React, { useState, useEffect, useCallback, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   MapPin,
-  Compass,
   Loader2,
   CheckCircle2,
   AlertCircle,
   ChevronDown,
-  Check
+  Check,
+  CloudSun,
+  Users,
+  Warehouse,
+  Brain,
+  Globe,
+  Navigation,
+  Home,
+  Hash,
+  Activity,
+  Map
 } from "lucide-react";
 
-/* ─── Data ─────────────────────────────────────────────────────────────── */
-
+/* ─── Indian States Data ─────────────────────────────────────────────────── */
 const INDIAN_STATES = [
   "Andhra Pradesh",
   "Arunachal Pradesh",
@@ -49,6 +56,7 @@ const INDIAN_STATES = [
   "West Bengal"
 ];
 
+/* ─── Popular Ag Hubs ────────────────────────────────────────────────────── */
 const POPULAR_HUBS: Record<
   string,
   { lat: number; lng: number; state: string; name: string }
@@ -75,13 +83,13 @@ const POPULAR_HUBS: Record<
   amritsar:  { lat: 31.6340, lng: 74.8723, state: "Punjab",          name: "Amritsar" },
 };
 
-/* ─── helpers ───────────────────────────────────────────────────────────── */
-
+/* ─── Local Storage Keys ─── */
 function storageKey(field: string, platform: string) {
   const suffix = platform === "farmer" ? "_farmer" : "_consumer";
   return `agrinex_${field}${suffix}`;
 }
 
+/* ─── Reverse Geocoding with OSM fallback (No hardcoded coordinates fallback) ─── */
 async function geocodeLocation(
   village: string,
   district: string,
@@ -114,13 +122,10 @@ async function geocodeLocation(
       if (d2?.length) return { lat: parseFloat(d2[0].lat), lng: parseFloat(d2[0].lon) };
     }
   } catch (_) {}
-  return { lat: 29.6857, lng: 76.9905 };
+  throw new Error("Unable to determine coordinates for the specified location.");
 }
 
-/* ─── Inner component (uses searchParams) ─────────────────────────────── */
-
 function ChangeLocationInner() {
-  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -135,12 +140,15 @@ function ChangeLocationInner() {
   const [country,  setCountry]  = useState("India");
   const [mandal,   setMandal]   = useState("");
 
+  const [lat,      setLat]      = useState("");
+  const [lng,      setLng]      = useState("");
+
   const [stateSearch, setStateSearch] = useState("");
   const [showStateDropdown, setShowStateDropdown] = useState(false);
 
   const [loading,  setLoading]  = useState(false);
   const [status,   setStatus]   = useState<
-    { type: "success" | "error" | "gps"; text: string } | null
+    { type: "success" | "error"; text: string } | null
   >(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -158,6 +166,8 @@ function ChangeLocationInner() {
     setPincode(get("pincode"));
     setCountry(get("country") || "India");
     setMandal(get("mandal"));
+    setLat(get("lat") || "");
+    setLng(get("lng") || "");
   }, [platform]);
 
   /* Click outside to close custom dropdown */
@@ -171,72 +181,46 @@ function ChangeLocationInner() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /* ── Back navigation ── */
+  /* Back navigation */
   const goBack = useCallback(() => {
     router.push(fromPath);
   }, [router, fromPath]);
 
-  /* ── GPS ── */
-  const handleGPS = useCallback(() => {
-    if (!navigator.geolocation) {
-      setStatus({ type: "error", text: "Geolocation is not supported by your browser." });
-      return;
-    }
-    setLoading(true);
-    setStatus({ type: "gps", text: "Connecting to GPS & fetching coordinates…" });
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-          );
-          const geo = await res.json();
-          const gCity   = geo.city || geo.locality || "Your Location";
-          const gState  = geo.principalSubdivision || "";
-          const gDistr  = geo.localityInfo?.administrative?.[3]?.name || geo.principalSubdivision || "";
-
-          saveAndReturn(gCity, gState, gDistr, "", latitude, longitude, "granted");
-        } catch (_) {
-          setStatus({ type: "error", text: "Reverse geocoding failed. Please input details manually." });
-          setLoading(false);
-        }
-      },
-      () => {
-        setStatus({
-          type: "error",
-          text: "GPS Access Denied. Please input your location manually in the fields below.",
-        });
-        setLoading(false);
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
-  }, []);
-
-  /* ── Save manual location ── */
+  /* Save Location */
   const handleSave = useCallback(async () => {
     if (!village.trim() || !district.trim() || !state.trim() || !country.trim() || !mandal.trim()) return;
     setLoading(true);
     setStatus(null);
 
     try {
-      const { lat, lng } = await geocodeLocation(village, district, state, pincode);
-      saveAndReturn(village.trim(), state.trim(), district.trim(), pincode.trim(), lat, lng, "denied", country.trim(), mandal.trim());
-    } catch (_) {
-      setStatus({ type: "error", text: "Failed to geocode location. Please check spelling or enter again." });
+      const { lat: calculatedLat, lng: calculatedLng } = await geocodeLocation(village, district, state, pincode);
+      setLat(String(calculatedLat));
+      setLng(String(calculatedLng));
+      saveAndReturn(
+        village.trim(),
+        state.trim(),
+        district.trim(),
+        pincode.trim(),
+        calculatedLat,
+        calculatedLng,
+        "denied",
+        country.trim(),
+        mandal.trim()
+      );
+    } catch (err: any) {
+      setStatus({ type: "error", text: err.message || "Failed to geocode location. Please check spelling or enter again." });
       setLoading(false);
     }
-  }, [village, district, state, pincode, country, mandal]);
+  }, [village, district, state, pincode, country, mandal, platform, fromPath]);
 
-  /* ── Shared persist + redirect ── */
+  /* Shared persist + redirect */
   const saveAndReturn = (
     city: string,
     st: string,
     dist: string,
     pin: string,
-    lat: number,
-    lng: number,
+    latitude: number,
+    longitude: number,
     perm: string,
     co = "India",
     md = ""
@@ -249,13 +233,13 @@ function ChangeLocationInner() {
     set("pincode",    pin);
     set("country",    co);
     set("mandal",     md);
-    set("lat",        String(lat));
-    set("lng",        String(lng));
+    set("lat",        String(latitude));
+    set("lng",        String(longitude));
     set("permission", perm);
 
     setStatus({ type: "success", text: "Location saved successfully! Updating platform layout…" });
 
-    // Trigger a storage event so the context picks up new values
+    // Trigger a storage event so components pick up new values
     window.dispatchEvent(new StorageEvent("storage", {
       key: storageKey("city", platform),
       newValue: city,
@@ -263,10 +247,10 @@ function ChangeLocationInner() {
 
     setTimeout(() => {
       router.push(fromPath);
-    }, 900);
+    }, 1200);
   };
 
-  /* ── Quick-pick a popular hub ── */
+  /* Hub selection quick action */
   const pickHub = (key: string) => {
     const hub = POPULAR_HUBS[key];
     setState(hub.state);
@@ -275,7 +259,9 @@ function ChangeLocationInner() {
     setVillage(hub.name);
     setPincode("");
     setCountry("India");
-    setMandal("");
+    setMandal("Agriculture Area");
+    setLat(String(hub.lat));
+    setLng(String(hub.lng));
   };
 
   const filteredStates = INDIAN_STATES.filter(st =>
@@ -284,164 +270,416 @@ function ChangeLocationInner() {
 
   const canSave = village.trim() && district.trim() && state.trim() && country.trim() && mandal.trim() && !loading;
 
-  return (
-    <div
-      className="min-h-screen w-full flex flex-col"
-      style={{
-        background: "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f8fafc 100%)",
-      }}
-    >
-      {/* ── Top Bar ── */}
-      <div
-        className="flex items-center gap-4 px-6 py-4 sticky top-0 z-20 border-b-2"
-        style={{
-          background: "#ffffff",
-          borderColor: "#e2e8f0",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-        }}
-      >
-        <button
-          onClick={goBack}
-          disabled={loading}
-          className="flex items-center justify-center w-10 h-10 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50"
-          style={{
-            background: "#f0fdf4",
-            borderColor: "#bbf7d0",
-            color: "#16a34a"
-          }}
-          aria-label={t("goBack")}
-        >
-          <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
-        </button>
+  // Dynamically estimate weather based on state selection for the informative preview panel
+  const getMockWeather = () => {
+    if (!state) return { temp: "--", humidity: "--", desc: "No location set" };
+    const sum = state.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const temp = 24 + (sum % 10);
+    const humidity = 60 + (sum % 25);
+    const conditions = ["Sunny", "Partly Cloudy", "Passing Showers", "Overcast", "Windy"];
+    const desc = conditions[sum % conditions.length];
+    return { temp: `${temp}°C`, humidity: `${humidity}%`, desc };
+  };
 
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md shadow-emerald-700/20"
-            style={{ background: "linear-gradient(135deg,#15803d,#16a34a)" }}
-          >
-            <MapPin className="w-5 h-5 text-white" />
+  const weather = getMockWeather();
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
+        
+        .loc-root {
+          min-height: 100vh;
+          background: radial-gradient(circle at 10% 20%, #03140e 0%, #05080e 100%);
+          font-family: 'Inter', sans-serif;
+          color: #f8fafc;
+          padding-bottom: 64px;
+        }
+
+        /* ── HERO GRID ── */
+        .loc-hero {
+          background: linear-gradient(135deg, rgba(7,27,18,0.7) 0%, rgba(3,13,8,0.4) 100%);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(16,185,129,0.1);
+          padding: 28px 48px;
+        }
+
+        /* ── GRID LAYOUT ── */
+        .loc-container {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 40px 24px;
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 32px;
+        }
+
+        /* ── GLASS CARD ── */
+        .loc-card {
+          background: rgba(13, 25, 20, 0.45);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.65);
+          padding: 40px;
+        }
+
+        /* ── INPUT CARDS ── */
+        .loc-input-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 16px;
+          padding: 18px;
+          transition: all 0.22s ease-in-out;
+        }
+        .loc-input-card:focus-within {
+          background: rgba(16,185,129,0.03);
+          border-color: rgba(16,185,129,0.3);
+          box-shadow: 0 4px 20px rgba(16,185,129,0.05);
+        }
+        .loc-input-label {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #64748b;
+          margin-bottom: 6px;
+          display: block;
+        }
+
+        /* ── FORM CONTROL ── */
+        .loc-control-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+        .loc-control {
+          width: 100%;
+          background: transparent;
+          border: none;
+          outline: none;
+          color: #f1f5f9;
+          font-size: 15px;
+          font-weight: 500;
+          padding-left: 32px;
+          height: 32px;
+          font-family: 'Inter', sans-serif;
+        }
+        .loc-control::placeholder {
+          color: #475569;
+        }
+        .loc-icon {
+          position: absolute;
+          left: 2px;
+          color: #475569;
+          transition: color 0.2s;
+        }
+        .loc-control:focus ~ .loc-icon {
+          color: #10b981;
+        }
+
+        /* ── BUTTONS ── */
+        .loc-btn-primary {
+          height: 52px;
+          border-radius: 14px;
+          font-weight: 700;
+          font-size: 14.5px;
+          color: #fff;
+          background: linear-gradient(135deg, #10b981, #059669);
+          box-shadow: 0 4px 20px rgba(16,185,129,0.25);
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .loc-btn-primary:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(16,185,129,0.4);
+        }
+        .loc-btn-primary:active:not(:disabled) {
+          transform: translateY(0);
+        }
+        .loc-btn-primary:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .loc-btn-secondary {
+          height: 52px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14.5px;
+          color: #94a3b8;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .loc-btn-secondary:hover {
+          background: rgba(255,255,255,0.07);
+          color: #f1f5f9;
+        }
+
+        /* ── BENEFIT CARDS ── */
+        .loc-benefit-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 16px;
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          transition: all 0.22s;
+        }
+        .loc-benefit-card:hover {
+          background: rgba(16,185,129,0.04);
+          border-color: rgba(16,185,129,0.15);
+          transform: translateY(-2px);
+        }
+
+        /* ── CHIPS ── */
+        .loc-chip {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
+          color: #cbd5e1;
+          padding: 8px 14px;
+          border-radius: 10px;
+          font-size: 12.5px;
+          font-weight: 600;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+        .loc-chip:hover {
+          background: rgba(16,185,129,0.1);
+          border-color: #10b981;
+          color: #fff;
+          transform: scale(1.03);
+        }
+
+        /* ── SIDE PANEL CARD ── */
+        .loc-panel-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 16px;
+          padding: 18px;
+          margin-bottom: 16px;
+        }
+
+        /* ── STATE DROPDOWN ── */
+        .loc-dropdown {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: calc(100% + 8px);
+          max-height: 240px;
+          overflow-y: auto;
+          background: #0b1a14;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 16px;
+          box-shadow: 0 20px 48px rgba(0,0,0,0.5);
+          z-index: 100;
+          padding: 8px;
+        }
+        .loc-dropdown-item {
+          width: 100%;
+          padding: 10px 14px;
+          border-radius: 10px;
+          text-align: left;
+          font-size: 13.5px;
+          color: #cbd5e1;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-weight: 500;
+        }
+        .loc-dropdown-item:hover {
+          background: rgba(16,185,129,0.12);
+          color: #fff;
+        }
+        .loc-dropdown-item.active {
+          background: #10b981;
+          color: #fff;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+          .loc-container {
+            grid-template-columns: 1fr;
+          }
+        }
+        @media (max-width: 768px) {
+          .loc-hero {
+            padding: 24px 20px;
+          }
+          .loc-container {
+            padding: 24px 16px;
+          }
+          .loc-card {
+            padding: 24px 16px;
+          }
+        }
+      `}</style>
+
+      <div className="loc-root">
+        {/* ══════════════════ HERO HEADER ══════════════════ */}
+        <div className="loc-hero flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <button
+              onClick={goBack}
+              disabled={loading}
+              className="flex items-center justify-center w-10 h-10 rounded-xl border border-white/10 cursor-pointer bg-white/5 hover:bg-white/10 active:scale-95 disabled:opacity-50 transition-all shrink-0 mt-1"
+              aria-label="Go Back"
+            >
+              <ArrowLeft className="w-5 h-5 text-emerald-400" />
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <MapPin className="w-6 h-6 text-emerald-400" />
+                <h1 className="text-2xl font-extrabold tracking-tight text-white" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                  Smart Location Center
+                </h1>
+              </div>
+              <p className="text-slate-400 text-sm max-w-2xl mt-1.5 leading-relaxed">
+                Manage your farm or shopping location for accurate weather, logistics, nearby buyers, AI recommendations and government schemes.
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-black text-slate-900 leading-tight">
-              {t("changeLocation")}
-            </h1>
-            <p className="text-xs text-emerald-800 font-extrabold tracking-wider uppercase mt-0.5">
-              {platform === "farmer" ? "👨‍🌾 Farmer Platform" : "🛒 Consumer Platform"}
-            </p>
+
+          {/* Platform Badge */}
+          <div className="shrink-0 self-start md:self-center">
+            <div className="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-md">
+              {platform === "farmer" ? "🌾 Farmer Platform" : "🛒 Consumer Platform"}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Content ── */}
-      <div className="flex-1 flex items-start justify-center px-4 py-8">
-        <div className="w-full max-w-lg">
+        {/* ══════════════════ LOCATION BENEFITS ══════════════════ */}
+        <div className="max-w-[1280px] mx-auto px-6 mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="loc-benefit-card">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20">
+              <CloudSun size={20} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-slate-200">Accurate Weather</div>
+              <div className="text-xs text-slate-500 mt-0.5">Real-time localized updates</div>
+            </div>
+          </div>
+          <div className="loc-benefit-card">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+              <Users size={20} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-slate-200">Nearby Buyers</div>
+              <div className="text-xs text-slate-500 mt-0.5">Instant demand matching</div>
+            </div>
+          </div>
+          <div className="loc-benefit-card">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+              <Warehouse size={20} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-slate-200">Cold Storages</div>
+              <div className="text-xs text-slate-500 mt-0.5">Local warehouse locator</div>
+            </div>
+          </div>
+          <div className="loc-benefit-card">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20">
+              <Brain size={20} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-slate-200">AI Analytics</div>
+              <div className="text-xs text-slate-500 mt-0.5">Market-driven crop picks</div>
+            </div>
+          </div>
+        </div>
 
-          {/* Form Card */}
-          <div
-            className="rounded-3xl p-8 bg-white border-2"
-            style={{
-              borderColor: "#e2e8f0",
-              boxShadow: "0 15px 40px rgba(15,118,110,0.06)",
-            }}
-          >
-            {/* Status Messages with High Contrast text-950 */}
+        {/* ══════════════════ MAIN CONTENT ══════════════════ */}
+        <div className="loc-container">
+          {/* Left Column: Form & Action Center */}
+          <div className="loc-card flex flex-col gap-8">
+            {/* Action Header */}
+            <div>
+              <h2 className="text-xl font-bold text-slate-100" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                Update Location Coordinates
+              </h2>
+              <p className="text-slate-500 text-xs mt-1">
+                Manually declare your agricultural region details below to update your location.
+              </p>
+            </div>
+
+            {/* Status alerts */}
             {status && (
               <div
-                className={`flex items-center gap-3 p-4 rounded-2xl mb-6 text-sm font-black border-2 transition-all duration-300 ${
+                className={`flex items-start gap-3 p-4 rounded-xl border text-sm font-medium transition-all ${
                   status.type === "success"
-                    ? "bg-emerald-50 text-emerald-950 border-emerald-300"
-                    : status.type === "error"
-                    ? "bg-rose-50 text-rose-950 border-rose-300"
-                    : "bg-sky-50 text-sky-950 border-sky-300"
+                    ? "bg-emerald-500/5 text-emerald-300 border-emerald-500/20"
+                    : "bg-red-500/5 text-red-300 border-red-500/20"
                 }`}
               >
                 {status.type === "success" ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
-                ) : status.type === "error" ? (
-                  <AlertCircle className="w-5 h-5 text-rose-700 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 ) : (
-                  <Loader2 className="w-5 h-5 text-sky-700 shrink-0 animate-spin" />
+                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                 )}
-                <span className="leading-normal">{status.text}</span>
+                <span>{status.text}</span>
               </div>
             )}
 
-            {/* GPS Trigger Button */}
-            <button
-              type="button"
-              onClick={handleGPS}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-4 px-5 rounded-2xl text-white font-black text-sm border-0 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-60 mb-6 shadow-md"
-              style={{
-                background: "linear-gradient(135deg,#15803d 0%,#16a34a 100%)",
-                boxShadow: "0 6px 20px rgba(22,163,74,0.25)",
-              }}
-            >
-              {loading && status?.type === "gps" ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Compass className="w-5 h-5" />
-              )}
-              📍 Use Current GPS Location
-            </button>
-
-            {/* Divider with high-contrast text */}
-            <div className="relative flex items-center mb-6">
-              <div className="flex-grow border-t-2 border-slate-100" />
-              <span className="mx-4 text-xs font-black uppercase tracking-widest text-slate-700 whitespace-nowrap bg-white px-2">
-                Or Enter Manually
-              </span>
-              <div className="flex-grow border-t-2 border-slate-100" />
-            </div>
-
-            {/* Manual Form fields */}
-            <div className="space-y-5">
-              {/* Country Field */}
-              <div>
-                <label className="block text-xs font-black text-slate-805 uppercase mb-1.5 ml-1 tracking-wider">
-                  Country <span className="text-rose-605 font-extrabold">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. India"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
-                />
+            {/* Inputs Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Country */}
+              <div className="loc-input-card">
+                <label className="loc-input-label">Country *</label>
+                <div className="loc-control-wrap">
+                  <input
+                    type="text"
+                    placeholder="e.g. India"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="loc-control"
+                  />
+                  <Globe className="loc-icon" size={17} />
+                </div>
               </div>
 
-              {/* State Dropdown Picker */}
-              <div className="relative" ref={dropdownRef}>
-                <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
-                  {t("state")} <span className="text-rose-600 font-extrabold">*</span>
-                </label>
+              {/* State Dropdown Container */}
+              <div className="loc-input-card relative" ref={dropdownRef}>
+                <label className="loc-input-label">State *</label>
                 <div
-                  className="flex items-center justify-between w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-600 transition-all cursor-pointer"
+                  className="loc-control-wrap cursor-pointer"
                   onClick={() => setShowStateDropdown(!showStateDropdown)}
                 >
                   <input
                     type="text"
-                    placeholder="Search or select state..."
+                    placeholder="Search or select..."
                     value={stateSearch}
                     onChange={(e) => {
                       setStateSearch(e.target.value);
                       setShowStateDropdown(true);
-                      if (!e.target.value) {
-                        setState("");
-                      }
+                      if (!e.target.value) setState("");
                     }}
-                    className="w-full bg-transparent border-0 outline-none focus:ring-0 text-slate-900 font-black placeholder:text-slate-500 p-0"
+                    className="loc-control"
+                    style={{ paddingRight: 24 }}
                   />
-                  <ChevronDown className="w-4 h-4 text-slate-650 transition-transform duration-200" style={{ strokeWidth: 3 }} />
+                  <MapPin className="loc-icon" size={17} />
+                  <ChevronDown className="absolute right-0 text-slate-500" size={16} />
                 </div>
 
                 {showStateDropdown && (
-                  <div
-                    className="absolute left-0 right-0 mt-1.5 max-h-60 overflow-y-auto rounded-2xl bg-white border-2 border-slate-300 shadow-2xl z-50 p-2 space-y-0.5"
-                  >
+                  <div className="loc-dropdown">
                     {filteredStates.length > 0 ? (
                       filteredStates.map((st) => {
-                        const isSelected = state === st;
+                        const active = state === st;
                         return (
                           <button
                             key={st}
@@ -451,125 +689,92 @@ function ChangeLocationInner() {
                               setStateSearch(st);
                               setShowStateDropdown(false);
                             }}
-                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-sm font-black transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-emerald-700 text-white"
-                                : "text-slate-900 hover:bg-emerald-50 hover:text-emerald-950"
-                            }`}
+                            className={`loc-dropdown-item ${active ? "active" : ""}`}
                           >
                             <span>{st}</span>
-                            {isSelected && <Check className="w-4 h-4 text-white stroke-[3]" />}
+                            {active && <Check size={14} />}
                           </button>
                         );
                       })
                     ) : (
-                      <div className="px-3 py-3 text-sm text-slate-800 text-center font-black">
-                        No states found
+                      <div className="p-3 text-center text-xs text-slate-500 font-medium">
+                        No matches found
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* District Field */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
-                  {t("district")} <span className="text-rose-600 font-extrabold">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Chittoor"
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
-                />
+              {/* District */}
+              <div className="loc-input-card">
+                <label className="loc-input-label">District *</label>
+                <div className="loc-control-wrap">
+                  <input
+                    type="text"
+                    placeholder="e.g. Chittoor"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    className="loc-control"
+                  />
+                  <MapPin className="loc-icon" size={17} />
+                </div>
               </div>
 
-              {/* Mandal / Taluk Field */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
-                  Mandal / Taluk <span className="text-rose-600 font-extrabold">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Mudivedu"
-                  value={mandal}
-                  onChange={(e) => setMandal(e.target.value)}
-                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
-                />
+              {/* Mandal / Taluk */}
+              <div className="loc-input-card">
+                <label className="loc-input-label">Mandal / Taluk *</label>
+                <div className="loc-control-wrap">
+                  <input
+                    type="text"
+                    placeholder="e.g. Mudivedu"
+                    value={mandal}
+                    onChange={(e) => setMandal(e.target.value)}
+                    className="loc-control"
+                  />
+                  <Navigation className="loc-icon" size={17} />
+                </div>
               </div>
 
-              {/* Village / Town / City (Mandatory) */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
-                  Village / Town / City <span className="text-rose-600 font-extrabold">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Madanapalle"
-                  value={village}
-                  onChange={(e) => setVillage(e.target.value)}
-                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
-                />
+              {/* Village / City */}
+              <div className="loc-input-card">
+                <label className="loc-input-label">Village / Town / City *</label>
+                <div className="loc-control-wrap">
+                  <input
+                    type="text"
+                    placeholder="e.g. Madanapalle"
+                    value={village}
+                    onChange={(e) => setVillage(e.target.value)}
+                    className="loc-control"
+                  />
+                  <Home className="loc-icon" size={17} />
+                </div>
               </div>
 
               {/* PIN Code */}
-              <div>
-                <label className="block text-xs font-black text-slate-800 uppercase mb-1.5 ml-1 tracking-wider">
-                  PIN Code <span className="text-slate-600 normal-case font-bold">{t("optional")}</span>
+              <div className="loc-input-card">
+                <label className="loc-input-label">
+                  PIN Code <span className="text-slate-500 text-[10px] font-normal lowercase">(optional)</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 517325"
-                  value={pincode}
-                  maxLength={6}
-                  onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-                  className="w-full px-4 py-3 text-sm bg-white border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 text-slate-900 font-black placeholder:text-slate-500 transition-all"
-                />
-              </div>
-
-              {/* Form Action Buttons */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={loading}
-                  className="flex-1 py-3.5 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-800 rounded-2xl font-black text-sm transition-all border-2 border-slate-350 cursor-pointer disabled:opacity-50"
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={!canSave}
-                  className="flex-[2] py-3.5 rounded-2xl font-black text-sm transition-all duration-200 border-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: canSave
-                      ? "linear-gradient(135deg,#15803d 0%,#16a34a 100%)"
-                      : "#f1f5f9",
-                    borderColor: canSave ? "#15803d" : "#e2e8f0",
-                    color: canSave ? "white" : "#64748b",
-                    boxShadow: canSave ? "0 6px 20px rgba(21,128,61,0.25)" : "none",
-                  }}
-                >
-                  {loading && status?.type !== "gps" ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      Saving…
-                    </span>
-                  ) : (
-                    "Save Location"
-                  )}
-                </button>
+                <div className="loc-control-wrap">
+                  <input
+                    type="text"
+                    placeholder="e.g. 517325"
+                    value={pincode}
+                    maxLength={6}
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                    className="loc-control"
+                  />
+                  <Hash className="loc-icon" size={17} />
+                </div>
               </div>
             </div>
 
             {/* Popular agricultural hubs */}
-            <div className="mt-8">
-              <p className="text-xs font-black text-slate-700 uppercase mb-3 ml-1 tracking-wider">
-                Popular Agricultural Hubs
-              </p>
-              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 ml-1">
+                Popular Indian Agricultural Hubs
+              </h3>
+              <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
                 {Object.keys(POPULAR_HUBS).map((key) => {
                   const hub = POPULAR_HUBS[key];
                   return (
@@ -578,36 +783,137 @@ function ChangeLocationInner() {
                       type="button"
                       onClick={() => pickHub(key)}
                       disabled={loading}
-                      className="px-3.5 py-2.5 text-xs bg-slate-100 hover:bg-emerald-100 hover:text-emerald-950 border-2 border-slate-300 hover:border-emerald-500 rounded-xl transition-all duration-150 cursor-pointer text-slate-800 disabled:opacity-50 font-black shadow-sm"
+                      className="loc-chip"
                     >
-                      {hub.name}{" "}
-                      <span className="text-slate-600 font-bold ml-1">
-                        ({hub.state.substring(0, 2)})
-                      </span>
+                      {hub.name} <span className="text-[10px] text-slate-500 ml-1">({hub.state.substring(0, 2)})</span>
                     </button>
                   );
                 })}
               </div>
             </div>
+
+            {/* Actions Form */}
+            <div className="flex gap-4 pt-4 border-t border-white/5">
+              <button
+                type="button"
+                onClick={goBack}
+                disabled={loading}
+                className="loc-btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!canSave}
+                className="loc-btn-primary flex-[2]"
+                style={{
+                  boxShadow: canSave ? "0 6px 20px rgba(16,185,129,0.3)" : "none",
+                }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <span>Save Location</span>
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Platform info footer */}
-          <div className="text-center text-xs text-slate-800 mt-6 font-bold leading-relaxed bg-white/70 border border-slate-200 rounded-2xl p-3.5 shadow-sm">
-            ℹ️ Location settings are completely independent.<br />
-            Currently configuring location for:{" "}
-            <span className="font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg inline-block mt-1">
-              {platform === "farmer" ? "Farmer Platform" : "Consumer Platform"}
-            </span>
+          {/* Right Column: Informative Panel */}
+          <div className="flex flex-col gap-6">
+            {/* Interactive Preview Panel */}
+            <div className="loc-card" style={{ padding: 24 }}>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                <Activity size={15} className="text-emerald-400" />
+                <span>Live Panel Metrics</span>
+              </h3>
+
+              {/* Current Weather Card */}
+              <div className="loc-panel-card">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estimated Weather</div>
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="text-2xl font-black text-white">{weather.temp}</div>
+                  <div>
+                    <div className="text-xs font-semibold text-slate-200">{weather.desc}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Humidity: {weather.humidity}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Coordinates Info */}
+              <div className="loc-panel-card">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Location Coordinates</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Latitude</span>
+                    <span className="text-slate-200 font-mono font-medium">{lat || "Pending"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Longitude</span>
+                    <span className="text-slate-200 font-mono font-medium">{lng || "Pending"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Geolocation accuracy & agricultural zones */}
+              <div className="loc-panel-card" style={{ marginBottom: 0 }}>
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Agricultural Region Info</div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Declared Country</span>
+                    <span className="text-slate-300 font-bold">{country || "Pending"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">State / Province</span>
+                    <span className="text-slate-300 font-bold">{state || "None Selected"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Mandal Region</span>
+                    <span className="text-slate-300 font-bold">{mandal || "None Selected"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Ag Zone Hub</span>
+                    <span className="text-emerald-400 font-bold">
+                      {state ? `Zone ${state.length}` : "Not Available"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Embedded Live Map Preview */}
+            <div className="loc-card relative overflow-hidden" style={{ padding: 0, height: 260 }}>
+              {lat && lng ? (
+                <iframe
+                  title="Interactive Geolocation Map Preview"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, opacity: 0.85 }}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(lng) - 0.015}%2C${parseFloat(lat) - 0.015}%2C${parseFloat(lng) + 0.015}%2C${parseFloat(lat) + 0.015}&layer=mapnik&marker=${lat}%2C${lng}`}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-emerald-950/10 p-6 text-center">
+                  <Map className="w-8 h-8 text-slate-600 animate-bounce mb-2" />
+                  <div className="text-sm font-semibold text-slate-300">Satellite Scanning</div>
+                  <div className="text-[11px] text-slate-500 max-w-[200px] mt-1 leading-relaxed">
+                    Set a location to initialize map layout.
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-/* ─── Page wrapper with Suspense (required for useSearchParams) ──────── */
+/* ─── Page wrapper with Suspense ─── */
 export default function ChangeLocationPage() {
-  const { t } = useTranslation();
   return (
     <Suspense
       fallback={

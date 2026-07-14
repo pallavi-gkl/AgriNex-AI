@@ -124,7 +124,7 @@ export function exportToPDF(
       const val = row[col.key];
       if (val === undefined || val === null) return "-";
       if (col.format === "currency") {
-        return `Rs. ${Number(val).toLocaleString("en-IN")}`;
+        return `₹${Number(val).toLocaleString("en-IN")}`;
       }
       if (col.format === "date") {
         return new Date(val).toLocaleDateString("en-IN");
@@ -139,7 +139,7 @@ export function exportToPDF(
       const val = options.totals?.[col.key];
       if (val === undefined || val === null) return "";
       if (col.format === "currency") {
-        return `Rs. ${Number(val).toLocaleString("en-IN")}`;
+        return `₹${Number(val).toLocaleString("en-IN")}`;
       }
       return String(val);
     });

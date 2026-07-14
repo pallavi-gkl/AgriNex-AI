@@ -1,6 +1,6 @@
 "use client";
 import { useTranslation } from "@/hooks/useTranslation";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, Suspense, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -22,10 +22,11 @@ import {
 import { useFarmerInventory } from "@/hooks/useFarmerInventory";
 import CropCard from "@/components/farmer/inventory/CropCard";
 import AddEditCropModal from "@/components/farmer/inventory/AddEditCropModal";
+import AddCropWizard from "@/components/farmer/inventory/AddCropWizard";
 import { useDemoMode } from "@/context/DemoContext";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function InventoryPage() {
+function InventoryPageContent() {
   const { t } = useTranslation("farmer");
   const { isDemoMode } = useDemoMode();
   const { crops, loading, error, addCrop, updateCrop, duplicateCrop, archiveCrop, deleteCrop } = useFarmerInventory();
@@ -34,9 +35,17 @@ export default function InventoryPage() {
   const searchParams = useSearchParams();
   const selectedCropId = searchParams.get("id");
   const editCropId = searchParams.get("edit");
+  const addParam = searchParams.get("add");
 
   // Filter & search states
   const [search, setSearch] = useState("");
+
+  // Sync search state from URL search params
+  useEffect(() => {
+    const query = searchParams.get("search") || "";
+    setSearch(query);
+  }, [searchParams]);
+
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
   const [sort, setSort] = useState("newest");
@@ -112,6 +121,20 @@ export default function InventoryPage() {
       }
     })
   };
+
+  /* ───────────────────────────────────────────────────────────
+      ADD CROP WIZARD — FULL PAGE
+     ─────────────────────────────────────────────────────────── */
+  if (addParam === "true") {
+    return (
+      <AddCropWizard
+        onClose={() => router.push("/farmer/inventory")}
+        onSave={async (data) => {
+          await addCrop(data);
+        }}
+      />
+    );
+  }
 
   /* ───────────────────────────────────────────────────────────
       EDIT CROP DEDICATED PAGE VIEW
@@ -631,7 +654,7 @@ export default function InventoryPage() {
 
             {/* Add Crop button */}
             <button
-              onClick={() => setAddModalOpen(true)}
+              onClick={() => router.push("/farmer/inventory?add=true")}
               style={{
                 height: "40px", padding: "0 18px", borderRadius: "10px",
                 border: "none", background: "linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)",
@@ -725,5 +748,13 @@ export default function InventoryPage() {
       )}
 
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-slate-400">Loading Inventory...</div>}>
+      <InventoryPageContent />
+    </Suspense>
   );
 }

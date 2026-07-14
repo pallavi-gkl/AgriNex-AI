@@ -9,14 +9,13 @@
  *   - Reads initial language from Supabase profile on mount
  */
 
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
-// Inline language code map (replaces deleted speech.ts)
+// Inline language code map
 const LANGUAGE_CODES: Record<string, string> = {
   en: "en-IN",
   hi: "hi-IN",
@@ -72,9 +71,56 @@ export function getCurrentLanguage(platform?: Platform): string {
   return getCurrentLangForPlatform(p);
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Dropdown Item Helper Component (Premium Hover Styling) ────────────────────
+function LanguageItem({
+  lang,
+  isSelected,
+  onClick,
+}: {
+  lang: typeof LANGUAGE_OPTIONS[0];
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      role="option"
+      aria-selected={isSelected}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        width: "100%",
+        height: "40px",
+        border: "none",
+        outline: "none",
+        background: isSelected ? "#DCFCE7" : isHovered ? "#F0FDF4" : "transparent",
+        color: isSelected ? "#16A34A" : "#374151",
+        fontWeight: isSelected ? 700 : 500,
+        fontSize: "13px",
+        cursor: "pointer",
+        transition: "all 0.18s ease",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "0 12px",
+        borderRadius: "12px",
+        textAlign: "left",
+      }}
+    >
+      <span style={{ fontSize: "16px", lineHeight: 1 }} className="shrink-0">{lang.flag}</span>
+      <span className="flex-1 truncate" style={{ fontFamily: "Inter, sans-serif" }}>{lang.nativeLabel}</span>
+      {isSelected && (
+        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" aria-hidden="true" strokeWidth={3} />
+      )}
+    </button>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 interface LanguageSwitcherProps {
-  /** If true, renders as a compact inline dropdown (for sidebar) */
+  /** If true, renders as a compact inline dropdown (for sidebar/topbar) */
   compact?: boolean;
   /** Explicit platform target */
   platform?: Platform;
@@ -105,9 +151,9 @@ export default function LanguageSwitcher({ compact = false, platform, align = "t
   // Load language preference from storage/profile on mount
   useEffect(() => {
     const loadLang = async () => {
-      // First check sessionStorage/localStorage for instant restore
+      // First check sessionStorage/localStorage for instant restore (including English)
       const cached = getCurrentLanguage(activePlatform);
-      if (cached && cached !== "en") {
+      if (cached) {
         setCurrentCode(cached);
         dispatchLanguageChange(cached, activePlatform);
         return;
@@ -164,19 +210,23 @@ export default function LanguageSwitcher({ compact = false, platform, align = "t
 
   const current = LANGUAGE_OPTIONS.find((l) => l.code === currentCode) ?? LANGUAGE_OPTIONS[0];
 
-  // ── Compact sidebar version ───────────────────────────────────────────────
+  // ── Compact mode (sidebar/topbar) ──────────────────────────────────────────
   if (compact) {
     return (
-      <div className="relative" ref={containerRef}>
-        <div className="flex items-center gap-2 mb-2">
-          <Globe className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            Language
-          </span>
-          {saving && (
-            <span className="ml-auto text-[10px] text-amber-600 animate-pulse">Saving…</span>
-          )}
-        </div>
+      <div className="relative" ref={containerRef} style={{ width: "100%", position: "relative" }}>
+        
+        {/* Hide label if rendered in topbar (align === "bottom") to prevent layout shifting */}
+        {align !== "bottom" && (
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+              Language
+            </span>
+            {saving && (
+              <span className="ml-auto text-[10px] text-amber-600 animate-pulse">Saving…</span>
+            )}
+          </div>
+        )}
 
         <button
           id="language-switcher-btn"
@@ -184,16 +234,28 @@ export default function LanguageSwitcher({ compact = false, platform, align = "t
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           onClick={() => setIsOpen((o) => !o)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-200 hover:bg-slate-100"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-200"
           style={{
-            background: "#f1f5f9",
-            border: "1px solid #e2e8f0",
+            background: "#ffffff",
+            border: "1px solid #DCFCE7",
+            height: "38px",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#F0FDF4";
+            e.currentTarget.style.borderColor = "#22C55E";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#ffffff";
+            e.currentTarget.style.borderColor = "#DCFCE7";
           }}
         >
           <span className="text-base leading-none">{current.flag}</span>
-          <span className="text-slate-700 text-xs flex-1 text-left font-medium">{current.nativeLabel}</span>
+          <span className="text-slate-700 text-xs flex-1 text-left font-semibold">{current.nativeLabel}</span>
           <ChevronDown
-            className="w-3 h-3 text-slate-400 transition-transform duration-200"
+            className="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"
             style={{ transform: isOpen ? "rotate(180deg)" : "none" }}
             aria-hidden="true"
           />
@@ -204,23 +266,28 @@ export default function LanguageSwitcher({ compact = false, platform, align = "t
             <motion.ul
               role="listbox"
               aria-label="Select language"
-              initial={{ opacity: 0, y: align === "top" ? 8 : -8, scale: 0.97 }}
+              initial={{ opacity: 0, y: align === "top" ? 12 : -12, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: align === "top" ? 8 : -8, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className={cn(
-                "absolute z-[1000] rounded-xl list-none m-0",
-                align === "top" ? "bottom-full mb-2 right-0" : "top-full mt-2 left-0"
-              )}
+              exit={{ opacity: 0, y: align === "top" ? 12 : -12, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute z-[99999] list-none m-0"
               style={{
+                position: "absolute",
+                top: align === "top" ? "auto" : "100%",
+                bottom: align === "top" ? "100%" : "auto",
+                left: "auto",
+                right: 0,
+                marginTop: align === "top" ? "0" : "8px",
+                marginBottom: align === "top" ? "8px" : "0",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "stretch",
                 gap: "4px",
                 padding: "8px",
-                background: "#ffffff",
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                background: "#FFFFFF",
+                border: "1px solid #DCFCE7",
+                borderRadius: "16px",
+                boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
                 width: "200px",
                 minWidth: "200px",
                 whiteSpace: "normal",
@@ -229,27 +296,11 @@ export default function LanguageSwitcher({ compact = false, platform, align = "t
             >
               {LANGUAGE_OPTIONS.map((lang) => (
                 <li key={lang.code} className="m-0 p-0 list-none">
-                  <button
-                    role="option"
-                    aria-selected={lang.code === currentCode}
+                  <LanguageItem
+                    lang={lang}
+                    isSelected={lang.code === currentCode}
                     onClick={() => handleSelect(lang.code)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-xs transition-all duration-150 hover:bg-slate-100"
-                    style={{
-                      height: "40px",
-                      border: "none",
-                      outline: "none",
-                      background: "transparent",
-                      color: lang.code === currentCode ? "#059669" : "#1F2937",
-                      fontWeight: lang.code === currentCode ? 600 : 400,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <span className="text-base leading-none shrink-0">{lang.flag}</span>
-                    <span className="flex-1 truncate">{lang.nativeLabel}</span>
-                    {lang.code === currentCode && (
-                      <Check className="w-3 h-3 text-emerald-600 shrink-0" aria-hidden="true" />
-                    )}
-                  </button>
+                  />
                 </li>
               ))}
             </motion.ul>

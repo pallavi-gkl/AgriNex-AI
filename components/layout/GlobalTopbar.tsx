@@ -29,6 +29,7 @@ import {
   getCurrentLanguage,
   detectPlatform,
 } from "@/components/layout/LanguageSwitcher";
+import { DEMO_CROPS } from "@/lib/demoData";
 
 /* ─── Language options for the topbar inline picker ───────────────────────── */
 const LANG_OPTIONS = [
@@ -61,6 +62,126 @@ export default function GlobalTopbar({
   /* Profile dropdown state */
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  /* Search state and logic */
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ type: "page" | "product"; label: string; url: string }>>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const getFarmerPages = () => [
+    { label: "Crop Inventory & Listings", url: "/farmer/inventory", keywords: ["crops", "listings", "inventory", "rice", "wheat", "cotton", "millet"] },
+    { label: "Irrigation Module", url: "/farmer/irrigation", keywords: ["irrigation", "water", "planner"] },
+    { label: "Farm Calendar", url: "/farmer/calendar", keywords: ["calendar", "schedule", "tasks"] },
+    { label: "Digital Twin Space", url: "/farmer/farm-twin", keywords: ["twin", "farm-twin", "digital twin"] },
+    { label: "Market Prices", url: "/farmer/market", keywords: ["market", "prices", "mandi"] },
+    { label: "Farmer Orders", url: "/farmer/orders", keywords: ["orders", "sales", "buyer"] },
+    { label: "AI Diagnostics & Labs", url: "/farmer/ai-lab", keywords: ["ai lab", "ai diagnostics", "forecaster", "pricing", "fertilizer", "advisor"] },
+    { label: "AI Chat Assistant", url: "/farmer/ai-assistant", keywords: ["ai assistant", "chatbot", "chat"] },
+    { label: "Weather Forecast", url: "/farmer/weather", keywords: ["weather", "rain", "temperature"] },
+    { label: "Analytics Dashboard", url: "/farmer/analytics", keywords: ["analytics", "charts", "profit"] },
+    { label: "Reports & Documentation", url: "/farmer/reports", keywords: ["reports", "invoices", "pdf"] },
+    { label: "Government Schemes", url: "/farmer/schemes", keywords: ["schemes", "gov", "subsidy"] },
+    { label: "Logistics Map", url: "/farmer/maps", keywords: ["maps", "logistics", "route"] },
+    { label: "Settings", url: "/farmer/settings", keywords: ["settings", "language", "theme"] },
+    { label: "Farmer Profile", url: "/farmer/profile", keywords: ["profile", "kyc", "bank"] },
+    { label: "Notifications", url: "/farmer/notifications", keywords: ["notifications", "alerts", "unread"] },
+  ];
+
+  const getConsumerPages = () => [
+    { label: "Marketplace Homepage", url: "/consumer/marketplace", keywords: ["marketplace", "shop", "buy", "products", "fruits", "vegetables", "grains"] },
+    { label: "My Orders", url: "/consumer/orders", keywords: ["orders", "purchases", "history", "tracking"] },
+    { label: "Wishlist", url: "/consumer/wishlist", keywords: ["wishlist", "favorites", "heart"] },
+    { label: "Compare Products", url: "/consumer/compare", keywords: ["compare", "prices", "ratings"] },
+    { label: "My Reviews", url: "/consumer/reviews", keywords: ["reviews", "ratings", "feedback"] },
+    { label: "Settings & Profile", url: "/consumer/settings", keywords: ["settings", "profile", "account"] },
+    { label: "Notifications", url: "/consumer/notifications", keywords: ["notifications", "alerts", "bell"] },
+  ];
+
+  // Close search suggestions on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (!val.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    const q = val.toLowerCase();
+    const matches: Array<{ type: "page" | "product"; label: string; url: string }> = [];
+
+    // Search pages
+    const pages = isFarmer ? getFarmerPages() : getConsumerPages();
+    pages.forEach(p => {
+      if (p.label.toLowerCase().includes(q) || p.keywords.some(k => k.includes(q))) {
+        matches.push({ type: "page", label: p.label, url: p.url });
+      }
+    });
+
+    // Search crop products
+    DEMO_CROPS.forEach(c => {
+      if (c.title.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)) {
+        const url = isFarmer ? `/farmer/inventory?search=${encodeURIComponent(c.title)}` : `/consumer/marketplace/${c.id}`;
+        matches.push({ type: "product", label: c.title, url });
+      }
+    });
+
+    setSuggestions(matches.slice(0, 8));
+    setShowSuggestions(true);
+  };
+
+  const selectSuggestion = (item: { type: "page" | "product"; label: string; url: string }) => {
+    setSearchQuery(item.label);
+    setShowSuggestions(false);
+    router.push(item.url);
+  };
+
+  const triggerSearch = (query: string) => {
+    const q = query.trim();
+    if (!q) return;
+    setShowSuggestions(false);
+
+    // 1. Exact or keyword match page
+    const pages = isFarmer ? getFarmerPages() : getConsumerPages();
+    const matchedPage = pages.find(p => p.label.toLowerCase() === q.toLowerCase() || p.keywords.some(k => k.toLowerCase() === q.toLowerCase()));
+    if (matchedPage) {
+      router.push(matchedPage.url);
+      return;
+    }
+
+    // 2. Exact match product
+    const matchedProduct = DEMO_CROPS.find(c => c.title.toLowerCase() === q.toLowerCase());
+    if (matchedProduct) {
+      const url = isFarmer ? `/farmer/inventory?search=${encodeURIComponent(matchedProduct.title)}` : `/consumer/marketplace/${matchedProduct.id}`;
+      router.push(url);
+      return;
+    }
+
+    // 3. Fallback: navigate with search query
+    const fallbackUrl = isFarmer
+      ? `/farmer/inventory?search=${encodeURIComponent(q)}`
+      : `/consumer/marketplace?search=${encodeURIComponent(q)}`;
+    router.push(fallbackUrl);
+  };
+
+  const executeSearch = () => {
+    triggerSearch(searchQuery);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      executeSearch();
+    }
+  };
 
   /* Language picker state */
   const [langOpen, setLangOpen] = useState(false);
@@ -193,10 +314,21 @@ export default function GlobalTopbar({
       </div>
 
       {/* ── CENTER: Search Bar ──────────────────────────────────────────── */}
-      <div className="hidden md:flex flex-1 max-w-sm relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+      <div className="hidden md:flex flex-1 max-w-sm relative" ref={searchRef}>
+        <button
+          type="button"
+          onClick={executeSearch}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-emerald-600 focus:outline-none bg-transparent border-0 cursor-pointer z-10 transition-colors"
+          title="Search"
+        >
+          <Search className="w-4 h-4" />
+        </button>
         <input
           type="text"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setShowSuggestions(true)}
           placeholder={
             isFarmer
               ? "Search crops, inventory, orders..."
@@ -204,6 +336,52 @@ export default function GlobalTopbar({
           }
           className="w-full h-10 pl-10 pr-4 rounded-xl text-sm bg-[#F8FAFC] text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:placeholder-slate-500"
         />
+
+        {/* Suggestion Dropdown */}
+        {showSuggestions && (
+          <>
+            {suggestions.length > 0 ? (
+              <div
+                className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden py-1.5 dark:bg-slate-900 dark:border-slate-700"
+                style={{ boxShadow: "0 10px 32px rgba(0,0,0,0.12)" }}
+              >
+                {suggestions.map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={() => selectSuggestion(item)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-all duration-100 hover:bg-emerald-50 dark:hover:bg-slate-800 cursor-pointer border-0 bg-transparent text-slate-700 dark:text-slate-200"
+                  >
+                    <span className="text-base">{item.type === "page" ? "📄" : "🌾"}</span>
+                    <span className="flex-1 font-semibold">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            ) : searchQuery.trim() !== "" ? (
+              <div
+                className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white border border-slate-200 shadow-xl z-50 overflow-hidden p-4 dark:bg-slate-900 dark:border-slate-700 text-center"
+                style={{ boxShadow: "0 10px 32px rgba(0,0,0,0.12)" }}
+              >
+                <p className="text-xs font-semibold text-slate-450 dark:text-slate-400 mb-2">No matching products or pages found.</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Suggestions</p>
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {(isFarmer ? ["Rice", "Orders", "AI Lab", "Inventory"] : ["Tomatoes", "Rice", "Wishlist", "Orders"]).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery(s);
+                        triggerSearch(s);
+                      }}
+                      className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 cursor-pointer"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
 
       {/* ── RIGHT: All controls in one aligned row ──────────────────────── */}

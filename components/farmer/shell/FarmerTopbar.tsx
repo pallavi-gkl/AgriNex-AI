@@ -2,17 +2,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Search, Bell, Menu, CloudSun, Sun, Moon,
-  MapPin, Leaf, ChevronDown, User, Settings, LogOut,
+  MapPin, Leaf, ChevronDown, User, Settings, LogOut, Check,
 } from "lucide-react";
 import type { Profile } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLocationWeather } from "@/context/LocationWeatherContext";
-import { useTheme } from "@/context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import NotificationsPanel from "@/components/layout/NotificationsPanel";
 import { supabase } from "@/lib/supabase";
+import { DEMO_CROPS } from "@/lib/demoData";
 
 /* ─── Shared button style ───────────────────────────────────── */
 const iconBtnCls =
@@ -41,9 +41,111 @@ export default function FarmerTopbar({
 }: FarmerTopbarProps) {
   const { t }                         = useTranslation();
   const { location, weather, loading }= useLocationWeather();
-  const { theme, toggleTheme }        = useTheme();
   const pathname                      = usePathname();
   const router                        = useRouter();
+
+  /* Search state and logic */
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Array<{ type: "page" | "product"; label: string; url: string }>>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const getFarmerPages = () => [
+    { label: "Crop Inventory & Listings", url: "/farmer/inventory", keywords: ["crops", "listings", "inventory", "rice", "wheat", "cotton", "millet"] },
+    { label: "Irrigation Module", url: "/farmer/irrigation", keywords: ["irrigation", "water", "planner"] },
+    { label: "Farm Calendar", url: "/farmer/calendar", keywords: ["calendar", "schedule", "tasks"] },
+    { label: "Digital Twin Space", url: "/farmer/farm-twin", keywords: ["twin", "farm-twin", "digital twin"] },
+    { label: "Market Prices", url: "/farmer/market", keywords: ["market", "prices", "mandi"] },
+    { label: "Farmer Orders", url: "/farmer/orders", keywords: ["orders", "sales", "buyer"] },
+    { label: "AI Diagnostics & Labs", url: "/farmer/ai-lab", keywords: ["ai lab", "ai diagnostics", "forecaster", "pricing", "fertilizer", "advisor"] },
+    { label: "AI Chat Assistant", url: "/farmer/ai-assistant", keywords: ["ai assistant", "chatbot", "chat"] },
+    { label: "Weather Forecast", url: "/farmer/weather", keywords: ["weather", "rain", "temperature"] },
+    { label: "Analytics Dashboard", url: "/farmer/analytics", keywords: ["analytics", "charts", "profit"] },
+    { label: "Reports & Documentation", url: "/farmer/reports", keywords: ["reports", "invoices", "pdf"] },
+    { label: "Government Schemes", url: "/farmer/schemes", keywords: ["schemes", "gov", "subsidy"] },
+    { label: "Logistics Map", url: "/farmer/maps", keywords: ["maps", "logistics", "route"] },
+    { label: "Settings", url: "/farmer/settings", keywords: ["settings", "language"] },
+    { label: "Farmer Profile", url: "/farmer/profile", keywords: ["profile", "kyc", "bank"] },
+    { label: "Notifications", url: "/farmer/notifications", keywords: ["notifications", "alerts", "unread"] },
+  ];
+
+  // Close search suggestions on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (!val.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    const q = val.toLowerCase().trim();
+    const matches: Array<{ type: "page" | "product"; label: string; url: string }> = [];
+
+    // Search pages
+    getFarmerPages().forEach(p => {
+      if (p.label.toLowerCase().includes(q) || p.keywords.some(k => k.includes(q))) {
+        matches.push({ type: "page", label: p.label, url: p.url });
+      }
+    });
+
+    // Search crop products/listings
+    DEMO_CROPS.forEach(c => {
+      if (c.title.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)) {
+        matches.push({ type: "product", label: c.title, url: `/farmer/inventory?search=${encodeURIComponent(c.title)}` });
+      }
+    });
+
+    setSuggestions(matches.slice(0, 8));
+    setShowSuggestions(true);
+  };
+
+  const selectSuggestion = (item: { type: "page" | "product"; label: string; url: string }) => {
+    setSearchQuery(item.label);
+    setShowSuggestions(false);
+    router.push(item.url);
+  };
+
+  const triggerSearch = (query: string) => {
+    const q = query.trim();
+    if (!q) return;
+    setShowSuggestions(false);
+
+    // 1. Exact or keyword match page
+    const matchedPage = getFarmerPages().find(p => p.label.toLowerCase() === q.toLowerCase() || p.keywords.some(k => k.toLowerCase() === q.toLowerCase()));
+    if (matchedPage) {
+      router.push(matchedPage.url);
+      return;
+    }
+
+    // 2. Exact match product/crop
+    const matchedProduct = DEMO_CROPS.find(c => c.title.toLowerCase() === q.toLowerCase());
+    if (matchedProduct) {
+      router.push(`/farmer/inventory?search=${encodeURIComponent(matchedProduct.title)}`);
+      return;
+    }
+
+    // 3. Fallback: navigate with search query
+    router.push(`/farmer/inventory?search=${encodeURIComponent(q)}`);
+  };
+
+  const executeSearch = () => {
+    triggerSearch(searchQuery);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      executeSearch();
+    }
+  };
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -174,21 +276,42 @@ export default function FarmerTopbar({
 
       {/* ── 2. Search bar ──────────────────────────────────────── */}
       <div
+        ref={searchRef}
         className="hidden md:flex items-center relative shrink-0"
         style={{ width: "280px", height: "38px" }}
       >
-        <Search
+        <button
+          type="button"
+          onClick={executeSearch}
           style={{
             position: "absolute",
-            left: "12px",
-            width: "15px",
-            height: "15px",
-            color: "#9CA3AF",
-            pointerEvents: "none",
+            left: "8px",
+            width: "28px",
+            height: "28px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            zIndex: 10,
           }}
-        />
+          title="Search"
+        >
+          <Search
+            style={{
+              width: "15px",
+              height: "15px",
+              color: "#9CA3AF",
+            }}
+          />
+        </button>
         <input
           type="text"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setShowSuggestions(true)}
           placeholder="Search crops, orders, markets…"
           aria-label={t("search")}
           style={{
@@ -205,17 +328,100 @@ export default function FarmerTopbar({
             outline: "none",
             transition: "border-color 0.15s, box-shadow 0.15s",
           }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = "#22C55E";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.1)";
-            e.currentTarget.style.background = "#fff";
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#E5E7EB";
-            e.currentTarget.style.boxShadow = "none";
-            e.currentTarget.style.background = "#F9FAFB";
-          }}
         />
+
+        {/* Search suggestions dropdown */}
+        {showSuggestions && (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: "100%",
+              marginTop: "6px",
+              borderRadius: "12px",
+              border: "1px solid #E5E7EB",
+              background: "#FFFFFF",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+              zIndex: 1000,
+              padding: "6px",
+              maxHeight: "320px",
+              overflowY: "auto",
+            }}
+          >
+            {suggestions.length > 0 ? (
+              suggestions.map((item, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => selectSuggestion(item)}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    color: "#374151",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#F0FDF4";
+                    e.currentTarget.style.color = "#16A34A";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "#374151";
+                  }}
+                >
+                  <span style={{ fontWeight: 600 }}>{item.label}</span>
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      textTransform: "uppercase",
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      background: item.type === "page" ? "#EFF6FF" : "#F0FDF4",
+                      color: item.type === "page" ? "#1E40AF" : "#166534",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item.type}
+                  </span>
+                </button>
+              ))
+            ) : searchQuery.trim() ? (
+              <div style={{ padding: "12px", textAlign: "center", fontSize: "12px", color: "#64748B" }}>
+                <p style={{ margin: 0, fontWeight: 600 }}>No matching products, pages, or records found.</p>
+                <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => { setShowSuggestions(false); router.push("/farmer/inventory"); }}
+                    style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "6px", border: "1px solid #DCFCE7", background: "#F0FDF4", color: "#16A34A", cursor: "pointer" }}
+                  >
+                    Crop Inventory
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowSuggestions(false); router.push("/farmer/ai-lab"); }}
+                    style={{ fontSize: "10px", fontWeight: 700, padding: "4px 8px", borderRadius: "6px", border: "1px solid #E0E7FF", background: "#EEF2FF", color: "#4F46E5", cursor: "pointer" }}
+                  >
+                    AI Labs
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: "10px 12px", fontSize: "11px", color: "#94A3B8", fontWeight: 600 }}>
+                Type to search inventory, orders, settings, or AI labs...
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Spacer — pushes right-side controls to the right ───── */}
@@ -343,19 +549,7 @@ export default function FarmerTopbar({
         <LanguageSwitcher compact platform="farmer" align="bottom" />
       </div>
 
-      {/* ── 7. Theme toggle ─────────────────────────────────────── */}
-      <button
-        onClick={toggleTheme}
-        aria-label="Toggle theme"
-        title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-        className={iconBtnCls}
-      >
-        {theme === "light" ? (
-          <Moon style={{ width: "17px", height: "17px" }} />
-        ) : (
-          <Sun style={{ width: "17px", height: "17px" }} />
-        )}
-      </button>
+
 
       {/* ── 8. AI Chat button ───────────────────────────────────── */}
       {onAIChatClick && (

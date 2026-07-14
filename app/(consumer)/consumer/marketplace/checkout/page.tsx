@@ -6,7 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Truck, ShieldCheck, ShoppingBag, CheckCircle,
   AlertCircle, Loader2, User, Phone, Mail, MapPin, CreditCard,
-  Wallet, Landmark, Plus, Minus, Landmark as UpiIcon,
+  Wallet, Landmark, Plus, Minus, Landmark as UpiIcon, Leaf,
+  Sparkles, BadgeCheck, Star, Package, Clock, Zap, Lock,
+  Shield,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useCreateOrder } from "@/hooks/useOrders";
@@ -66,7 +68,6 @@ function CheckoutPageContent() {
 
   // Auto-fill user profile & set default dates
   useEffect(() => {
-    // Generate order delivery estimate
     const d = new Date();
     d.setDate(d.getDate() + 3);
     setEstimatedDelivery(d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }));
@@ -75,7 +76,6 @@ function CheckoutPageContent() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setEmail(user.email ?? "");
-      
       const { data: profileRaw } = await (supabase
         .from("profiles") as any)
         .select("full_name, phone_number, address")
@@ -108,24 +108,22 @@ function CheckoutPageContent() {
 
   if (productsLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-        <p className="text-slate-400 text-sm">Loading checkout details...</p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: "12px", background: "linear-gradient(135deg, #F8FFF8, #EAF7EC)" }}>
+        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #DCFCE7", borderTopColor: "#16A34A", animation: "spin 1s linear infinite" }} />
+        <p style={{ color: "#64748B", fontSize: "14px", fontWeight: 600 }}>Loading checkout details...</p>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="max-w-md mx-auto my-12 text-center p-8 rounded-3xl border border-white/10 shadow-lg"
-        style={{ background: "rgba(255,255,255,0.04)" }}>
-        <AlertCircle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-        <h3 className="text-lg font-bold text-white mb-2">Product Not Found</h3>
-        <p className="text-slate-400 text-sm mb-6">The product you are trying to purchase does not exist or is currently unavailable.</p>
+      <div style={{ maxWidth: "480px", margin: "48px auto", textAlign: "center", padding: "40px 32px", background: "#ffffff", border: "1.5px solid #DCFCE7", borderRadius: "24px", boxShadow: "0 8px 32px rgba(22,163,74,0.06)" }}>
+        <AlertCircle style={{ width: "52px", height: "52px", color: "#F59E0B", margin: "0 auto 16px" }} />
+        <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0F172A", marginBottom: "8px" }}>Product Not Found</h3>
+        <p style={{ color: "#64748B", fontSize: "14px", marginBottom: "24px", lineHeight: 1.6 }}>The product you are trying to purchase does not exist or is currently unavailable.</p>
         <Link href="/consumer/marketplace"
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold no-underline text-white"
-          style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-          <ArrowLeft className="w-4 h-4" /> {t("backToMarketplace")}
+          style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, textDecoration: "none", color: "#ffffff", background: "linear-gradient(135deg, #16A34A, #22C55E)" }}>
+          <ArrowLeft style={{ width: "16px", height: "16px" }} /> {t("backToMarketplace")}
         </Link>
       </div>
     );
@@ -135,7 +133,7 @@ function CheckoutPageContent() {
   const stock = product.quantityAvailable ?? product.quantity_available ?? 999;
   const unit = product.unitType ?? product.unit_type ?? "Kg";
   const farmerName = product.farmer?.fullName ?? product.farmerName ?? "Verified Farmer";
-  
+
   // Calculate Totals
   const subtotal = price * quantity;
   const deliveryCharge = subtotal >= 500 ? 0 : 50;
@@ -161,12 +159,10 @@ function CheckoutPageContent() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setFormError("Please log in to place this order."); return; }
 
-      // Update user profile metadata
       await (supabase.from("profiles") as any)
         .update({ full_name: customerName, phone_number: mobile })
         .eq("id", user.id);
 
-      // Validate farmer UUID format
       let farmerId: string = product.farmer?.id ?? product.farmerId ?? "";
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!farmerId || !uuidRegex.test(farmerId)) {
@@ -177,16 +173,10 @@ function CheckoutPageContent() {
         farmerId = farmers?.[0]?.id ?? "33007d38-d5e8-4dc4-af1a-fd4d0658a96b";
       }
 
-      // Format full address block
       const fullAddress = `${address.trim()}, ${city.trim()}, ${stateVal.trim()} - ${pinCode.trim()}. Contact: ${customerName.trim()} (${mobile.trim()}). Payment: ${paymentMethod.toUpperCase()}.`;
 
       createOrder(
-        {
-          farmerId,
-          totalAmount,
-          deliveryAddress: fullAddress,
-          items: [{ productId: product.id, quantity, priceAtPurchase: price }],
-        },
+        { farmerId, totalAmount, deliveryAddress: fullAddress, items: [{ productId: product.id, quantity, priceAtPurchase: price }] },
         {
           onSuccess: (data: any) => {
             setGeneratedOrderId(data?.id || `AGN-${Math.floor(100000 + Math.random() * 900000)}`);
@@ -200,405 +190,456 @@ function CheckoutPageContent() {
     }
   };
 
-  // ── Shared card style for dark theme ──────────────────────────────────────
-  const cardStyle = {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
+  // ── Shared styles ──────────────────────────────────────────────────────────
+  const card: React.CSSProperties = {
+    background: "#ffffff",
+    border: "1.5px solid #DCFCE7",
+    borderRadius: "22px",
+    boxShadow: "0 4px 24px rgba(22,163,74,0.04)",
+    padding: "24px",
   };
-  const inputClass = "w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors";
-  const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    height: "50px",
+    paddingLeft: "44px",
+    paddingRight: "16px",
+    borderRadius: "14px",
+    border: "1.5px solid #BBF7D0",
+    background: "#F8FFF8",
+    fontSize: "14px",
+    color: "#0F172A",
+    outline: "none",
+    fontFamily: "inherit",
+    transition: "all 0.2s",
+    boxSizing: "border-box" as const,
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "11px",
+    fontWeight: 800,
+    color: "#64748B",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.06em",
+    marginBottom: "6px",
+  };
+
+  const sectionTitle = (icon: React.ReactNode, title: string) => (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px", paddingBottom: "16px", borderBottom: "1.5px solid #F1F5F9" }}>
+      <div style={{ width: "34px", height: "34px", borderRadius: "10px", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        {icon}
+      </div>
+      <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{title}</h3>
+    </div>
+  );
+
+  const InputField = ({ label, icon, value, onChange, type = "text", placeholder, required, span2 = false, pattern }: any) => (
+    <div style={{ gridColumn: span2 ? "1 / -1" : undefined }}>
+      <label style={labelStyle}>{label}</label>
+      <div style={{ position: "relative" }}>
+        <div style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center" }}>
+          {icon}
+        </div>
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          required={required}
+          pattern={pattern}
+          style={inputStyle}
+          onFocus={e => { e.target.style.borderColor = "#16A34A"; e.target.style.boxShadow = "0 0 0 4px rgba(22,163,74,0.1)"; e.target.style.background = "#ffffff"; }}
+          onBlur={e => { e.target.style.borderColor = "#BBF7D0"; e.target.style.boxShadow = "none"; e.target.style.background = "#F8FFF8"; }}
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-20">
-      
-      {/* ── Page Header ─────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-8">
-        <button
-          onClick={() => router.push("/consumer/marketplace")}
-          className="p-2.5 rounded-full transition-colors border-0 cursor-pointer"
-          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
-          title={t("backToMarketplace")}>
-          <ArrowLeft className="w-5 h-5 text-slate-300" />
+    <div style={{ background: "linear-gradient(135deg, #F8FFF8 0%, #EAF7EC 60%, #F3FAF0 100%)", minHeight: "100vh", padding: "28px 20px 60px", fontFamily: "Inter, sans-serif" }}>
+      <style jsx global>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .co-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(22,163,74,0.08) !important; transition: all 0.25s ease; }
+        .co-btn-main:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(22,163,74,0.38) !important; }
+        .co-btn-main:active { transform: translateY(0); }
+        .co-pay-card:hover { border-color: #22C55E !important; background: #F0FDF4 !important; }
+      `}</style>
+
+      <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
+
+        {/* Back */}
+        <button onClick={() => router.push("/consumer/marketplace")}
+          style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "none", border: "none", color: "#64748B", fontSize: "14px", fontWeight: 700, cursor: "pointer", marginBottom: "24px", padding: 0, fontFamily: "inherit" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#16A34A")}
+          onMouseLeave={e => (e.currentTarget.style.color = "#64748B")}>
+          <ArrowLeft style={{ width: "16px", height: "16px" }} />
+          {t("backToMarketplace")}
         </button>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">{t("checkoutTitle")}</h1>
-          <p className="text-xs text-slate-500">Secure Direct Farm-to-Consumer Purchase</p>
-        </div>
-      </div>
 
-      <AnimatePresence mode="wait">
-        {orderSuccess ? (
-          // ── SUCCESS CONTAINER ───────────────────────
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="max-w-xl mx-auto py-12 px-8 rounded-3xl text-center"
-            style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.20)" }}
-          >
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-              style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
-              <CheckCircle className="w-10 h-10 text-emerald-400 animate-bounce" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">{t("orderConfirmed")}</h2>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-              Your direct farm order has been placed successfully with <strong className="text-white">{farmerName}</strong>. The farmer is preparing your harvest for dispatch.
-            </p>
+        <AnimatePresence mode="wait">
+          {orderSuccess ? (
+            // ── SUCCESS SCREEN ───────────────────────────────────────────────
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+              style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center", padding: "48px 40px", background: "#ffffff", border: "1.5px solid #BBF7D0", borderRadius: "28px", boxShadow: "0 20px 60px rgba(22,163,74,0.10)" }}>
+              <div style={{ width: "88px", height: "88px", borderRadius: "50%", background: "linear-gradient(135deg, #DCFCE7, #BBF7D0)", border: "2px solid #86EFAC", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+                <CheckCircle style={{ width: "44px", height: "44px", color: "#16A34A" }} />
+              </div>
+              <h2 style={{ fontSize: "28px", fontWeight: 900, color: "#0F172A", margin: "0 0 8px", letterSpacing: "-0.5px" }}>{t("orderConfirmed")}</h2>
+              <p style={{ color: "#64748B", fontSize: "15px", marginBottom: "28px", lineHeight: 1.65 }}>
+                Your farm order has been placed with <strong style={{ color: "#0F172A" }}>{farmerName}</strong>. The farmer is preparing your harvest.
+              </p>
 
-            {/* Order details snapshot */}
-            <div className="rounded-2xl p-5 mb-8 text-left space-y-3 text-sm"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Order ID:</span>
-                <span className="font-mono font-bold text-emerald-400">{generatedOrderId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Produce Ordered:</span>
-                <span className="font-semibold text-white">{product.title} (x{quantity} {unit})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">{t("estimatedDelivery1")}</span>
-                <span className="font-semibold text-white flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-sky-400" />
-                  {estimatedDelivery}
-                </span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-white/10 font-bold">
-                <span className="text-slate-400">Total Paid:</span>
-                <span className="text-emerald-400">₹{totalAmount.toFixed(0)}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button onClick={() => router.push("/consumer/marketplace")}
-                className="flex-1 py-3 rounded-xl text-sm font-bold cursor-pointer border-0 transition-colors text-slate-300 hover:text-white"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                {t("continueShopping")}
-              </button>
-              <button onClick={() => router.push("/consumer/orders")}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all border-0 cursor-pointer hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.3)" }}>
-                View My Orders
-              </button>
-            </div>
-          </motion.div>
-        ) : (
-          // ── CHECKOUT FORM ──────────────────────────
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left: Forms (8 Cols) */}
-            <form onSubmit={handlePlaceOrder} className="lg:col-span-8 space-y-6">
-              
-              {/* Customer Information Card */}
-              <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
-                <h3 className="text-base font-bold text-white flex items-center gap-2 pb-3"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <User className="w-4 h-4 text-emerald-400" />
-                  {t("customerInformation")}
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("fullName")}</label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
-                        placeholder="John Doe"
-                        className={inputClass}
-                        style={inputStyle}
-                        required />
-                    </div>
+              <div style={{ background: "#F8FFF8", border: "1.5px solid #DCFCE7", borderRadius: "16px", padding: "20px", marginBottom: "28px", textAlign: "left" }}>
+                {[
+                  ["Order ID", generatedOrderId, "#16A34A", true],
+                  ["Produce Ordered", `${product.title} (×${quantity} ${unit})`, "#0F172A", false],
+                  [`${t("estimatedDelivery1")}`, estimatedDelivery, "#0F172A", false],
+                  ["Total Paid", `₹${totalAmount.toFixed(0)}`, "#16A34A", false],
+                ].map(([label, value, color, mono]) => (
+                  <div key={String(label)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
+                    <span style={{ fontSize: "13px", color: "#94A3B8", fontWeight: 600 }}>{label}:</span>
+                    <span style={{ fontSize: "13px", fontWeight: 800, color: String(color), fontFamily: mono ? "monospace" : "inherit" }}>{value}</span>
                   </div>
-                  
-                  {/* Phone */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mobile Number</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input type="tel" value={mobile} onChange={e => setMobile(e.target.value)}
-                        placeholder="10-digit number"
-                        className={inputClass}
-                        style={inputStyle}
-                        required />
-                    </div>
-                  </div>
+                ))}
+              </div>
 
-                  {/* Email */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("emailAddress")}</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                        placeholder="john.doe@example.com"
-                        className={inputClass}
-                        style={inputStyle}
-                        required />
-                    </div>
-                  </div>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button onClick={() => router.push("/consumer/marketplace")}
+                  style={{ flex: 1, height: "48px", borderRadius: "14px", border: "1.5px solid #DCFCE7", background: "#ffffff", color: "#64748B", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
+                  {t("continueShopping")}
+                </button>
+                <button onClick={() => router.push("/consumer/orders")}
+                  style={{ flex: 1, height: "48px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #16A34A, #22C55E)", color: "#ffffff", fontWeight: 800, fontSize: "14px", cursor: "pointer", boxShadow: "0 4px 16px rgba(22,163,74,0.3)", fontFamily: "inherit" }}>
+                  View My Orders
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            // ── CHECKOUT FORM ─────────────────────────────────────────────────
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+
+              {/* Hero Header */}
+              <div style={{ background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)", borderRadius: "22px", padding: "28px 32px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", boxShadow: "0 8px 32px rgba(22,163,74,0.22)" }}>
+                <div>
+                  <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#ffffff", margin: "0 0 6px", letterSpacing: "-0.5px" }}>🛒 {t("checkoutTitle")}</h1>
+                  <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", margin: 0, fontWeight: 500 }}>Complete your order directly from verified farmers.</p>
                 </div>
-              </div>
-
-              {/* Delivery Address Card */}
-              <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
-                <h3 className="text-base font-bold text-white flex items-center gap-2 pb-3"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <MapPin className="w-4 h-4 text-emerald-400" />
-                  {t("deliveryAddress")}
-                </h3>
-                
-                <div className="space-y-4">
-                  {/* Address */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("streetAddress")}</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input type="text" value={address} onChange={e => setAddress(e.target.value)}
-                        placeholder="House no., Apartment, Street, Area"
-                        className={inputClass}
-                        style={inputStyle}
-                        required />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {/* City */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("city")}</label>
-                      <input type="text" value={city} onChange={e => setCity(e.target.value)}
-                        placeholder={t("city")}
-                        className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
-                        style={inputStyle}
-                        required />
-                    </div>
-
-                    {/* State */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t("state")}</label>
-                      <input type="text" value={stateVal} onChange={e => setStateVal(e.target.value)}
-                        placeholder={t("state")}
-                        className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
-                        style={inputStyle}
-                        required />
-                    </div>
-
-                    {/* PIN */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PIN Code</label>
-                      <input type="text" value={pinCode} maxLength={6}
-                        onChange={e => setPinCode(e.target.value.replace(/\D/g, ""))}
-                        placeholder="6-digit code"
-                        className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
-                        style={inputStyle}
-                        required />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Section Card */}
-              <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
-                <h3 className="text-base font-bold text-white flex items-center gap-2 pb-3"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <CreditCard className="w-4 h-4 text-emerald-400" />
-                  Select Payment Option
-                </h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   {[
-                    { id: "cod", label: "Cash on Delivery", icon: Truck, desc: "Pay with cash at doorstep" },
-                    { id: "upi", label: "UPI Instant Pay", icon: UpiIcon, desc: "Google Pay, PhonePe, BHIM" },
-                    { id: "card", label: "Card Payment", icon: CreditCard, desc: "Credit / Debit Cards supported" },
-                    { id: "netbanking", label: "Net Banking", icon: Landmark, desc: "Direct NetBanking payment" },
-                    { id: "wallet", label: "Wallets", icon: Wallet, desc: "Paytm, Mobikwik, AmazonPay" },
-                  ].map((pay) => (
-                    <div
-                      key={pay.id}
-                      onClick={() => setPaymentMethod(pay.id)}
-                      className="p-4 rounded-2xl transition-all cursor-pointer flex flex-col gap-2"
-                      style={{
-                        background: paymentMethod === pay.id
-                          ? "rgba(16,185,129,0.12)"
-                          : "rgba(255,255,255,0.03)",
-                        border: paymentMethod === pay.id
-                          ? "1px solid rgba(16,185,129,0.40)"
-                          : "1px solid rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <pay.icon className={`w-5 h-5 ${paymentMethod === pay.id ? "text-emerald-400" : "text-slate-500"}`} />
-                        <span className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          paymentMethod === pay.id ? "border-emerald-500 bg-emerald-500" : "border-slate-600"
-                        }`}>
-                          {paymentMethod === pay.id && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                        </span>
-                      </div>
-                      <div>
-                        <p className={`font-bold text-xs ${paymentMethod === pay.id ? "text-emerald-300" : "text-slate-300"}`}>{pay.label}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{pay.desc}</p>
-                      </div>
-                    </div>
+                    { icon: "🔒", label: "Secure Payment" },
+                    { icon: "🌾", label: "Direct from Farmer" },
+                    { icon: "🤖", label: "AI Verified" },
+                    { icon: "🚚", label: "Fast Delivery" },
+                  ].map(b => (
+                    <span key={b.label} style={{ padding: "6px 14px", borderRadius: "999px", background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.3)", fontSize: "12px", fontWeight: 700, color: "#ffffff", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", gap: "5px" }}>
+                      {b.icon} {b.label}
+                    </span>
                   ))}
                 </div>
               </div>
 
-            </form>
+              {/* Two-column layout */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "28px", alignItems: "start" }}>
 
-            {/* Right: Summary Column (4 Cols) */}
-            <div className="lg:col-span-4 space-y-6">
-              
-              {/* Product Summary Card */}
-              <div className="rounded-3xl p-5 space-y-4" style={cardStyle}>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider pb-3 flex items-center justify-between"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <span>Product Summary</span>
-                  {product.isOrganic && (
-                    <span className="text-[9px] rounded px-1.5 py-0.5 font-extrabold font-mono uppercase tracking-wider"
-                      style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.30)", color: "#34d399" }}>
-                      {t("organic")}
-                    </span>
-                  )}
-                </h3>
+                {/* ── LEFT: Form ── */}
+                <form onSubmit={handlePlaceOrder} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
-                <div className="flex gap-4">
-                  <div className="w-16 h-16 rounded-2xl shrink-0 flex items-center justify-center text-3xl"
-                    style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(6,182,212,0.08))" }}>
-                    {product.imageUrl ? <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover rounded-2xl" /> : "🌱"}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm leading-tight">{product.title}</h4>
-                    <p className="text-xs text-slate-500 mt-1">Category: {product.category}</p>
-                    <p className="text-xs text-slate-400 mt-0.5 font-medium">Farmer: {farmerName}</p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl p-4 text-xs space-y-2"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Unit Price</span>
-                    <span className="font-bold text-white">₹{price} / {unit}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">{t("availability")}</span>
-                    <span className="font-semibold text-emerald-400">{stock > 0 ? `In Stock (${stock} ${unit})` : "Out of Stock"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">{t("estDelivery")}</span>
-                    <span className="font-semibold text-white">{estimatedDelivery}</span>
-                  </div>
-                </div>
-
-                {/* Qty Selector */}
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs font-semibold text-slate-400">{t("quantity")}</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={quantity <= 1}
-                      onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                      className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
-                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
-                    >
-                      <Minus className="w-3.5 h-3.5 text-slate-400" />
-                    </button>
-                    <span className="w-8 text-center text-sm font-bold text-white">{quantity}</span>
-                    <button
-                      type="button"
-                      disabled={quantity >= stock}
-                      onClick={() => setQuantity(prev => Math.min(stock, prev + 1))}
-                      className="w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40"
-                      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-400" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Summary Card */}
-              <div className="rounded-3xl p-5 space-y-4" style={cardStyle}>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider pb-3"
-                  style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  {t("billDetails")}
-                </h3>
-
-                <div className="text-xs space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Subtotal ({quantity} {unit})</span>
-                    <span className="font-medium text-white">₹{subtotal.toFixed(0)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">{t("deliveryCharge")}</span>
-                    <span className="font-medium text-white">
-                      {deliveryCharge === 0 ? <span className="text-emerald-400 font-bold">{t("free")}</span> : `₹${deliveryCharge}`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Platform Handling Fee</span>
-                    <span className="font-medium text-white">₹{platformFee}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-emerald-400 font-bold">
-                      <span>{t("discount")}</span>
-                      <span>-₹{discount}</span>
+                  {/* Customer Information */}
+                  <div className="co-hover" style={card}>
+                    {sectionTitle(<User style={{ width: "18px", height: "18px", color: "#16A34A" }} />, t("customerInformation"))}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                      <InputField label={t("fullName")} icon={<User style={{ width: "15px", height: "15px", color: "#94A3B8" }} />} value={customerName} onChange={(e: any) => setCustomerName(e.target.value)} placeholder="Rahul Sharma" required />
+                      <InputField label="Mobile Number" icon={<Phone style={{ width: "15px", height: "15px", color: "#94A3B8" }} />} value={mobile} type="tel" onChange={(e: any) => setMobile(e.target.value)} placeholder="10-digit number" required />
+                      <InputField label={t("emailAddress")} icon={<Mail style={{ width: "15px", height: "15px", color: "#94A3B8" }} />} value={email} type="email" onChange={(e: any) => setEmail(e.target.value)} placeholder="you@example.com" required span2 />
                     </div>
-                  )}
-                  <div className="flex justify-between pt-3 text-sm font-black"
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                    <span className="text-slate-300">{t("finalTotal")}</span>
-                    <span className="text-emerald-400 text-lg">₹{totalAmount.toFixed(0)}</span>
                   </div>
-                </div>
 
-                {/* Error */}
-                {formError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl text-xs font-medium"
-                    style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.20)", color: "#f87171" }}>
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {formError}
+                  {/* Delivery Address */}
+                  <div className="co-hover" style={card}>
+                    {sectionTitle(<MapPin style={{ width: "18px", height: "18px", color: "#16A34A" }} />, t("deliveryAddress"))}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      <InputField label={t("streetAddress")} icon={<MapPin style={{ width: "15px", height: "15px", color: "#94A3B8" }} />} value={address} onChange={(e: any) => setAddress(e.target.value)} placeholder="House no., Apartment, Street, Area" required />
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                        {/* City */}
+                        <div>
+                          <label style={labelStyle}>{t("city")}</label>
+                          <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder={t("city")} required
+                            style={{ ...inputStyle, paddingLeft: "16px" }}
+                            onFocus={e => { e.target.style.borderColor = "#16A34A"; e.target.style.boxShadow = "0 0 0 4px rgba(22,163,74,0.1)"; e.target.style.background = "#ffffff"; }}
+                            onBlur={e => { e.target.style.borderColor = "#BBF7D0"; e.target.style.boxShadow = "none"; e.target.style.background = "#F8FFF8"; }} />
+                        </div>
+                        {/* State */}
+                        <div>
+                          <label style={labelStyle}>{t("state")}</label>
+                          <input type="text" value={stateVal} onChange={e => setStateVal(e.target.value)} placeholder={t("state")} required
+                            style={{ ...inputStyle, paddingLeft: "16px" }}
+                            onFocus={e => { e.target.style.borderColor = "#16A34A"; e.target.style.boxShadow = "0 0 0 4px rgba(22,163,74,0.1)"; e.target.style.background = "#ffffff"; }}
+                            onBlur={e => { e.target.style.borderColor = "#BBF7D0"; e.target.style.boxShadow = "none"; e.target.style.background = "#F8FFF8"; }} />
+                        </div>
+                        {/* PIN */}
+                        <div>
+                          <label style={labelStyle}>PIN Code</label>
+                          <input type="text" value={pinCode} maxLength={6} onChange={e => setPinCode(e.target.value.replace(/\D/g, ""))} placeholder="6-digit code" required
+                            style={{ ...inputStyle, paddingLeft: "16px" }}
+                            onFocus={e => { e.target.style.borderColor = "#16A34A"; e.target.style.boxShadow = "0 0 0 4px rgba(22,163,74,0.1)"; e.target.style.background = "#ffffff"; }}
+                            onBlur={e => { e.target.style.borderColor = "#BBF7D0"; e.target.style.boxShadow = "none"; e.target.style.background = "#F8FFF8"; }} />
+                        </div>
+                      </div>
+
+                      {/* Delivery PIN verified badge */}
+                      {pinCode.length === 6 && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "12px" }}>
+                          <BadgeCheck style={{ width: "15px", height: "15px", color: "#16A34A" }} />
+                          <span style={{ fontSize: "12px", fontWeight: 700, color: "#16A34A" }}>PIN {pinCode} — Delivery available in this area</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
 
-                {/* Action buttons */}
-                <div className="space-y-2 pt-2">
-                  <button
-                    onClick={handlePlaceOrder}
-                    disabled={isPlacingOrder}
-                    className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed border-0 cursor-pointer"
-                    style={{
-                      background: "linear-gradient(135deg, #10b981, #059669)",
-                      boxShadow: "0 4px 20px rgba(16,185,129,0.30)",
-                    }}
-                  >
-                    {isPlacingOrder ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Placing Order...</>
-                    ) : (
-                      `Place Order · ₹${totalAmount.toFixed(0)}`
+                  {/* Payment Methods */}
+                  <div className="co-hover" style={card}>
+                    {sectionTitle(<CreditCard style={{ width: "18px", height: "18px", color: "#16A34A" }} />, "Select Payment Method")}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                      {[
+                        { id: "cod", label: "Cash on Delivery", icon: <Truck style={{ width: "22px", height: "22px" }} />, desc: "Pay at doorstep", emoji: "💵" },
+                        { id: "upi", label: "UPI Instant Pay", icon: <UpiIcon style={{ width: "22px", height: "22px" }} />, desc: "GPay · PhonePe · BHIM", emoji: "📲" },
+                        { id: "card", label: "Card Payment", icon: <CreditCard style={{ width: "22px", height: "22px" }} />, desc: "Credit / Debit Cards", emoji: "💳" },
+                        { id: "netbanking", label: "Net Banking", icon: <Landmark style={{ width: "22px", height: "22px" }} />, desc: "Direct bank transfer", emoji: "🏦" },
+                        { id: "wallet", label: "Wallets", icon: <Wallet style={{ width: "22px", height: "22px" }} />, desc: "Paytm · Mobikwik", emoji: "👛" },
+                      ].map((pay) => {
+                        const active = paymentMethod === pay.id;
+                        return (
+                          <div key={pay.id} className="co-pay-card" onClick={() => setPaymentMethod(pay.id)}
+                            style={{ padding: "16px 14px", borderRadius: "16px", cursor: "pointer", border: `1.5px solid ${active ? "#16A34A" : "#DCFCE7"}`, background: active ? "#F0FDF4" : "#ffffff", transition: "all 0.2s", position: "relative", overflow: "hidden" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                              <div style={{ color: active ? "#16A34A" : "#94A3B8" }}>{pay.icon}</div>
+                              <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: `2px solid ${active ? "#16A34A" : "#CBD5E1"}`, background: active ? "#16A34A" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                {active && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#ffffff" }} />}
+                              </div>
+                            </div>
+                            <p style={{ fontSize: "12px", fontWeight: 800, color: active ? "#16A34A" : "#0F172A", margin: "0 0 3px" }}>{pay.label}</p>
+                            <p style={{ fontSize: "10px", color: "#94A3B8", fontWeight: 500, margin: 0 }}>{pay.desc}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Delivery Timeline */}
+                  <div className="co-hover" style={card}>
+                    {sectionTitle(<Truck style={{ width: "18px", height: "18px", color: "#16A34A" }} />, "Delivery Timeline")}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "4px" }}>
+                      {[
+                        { icon: "📦", label: "Order Confirmed", sub: "Instantly", done: true },
+                        { icon: "🌾", label: "Farmer Packs", sub: "Within 2 hrs", done: true },
+                        { icon: "🚛", label: "Shipped", sub: "Same day", done: true },
+                        { icon: "🏠", label: "Delivered", sub: estimatedDelivery, done: false },
+                      ].map((step, i, arr) => (
+                        <div key={step.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                          {/* Connector line */}
+                          {i < arr.length - 1 && (
+                            <div style={{ position: "absolute", top: "20px", left: "50%", width: "100%", height: "2px", background: step.done ? "linear-gradient(to right, #16A34A, #22C55E)" : "#E2E8F0", zIndex: 0 }} />
+                          )}
+                          <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: step.done ? "linear-gradient(135deg, #16A34A, #22C55E)" : "#F1F5F9", border: `2px solid ${step.done ? "#16A34A" : "#E2E8F0"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", position: "relative", zIndex: 1, boxShadow: step.done ? "0 4px 12px rgba(22,163,74,0.25)" : "none" }}>
+                            {step.icon}
+                          </div>
+                          <p style={{ fontSize: "11px", fontWeight: 800, color: step.done ? "#0F172A" : "#94A3B8", textAlign: "center", marginTop: "8px", marginBottom: "2px" }}>{step.label}</p>
+                          <p style={{ fontSize: "10px", color: "#94A3B8", textAlign: "center", margin: 0 }}>{step.sub}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* AI Purchase Insights */}
+                  <div className="co-hover" style={card}>
+                    {sectionTitle(<Sparkles style={{ width: "18px", height: "18px", color: "#7C3AED" }} />, "AI Purchase Insights")}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                      {[
+                        { icon: "✅", label: "Freshness", value: "94%", color: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0" },
+                        { icon: "🌡️", label: "Storage", value: "Cool & Dry", color: "#0369A1", bg: "#EFF6FF", border: "#BFDBFE" },
+                        { icon: "🍽️", label: "Shelf Life", value: "7–10 Days", color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE" },
+                        { icon: "⚡", label: "AI Quality", value: `Grade ${product.qualityGrade || "A"}`, color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
+                        { icon: "🌿", label: "Organic", value: product.isOrganic ? "Certified" : "Natural", color: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0" },
+                        { icon: "💚", label: "Health", value: "High Nutrient", color: "#0D9488", bg: "#F0FDFA", border: "#99F6E4" },
+                      ].map(item => (
+                        <div key={item.label} style={{ background: item.bg, border: `1px solid ${item.border}`, borderRadius: "14px", padding: "14px 12px", textAlign: "center" }}>
+                          <div style={{ fontSize: "20px", marginBottom: "6px" }}>{item.icon}</div>
+                          <p style={{ fontSize: "10px", fontWeight: 800, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 4px" }}>{item.label}</p>
+                          <p style={{ fontSize: "13px", fontWeight: 900, color: item.color, margin: 0 }}>{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Security Footer */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "12px" }}>
+                    {[
+                      { icon: <Lock style={{ width: "16px", height: "16px", color: "#0369A1" }} />, text: "SSL Secured", bg: "#EFF6FF", border: "#BFDBFE" },
+                      { icon: <Shield style={{ width: "16px", height: "16px", color: "#16A34A" }} />, text: "Buyer Protection", bg: "#F0FDF4", border: "#BBF7D0" },
+                      { icon: <Leaf style={{ width: "16px", height: "16px", color: "#16A34A" }} />, text: "Direct Farmer Pay", bg: "#F0FDF4", border: "#BBF7D0" },
+                      { icon: <ShieldCheck style={{ width: "16px", height: "16px", color: "#7C3AED" }} />, text: "Encrypted", bg: "#F5F3FF", border: "#DDD6FE" },
+                    ].map(item => (
+                      <div key={item.text} style={{ background: item.bg, border: `1px solid ${item.border}`, borderRadius: "14px", padding: "12px 10px", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                        {item.icon}
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748B", textAlign: "center" }}>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                </form>
+
+                {/* ── RIGHT: Sticky Summary ── */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "20px", position: "sticky", top: "20px" }}>
+
+                  {/* Product Summary Card */}
+                  <div className="co-hover" style={card}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", paddingBottom: "14px", borderBottom: "1.5px solid #F1F5F9" }}>
+                      <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>Product Summary</h3>
+                      {product.isOrganic && (
+                        <span style={{ padding: "3px 10px", borderRadius: "99px", fontSize: "11px", fontWeight: 800, background: "#DCFCE7", color: "#16A34A", border: "1px solid #86EFAC" }}>🌿 {t("organic")}</span>
+                      )}
+                    </div>
+
+                    {/* Product image + name */}
+                    <div style={{ display: "flex", gap: "14px", marginBottom: "16px" }}>
+                      <div style={{ width: "72px", height: "72px", borderRadius: "16px", overflow: "hidden", flexShrink: 0, border: "1.5px solid #DCFCE7" }}>
+                        {product.imageUrl
+                          ? <img src={product.imageUrl} alt={product.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : <div style={{ width: "100%", height: "100%", background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>🌱</div>}
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: "0 0 4px", lineHeight: 1.3 }}>{product.title}</h4>
+                        <p style={{ fontSize: "12px", color: "#94A3B8", margin: "0 0 4px", fontWeight: 500 }}>Category: {product.category}</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                          <BadgeCheck style={{ width: "13px", height: "13px", color: "#16A34A" }} />
+                          <span style={{ fontSize: "12px", color: "#16A34A", fontWeight: 700 }}>{farmerName}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Details rows */}
+                    <div style={{ background: "#F8FFF8", border: "1px solid #DCFCE7", borderRadius: "14px", padding: "14px", marginBottom: "16px" }}>
+                      {[
+                        ["Unit Price", `₹${price} / ${unit}`],
+                        [t("availability"), stock > 0 ? `In Stock (${stock} ${unit})` : "Out of Stock"],
+                        [t("estDelivery"), estimatedDelivery],
+                        ["Quality Grade", `Grade ${product.qualityGrade || "A"} (AI Verified)`],
+                      ].map(([label, value], i) => (
+                        <div key={String(label)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: i < 3 ? "1px solid #F1F5F9" : "none" }}>
+                          <span style={{ fontSize: "12px", color: "#94A3B8", fontWeight: 600 }}>{label}</span>
+                          <span style={{ fontSize: "12px", color: "#0F172A", fontWeight: 800 }}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quantity selector */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748B" }}>{t("quantity")}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0", background: "#F1F5F9", borderRadius: "14px", border: "1.5px solid #E2E8F0", overflow: "hidden" }}>
+                        <button type="button" disabled={quantity <= 1} onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                          style={{ width: "40px", height: "40px", border: "none", background: "transparent", cursor: quantity <= 1 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: quantity <= 1 ? 0.4 : 1, transition: "background 0.15s", fontFamily: "inherit" }}
+                          onMouseEnter={e => quantity > 1 && (e.currentTarget.style.background = "#DCFCE7")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                          <Minus style={{ width: "14px", height: "14px", color: "#0F172A" }} />
+                        </button>
+                        <span style={{ width: "64px", textAlign: "center", fontSize: "14px", fontWeight: 800, color: "#0F172A", fontFamily: "monospace" }}>{quantity} {unit}</span>
+                        <button type="button" disabled={quantity >= stock} onClick={() => setQuantity(prev => Math.min(stock, prev + 1))}
+                          style={{ width: "40px", height: "40px", border: "none", background: "transparent", cursor: quantity >= stock ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: quantity >= stock ? 0.4 : 1, transition: "background 0.15s", fontFamily: "inherit" }}
+                          onMouseEnter={e => quantity < stock && (e.currentTarget.style.background = "#DCFCE7")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                          <Plus style={{ width: "14px", height: "14px", color: "#0F172A" }} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Farmer Trust Card */}
+                  <div className="co-hover" style={{ ...card, background: "linear-gradient(135deg, #F0FDF4, #ffffff)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                      <div style={{ fontSize: "24px" }}>👨‍🌾</div>
+                      <div>
+                        <p style={{ fontSize: "14px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{farmerName}</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "3px" }}>
+                          <BadgeCheck style={{ width: "13px", height: "13px", color: "#16A34A" }} />
+                          <span style={{ fontSize: "11px", fontWeight: 700, color: "#16A34A" }}>Verified Farmer</span>
+                        </div>
+                      </div>
+                      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <Star style={{ width: "14px", height: "14px", color: "#F59E0B", fill: "#F59E0B" }} />
+                        <span style={{ fontSize: "13px", fontWeight: 800, color: "#0F172A" }}>4.9</span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <span style={{ flex: 1, padding: "6px 10px", borderRadius: "99px", background: "#DCFCE7", border: "1px solid #86EFAC", fontSize: "11px", fontWeight: 700, color: "#16A34A", textAlign: "center" }}>✅ KYC Verified</span>
+                      <span style={{ flex: 1, padding: "6px 10px", borderRadius: "99px", background: "#FFFBEB", border: "1px solid #FDE68A", fontSize: "11px", fontWeight: 700, color: "#D97706", textAlign: "center" }}>🏆 Top Seller</span>
+                    </div>
+                  </div>
+
+                  {/* Bill Summary Card */}
+                  <div className="co-hover" style={card}>
+                    <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: "0 0 16px", paddingBottom: "12px", borderBottom: "1.5px solid #F1F5F9" }}>{t("billDetails")}</h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+                      {[
+                        { label: `Subtotal (${quantity} ${unit})`, value: `₹${subtotal.toFixed(0)}`, accent: false },
+                        { label: t("deliveryCharge"), value: deliveryCharge === 0 ? "FREE ✅" : `₹${deliveryCharge}`, accent: deliveryCharge === 0 },
+                        { label: "Platform Handling Fee", value: `₹${platformFee}`, accent: false },
+                        ...(discount > 0 ? [{ label: t("discount"), value: `-₹${discount}`, accent: true }] : []),
+                      ].map(row => (
+                        <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "13px", color: "#64748B", fontWeight: 600 }}>{row.label}</span>
+                          <span style={{ fontSize: "13px", fontWeight: 800, color: row.accent ? "#16A34A" : "#0F172A" }}>{row.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Grand Total */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "#F0FDF4", border: "1.5px solid #BBF7D0", borderRadius: "14px", marginBottom: "16px" }}>
+                      <div>
+                        <p style={{ fontSize: "12px", color: "#16A34A", fontWeight: 700, margin: "0 0 2px" }}>Grand Total</p>
+                        <p style={{ fontSize: "10px", color: "#94A3B8", margin: 0 }}>All taxes included</p>
+                      </div>
+                      <span style={{ fontSize: "28px", fontWeight: 900, color: "#16A34A", letterSpacing: "-0.5px" }}>₹{totalAmount.toFixed(0)}</span>
+                    </div>
+
+                    {/* Error */}
+                    {formError && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px 14px", borderRadius: "12px", background: "#FEF2F2", border: "1px solid #FECACA", fontSize: "13px", color: "#DC2626", fontWeight: 600, marginBottom: "14px" }}>
+                        <AlertCircle style={{ width: "15px", height: "15px", flexShrink: 0 }} />{formError}
+                      </div>
                     )}
-                  </button>
 
-                  <button
-                    type="button"
-                    onClick={() => router.push("/consumer/marketplace")}
-                    className="w-full py-3 rounded-2xl font-bold transition-colors text-xs border-0 bg-transparent cursor-pointer text-slate-500 hover:text-slate-300"
-                  >
-                    {t("cancelOrder")}
-                  </button>
+                    {/* Place Order Button */}
+                    <button type="submit" form="" onClick={handlePlaceOrder} disabled={isPlacingOrder}
+                      className="co-btn-main"
+                      style={{ width: "100%", height: "56px", borderRadius: "16px", border: "none", background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)", color: "#ffffff", fontWeight: 900, fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", cursor: isPlacingOrder ? "not-allowed" : "pointer", opacity: isPlacingOrder ? 0.75 : 1, boxShadow: "0 6px 22px rgba(22,163,74,0.32)", transition: "all 0.2s", fontFamily: "inherit", marginBottom: "10px" }}>
+                      {isPlacingOrder ? (
+                        <><Loader2 style={{ width: "18px", height: "18px", animation: "spin 1s linear infinite" }} /> Placing Order...</>
+                      ) : (
+                        <>🛒 Place Order · ₹{totalAmount.toFixed(0)}</>
+                      )}
+                    </button>
+
+                    <button type="button" onClick={() => router.push("/consumer/marketplace")}
+                      style={{ width: "100%", height: "44px", borderRadius: "14px", border: "1.5px solid #FECACA", background: "#ffffff", color: "#EF4444", fontWeight: 700, fontSize: "14px", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#FEF2F2")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "#ffffff")}>
+                      {t("cancelOrder")}
+                    </button>
+                  </div>
+
+                  {/* Security badges */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "10px" }}>
+                    <ShieldCheck style={{ width: "14px", height: "14px", color: "#16A34A" }} />
+                    <span style={{ fontSize: "11px", color: "#94A3B8", fontWeight: 600 }}>Verified direct payout to local farmers.</span>
+                  </div>
+
                 </div>
               </div>
-
-              {/* Secure payment shield indicator */}
-              <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-slate-600">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                Verified direct payout to local farmers.
-              </div>
-
-            </div>
-
-          </div>
-        )}
-      </AnimatePresence>
-
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -607,9 +648,9 @@ export default function CheckoutPage() {
   const { t } = useTranslation("consumer");
   return (
     <Suspense fallback={
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-        <p className="text-slate-400 text-sm">{t("loading")}</p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: "12px" }}>
+        <Loader2 style={{ width: "32px", height: "32px", color: "#16A34A", animation: "spin 1s linear infinite" }} />
+        <p style={{ color: "#94A3B8", fontSize: "14px" }}>{t("loading")}</p>
       </div>
     }>
       <CheckoutPageContent />

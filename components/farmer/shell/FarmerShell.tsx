@@ -34,6 +34,11 @@ export default function FarmerShell({
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
+  // Enforce Light Mode in Farmer platform
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
+
   // Retrieve user details on load if initialProfile is null
   useEffect(() => {
     if (!profile) {

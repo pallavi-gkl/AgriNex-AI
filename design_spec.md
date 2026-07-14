@@ -300,7 +300,7 @@ Return a valid JSON object matching this structure EXACTLY. Do not wrap in markd
 ```
 **AI Prompt**:
 ```text
-Based on the crop: ${cropType}, Quality Grade: ${grade}, Location: ${location}, and the current base wholesale market rate of Rs. ${baseWholesalePrice} per kg:
+Based on the crop: ${cropType}, Quality Grade: ${grade}, Location: ${location}, and the current base wholesale market rate of ₹${baseWholesalePrice} per kg:
 Determine the optimal direct-to-consumer listing price. The consumer price should be 15-20% higher than wholesale (maximizing farmer revenue) but 20-30% lower than retail grocery outlets (incentivizing consumers).
 Return JSON only:
 {

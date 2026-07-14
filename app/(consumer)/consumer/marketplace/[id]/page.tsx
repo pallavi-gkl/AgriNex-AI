@@ -18,6 +18,7 @@ import {
   ChevronRight, ZoomIn, Award, Thermometer, Droplets, Calendar,
   BarChart2, CheckCircle2, AlertCircle, Loader2, Send, Bot,
   QrCode, Globe, TrendingUp, Scale, Zap, User, Phone,
+  CheckCircle, BadgeCheck, Flame, Dumbbell, Wheat, Apple,
 } from "lucide-react";
 import { useMarketplaceProducts } from "@/hooks/useProducts";
 import { useCreateOrder } from "@/hooks/useOrders";
@@ -26,27 +27,16 @@ import { supabase } from "@/lib/supabase";
 import { DEMO_CROPS } from "@/lib/demoData";
 import { useLocationWeather } from "@/context/LocationWeatherContext";
 
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ChatMessage { role: "user" | "ai"; text: string; }
 
 // ─── Grade config ─────────────────────────────────────────────────────────────
 const GRADE_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  "A+": { color: "#10b981", bg: "rgba(16,185,129,0.15)", label: "Premium" },
-  "A":  { color: "#34d399", bg: "rgba(52,211,153,0.12)", label: "Excellent" },
-  "B":  { color: "#fbbf24", bg: "rgba(251,191,36,0.12)", label: "Good" },
-  "C":  { color: "#fb923c", bg: "rgba(251,146,60,0.12)", label: "Average" },
-  "D":  { color: "#f87171", bg: "rgba(248,113,113,0.12)", label: "Below Avg" },
-};
-
-// ─── Status badge ─────────────────────────────────────────────────────────────
-const STATUS = {
-  pending:          { label: "Pending",         color: "#fbbf24" },
-  accepted:         { label: "Accepted",         color: "#34d399" },
-  quality_verified: { label: "Quality Verified", color: "#c084fc" },
-  dispatched:       { label: "In Transit",       color: "#38bdf8" },
-  delivered:        { label: "Delivered",        color: "#4ade80" },
-  cancelled:        { label: "Cancelled",        color: "#f87171" },
+  "A+": { color: "#16A34A", bg: "rgba(22,163,74,0.12)", label: "Premium" },
+  "A":  { color: "#22C55E", bg: "rgba(34,197,94,0.10)", label: "Excellent" },
+  "B":  { color: "#F59E0B", bg: "rgba(245,158,11,0.10)", label: "Good" },
+  "C":  { color: "#FB923C", bg: "rgba(251,146,60,0.10)", label: "Average" },
+  "D":  { color: "#EF4444", bg: "rgba(239,68,68,0.10)", label: "Below Avg" },
 };
 
 // ─── Quick questions for AI assistant ─────────────────────────────────────────
@@ -74,36 +64,29 @@ const NUTRITION_BY_CATEGORY: Record<string, any> = {
   "Dairy": { calories: 61, protein: "3.2g", carbs: "4.7g", fiber: "0g", fat: "3.3g", vitamin: "D, B12, Calcium", benefit: "Bone health, immunity" },
 };
 
-// ─── Traceability Timeline ────────────────────────────────────────────────────
-function TraceabilityStep({ step, isLast }: { step: { label: string; date: string; icon: string; done: boolean }; isLast: boolean }) {
-  return (
-    <div className="flex gap-3">
-      <div className="flex flex-col items-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 transition-all ${step.done ? "scale-110" : "opacity-40"}`}
-          style={{ background: step.done ? "rgba(16,185,129,0.1)" : "rgba(0,0,0,0.03)", border: `1px solid ${step.done ? "rgba(16,185,129,0.25)" : "rgba(0,0,0,0.06)"}` }}>
-          {step.icon}
-        </div>
-        {!isLast && <div className="w-0.5 flex-1 mt-1" style={{ background: step.done ? "#10b981" : "rgba(0,0,0,0.06)" }} />}
-      </div>
-      <div className="pb-4 min-w-0">
-        <p className={`text-sm font-bold ${step.done ? "text-slate-805 text-slate-800" : "text-slate-400 font-medium"}`}>{step.label}</p>
-        <p className="text-slate-450 text-slate-400 text-xs font-semibold mt-0.5">{step.date}</p>
-      </div>
-    </div>
-  );
-}
-
 // ─── AI Chat Message ──────────────────────────────────────────────────────────
 function ChatBubble({ msg }: { msg: ChatMessage }) {
   const isAi = msg.role === "ai";
   return (
-    <div className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${isAi ? "text-emerald-700 bg-emerald-50 border border-emerald-150" : "text-purple-700 bg-purple-50 border border-purple-150"}`}>
-        {isAi ? <Bot className="w-4 h-4" /> : <User className="w-3.5 h-3.5" />}
+    <div style={{ display: "flex", gap: "10px", flexDirection: isAi ? "row" : "row-reverse" }}>
+      <div style={{
+        width: "30px", height: "30px", borderRadius: "50%",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        flexShrink: 0,
+        background: isAi ? "#DCFCE7" : "#EDE9FE",
+        border: `1px solid ${isAi ? "#86EFAC" : "#C4B5FD"}`,
+      }}>
+        {isAi ? <Bot style={{ width: "15px", height: "15px", color: "#16A34A" }} /> : <User style={{ width: "13px", height: "13px", color: "#7C3AED" }} />}
       </div>
-      <div className={`max-w-xs px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap font-medium ${
-        isAi ? "text-slate-700 rounded-tl-none bg-emerald-50/40 border border-emerald-100/50" : "text-slate-750 text-slate-700 rounded-tr-none bg-purple-50/40 border border-purple-100/50"
-      }`}
+      <div style={{
+        maxWidth: "72%", padding: "10px 14px", borderRadius: "16px",
+        fontSize: "13px", lineHeight: 1.6, fontWeight: 500,
+        background: isAi ? "#F0FDF4" : "#F5F3FF",
+        border: `1px solid ${isAi ? "#BBF7D0" : "#DDD6FE"}`,
+        color: "#1E293B",
+        borderTopLeftRadius: isAi ? "4px" : "16px",
+        borderTopRightRadius: isAi ? "16px" : "4px",
+      }}
         dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>") }}
       />
     </div>
@@ -154,7 +137,6 @@ export default function ProductDetailPage() {
     async function loadProduct() {
       setLoading(true);
       try {
-        // Try Supabase
         const { data, error } = (await supabase
           .from("products")
           .select(`*, farmer:profiles!products_farmer_id_fkey(id, full_name, avatar_url, is_verified, trust_score, phone_number, address, location_lat, location_lng)`)
@@ -162,7 +144,6 @@ export default function ProductDetailPage() {
           .maybeSingle()) as any;
 
         if (!error && data) {
-          // Normalize to camelCase
           setProduct({
             id: data.id,
             title: data.title,
@@ -190,7 +171,6 @@ export default function ProductDetailPage() {
             } : null,
           });
         } else {
-          // Fallback to demo data
           const demo = DEMO_CROPS.find((c) => c.id === productId);
           if (demo) {
             setProduct({
@@ -231,7 +211,6 @@ export default function ProductDetailPage() {
         }
       } catch (err) {
         console.error("Product load error:", err);
-        // Fallback
         const demo = DEMO_CROPS.find((c) => c.id === productId);
         if (demo) setProduct({ ...demo });
       }
@@ -313,7 +292,7 @@ export default function ProductDetailPage() {
     setChatLoading(false);
   }
 
-  // ── Add to cart ───────────────────────────────────────────────────────────
+  // ── Buy Now ───────────────────────────────────────────────────────────────
   const handleBuyNow = async () => {
     setOrderError(null);
     try {
@@ -353,12 +332,13 @@ export default function ProductDetailPage() {
     ];
   };
 
+  // ─── Loading state ─────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading product...</p>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #F8FFF8, #EAF7EC)" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: "52px", height: "52px", borderRadius: "50%", border: "3px solid #DCFCE7", borderTopColor: "#16A34A", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: "#64748B", fontWeight: 600, fontSize: "15px" }}>Loading product...</p>
         </div>
       </div>
     );
@@ -366,12 +346,12 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-400/40 mx-auto mb-3" />
-          <p className="text-slate-400">Product not found</p>
-          <Link href="/consumer/marketplace" className="mt-4 inline-flex items-center gap-2 text-emerald-400 text-sm">
-            <ArrowLeft className="w-4 h-4" /> {t("backToMarketplace")}
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #F8FFF8, #EAF7EC)" }}>
+        <div style={{ textAlign: "center" }}>
+          <AlertCircle style={{ width: "52px", height: "52px", color: "#EF444460", margin: "0 auto 12px" }} />
+          <p style={{ color: "#64748B", fontWeight: 600 }}>Product not found</p>
+          <Link href="/consumer/marketplace" style={{ marginTop: "16px", display: "inline-flex", alignItems: "center", gap: "8px", color: "#16A34A", fontSize: "14px", fontWeight: 700, textDecoration: "none" }}>
+            <ArrowLeft style={{ width: "16px", height: "16px" }} /> {t("backToMarketplace")}
           </Link>
         </div>
       </div>
@@ -387,480 +367,612 @@ export default function ProductDetailPage() {
   const wishlistActive = isInWishlist(product.id);
   const timeline = buildTimeline();
   const images = product.images?.filter(Boolean) ?? [product.imageUrl].filter(Boolean);
+  const totalPrice = (product.pricePerUnit * quantity).toFixed(0);
+  const savings = product.marketPrice ? product.marketPrice - product.pricePerUnit : null;
+
+  const cardStyle: React.CSSProperties = {
+    background: "#ffffff",
+    border: "1.5px solid #DCFCE7",
+    borderRadius: "22px",
+    boxShadow: "0 4px 24px rgba(22,163,74,0.04)",
+    overflow: "hidden",
+  };
 
   return (
-    <div className="min-h-screen p-4 sm:p-6">
-      {/* Back button */}
-      <Link href="/consumer/marketplace"
-        className="inline-flex items-center gap-2 text-slate-500 hover:text-emerald-700 transition-colors mb-6 text-sm font-bold no-underline">
-        <ArrowLeft className="w-4 h-4" />
-        {t("backToMarketplace")}
-      </Link>
+    <div style={{ background: "linear-gradient(135deg, #F8FFF8 0%, #EAF7EC 60%, #F3FAF0 100%)", minHeight: "100vh", padding: "28px 20px", fontFamily: "Inter, sans-serif" }}>
+      <style jsx global>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .pd-card-hover { transition: all 0.25s ease; }
+        .pd-card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(22,163,74,0.08) !important; }
+        .pd-btn-primary { transition: all 0.2s ease; }
+        .pd-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(22,163,74,0.35) !important; }
+        .pd-btn-primary:active { transform: translateY(0); }
+        .pd-img-hover img { transition: transform 0.6s ease; }
+        .pd-img-hover:hover img { transform: scale(1.05); }
+        .pd-thumb { transition: all 0.2s ease; }
+        .pd-thumb:hover { transform: scale(1.06); }
+      `}</style>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* ── Image Gallery ─────────────────────────────────────────────────── */}
-        <div>
-          <div className="relative aspect-square rounded-3xl overflow-hidden group premium-card">
-            {images.length > 0 ? (
-              <>
-                <img src={images[activeImage]} alt={product.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => { (e.target as HTMLImageElement).src = ""; }} />
-                {/* Zoom icon */}
-                <div className="absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/60 backdrop-blur-sm shadow-sm">
-                  <ZoomIn className="w-4.5 h-4.5 text-white" />
+      {/* Max width wrapper */}
+      <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+
+        {/* Back button */}
+        <Link href="/consumer/marketplace" style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#64748B", fontWeight: 700, fontSize: "14px", textDecoration: "none", marginBottom: "24px", transition: "color 0.2s" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#16A34A")}
+          onMouseLeave={e => (e.currentTarget.style.color = "#64748B")}>
+          <ArrowLeft style={{ width: "16px", height: "16px" }} />
+          {t("backToMarketplace")}
+        </Link>
+
+        {/* ── TOP: Two-column layout ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", marginBottom: "32px", alignItems: "start" }}>
+
+          {/* LEFT: Image Gallery */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
+            {/* Main image */}
+            <div className="pd-img-hover" style={{ ...cardStyle, aspectRatio: "1/1", position: "relative", cursor: "zoom-in", border: "1.5px solid #BBF7D0" }}>
+              {images.length > 0 ? (
+                <>
+                  <img src={images[activeImage]} alt={product.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = ""; }} />
+
+                  {/* Zoom icon */}
+                  <div style={{ position: "absolute", top: "14px", right: "14px", width: "36px", height: "36px", borderRadius: "10px", background: "rgba(15,23,42,0.55)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <ZoomIn style={{ width: "16px", height: "16px", color: "#fff" }} />
+                  </div>
+
+                  {/* Nav arrows */}
+                  {images.length > 1 && (
+                    <>
+                      <button onClick={() => setActiveImage((p) => (p - 1 + images.length) % images.length)}
+                        style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", width: "36px", height: "36px", borderRadius: "10px", background: "rgba(255,255,255,0.92)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+                        <ChevronLeft style={{ width: "18px", height: "18px", color: "#0F172A" }} />
+                      </button>
+                      <button onClick={() => setActiveImage((p) => (p + 1) % images.length)}
+                        style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", width: "36px", height: "36px", borderRadius: "10px", background: "rgba(255,255,255,0.92)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+                        <ChevronRight style={{ width: "18px", height: "18px", color: "#0F172A" }} />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Badges */}
+                  <div style={{ position: "absolute", top: "14px", left: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {(product.isOrganic || product.is_organic) && (
+                      <span style={{ padding: "5px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: 800, background: "#DCFCE7", color: "#16A34A", border: "1px solid #86EFAC" }}>🌿 Organic</span>
+                    )}
+                    <span style={{ padding: "5px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: 800, background: "rgba(255,255,255,0.92)", color: gradeCfg.color, border: `1.5px solid ${gradeCfg.color}40`, backdropFilter: "blur(8px)" }}>
+                      ⭐ Grade {grade}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#F0FDF4" }}>
+                  <Leaf style={{ width: "80px", height: "80px", color: "#BBF7D0" }} />
                 </div>
-                {/* Nav arrows */}
-                {images.length > 1 && (
-                  <>
-                    <button onClick={() => setActiveImage((p) => (p - 1 + images.length) % images.length)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center bg-slate-905 bg-white/90 border-slate-250/20 text-slate-800 shadow-md hover:scale-105 active:scale-95 cursor-pointer">
-                      <ChevronLeft className="w-5 h-5 text-slate-800" />
-                    </button>
-                    <button onClick={() => setActiveImage((p) => (p + 1) % images.length)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center bg-slate-905 bg-white/90 border-slate-250/20 text-slate-800 shadow-md hover:scale-105 active:scale-95 cursor-pointer">
-                      <ChevronRight className="w-5 h-5 text-slate-800" />
-                    </button>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-emerald-50/10">
-                <Leaf className="w-24 h-24 text-emerald-600/20" />
-              </div>
-            )}
-
-            {/* Badges */}
-            <div className="absolute top-3 left-3 flex flex-col gap-2">
-              {(product.isOrganic || product.is_organic) && (
-                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border-emerald-250 shadow-sm">🌿 Organic</span>
-              )}
-              <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold shadow-sm bg-white/90 backdrop-blur-sm"
-                style={{ color: gradeCfg.color, border: `1.5px solid ${gradeCfg.color}35` }}>
-                ⭐ Grade {grade}
-              </span>
-            </div>
-          </div>
-
-          {/* Thumbnail row */}
-          {images.length > 1 && (
-            <div className="flex gap-2 mt-3">
-              {images.map((img: string, i: number) => (
-                <button key={i} onClick={() => setActiveImage(i)}
-                  className={`w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 transition-all border cursor-pointer ${activeImage === i ? "ring-2 ring-emerald-500 border-transparent scale-[1.02]" : "border-slate-205 border-slate-200 opacity-60 hover:opacity-90"}`}>
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Product Info ──────────────────────────────────────────────────── */}
-        <div className="space-y-5">
-          {/* Title & Category */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-md text-xs text-slate-500 font-bold bg-slate-100 border border-slate-200 uppercase tracking-wider">
-                {productCategoryNormalized}
-              </span>
-              {product.traceabilityCode && (
-                <span className="px-2.5 py-0.5 rounded-md text-xs text-amber-700 bg-amber-50 border-amber-200 font-mono font-bold">
-                  🔗 {product.traceabilityCode}
-                </span>
               )}
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-800 leading-tight">{product.title}</h1>
-            {product.description && (
-              <p className="text-slate-650 text-slate-600 text-sm mt-2 leading-relaxed font-medium">{product.description}</p>
-            )}
-          </div>
 
-          {/* Rating */}
-          {product.rating && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4"
-                    style={{ color: i < Math.round(product.rating) ? "#fbbf24" : "#e2e8f0" }}
-                    fill={i < Math.round(product.rating) ? "#fbbf24" : "none"} />
+            {/* Thumbnails */}
+            {images.length > 1 && (
+              <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+                {images.map((img: string, i: number) => (
+                  <button key={i} className="pd-thumb" onClick={() => setActiveImage(i)}
+                    style={{ width: "72px", height: "72px", borderRadius: "14px", overflow: "hidden", flexShrink: 0, border: activeImage === i ? "2.5px solid #16A34A" : "1.5px solid #DCFCE7", cursor: "pointer", padding: 0, background: "none", opacity: activeImage === i ? 1 : 0.6 }}>
+                    <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  </button>
                 ))}
               </div>
-              <span className="text-slate-800 font-bold text-sm">{product.rating}</span>
-              {product.reviewsCount && (
-                <span className="text-slate-450 font-semibold text-slate-400 text-xs">({product.reviewsCount} reviews)</span>
+            )}
+
+            {/* Delivery assurance cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "16px" }}>
+              {[
+                { icon: <Truck style={{ width: "18px", height: "18px", color: "#0369A1" }} />, title: t("freeDelivery"), sub: t("str_2448HrsFarmToDoor"), bg: "#EFF6FF", border: "#BFDBFE" },
+                { icon: <Shield style={{ width: "18px", height: "18px", color: "#16A34A" }} />, title: "Quality Guarantee", sub: t("aiVerifiedQuality"), bg: "#F0FDF4", border: "#BBF7D0" },
+                { icon: <Zap style={{ width: "18px", height: "18px", color: "#D97706" }} />, title: "AI Verified", sub: "Freshness certified", bg: "#FFFBEB", border: "#FDE68A" },
+                { icon: <CheckCircle style={{ width: "18px", height: "18px", color: "#7C3AED" }} />, title: "Secure Purchase", sub: "100% money back", bg: "#F5F3FF", border: "#DDD6FE" },
+              ].map((item, i) => (
+                <div key={i} className="pd-card-hover" style={{ background: item.bg, border: `1.5px solid ${item.border}`, borderRadius: "16px", padding: "14px", display: "flex", alignItems: "flex-start", gap: "10px", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                  <div style={{ flexShrink: 0, marginTop: "2px" }}>{item.icon}</div>
+                  <div>
+                    <p style={{ fontSize: "12px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{item.title}</p>
+                    <p style={{ fontSize: "11px", color: "#64748B", fontWeight: 500, margin: "2px 0 0" }}>{item.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* RIGHT: Product Info */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            {/* Title & badges row */}
+            <div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+                <span style={{ padding: "4px 12px", borderRadius: "99px", fontSize: "11px", fontWeight: 800, background: "#F1F5F9", color: "#64748B", border: "1px solid #E2E8F0", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  {productCategoryNormalized}
+                </span>
+                {product.traceabilityCode && (
+                  <span style={{ padding: "4px 12px", borderRadius: "99px", fontSize: "11px", fontWeight: 700, background: "#FFFBEB", color: "#D97706", border: "1px solid #FDE68A", fontFamily: "monospace" }}>
+                    🔗 {product.traceabilityCode}
+                  </span>
+                )}
+                <span style={{ padding: "4px 12px", borderRadius: "99px", fontSize: "11px", fontWeight: 800, background: gradeCfg.bg, color: gradeCfg.color, border: `1px solid ${gradeCfg.color}30` }}>
+                  Grade {grade} · {gradeCfg.label}
+                </span>
+              </div>
+
+              <h1 style={{ fontSize: "32px", fontWeight: 900, color: "#0F172A", letterSpacing: "-0.6px", lineHeight: 1.15, margin: "0 0 10px" }}>{product.title}</h1>
+
+              {product.description && (
+                <p style={{ fontSize: "15px", color: "#475569", lineHeight: 1.65, fontWeight: 500, margin: 0 }}>{product.description}</p>
               )}
             </div>
-          )}
 
-          {/* AI Quality Metrics */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="premium-card rounded-3xl shadow-sm p-3 text-center">
-              <div className="text-lg font-extrabold" style={{ color: gradeCfg.color }}>{t("grade")} {grade}</div>
-              <div className="text-slate-450 font-bold uppercase tracking-wider text-[10px] text-slate-400 mt-1">{t("aiQuality")}</div>
-            </div>
-            <div className="premium-card rounded-3xl shadow-sm p-3 text-center">
-              <div className="text-lg font-extrabold text-sky-750 text-sky-600">{product.aiFreshnessScore ?? 95}%</div>
-              <div className="text-slate-450 font-bold uppercase tracking-wider text-[10px] text-slate-400 mt-1">{t("freshness")}</div>
-            </div>
-            <div className="premium-card rounded-3xl shadow-sm p-3 text-center">
-              <div className="text-lg font-extrabold text-purple-755 text-purple-650">{product.aiConfidenceScore ?? 94}%</div>
-              <div className="text-slate-450 font-bold uppercase tracking-wider text-[10px] text-slate-400 mt-1">{t("aiConfidence")}</div>
-            </div>
-          </div>
-
-          {/* Price */}
-          <div className="premium-card rounded-3xl shadow-sm p-4">
-            <div className="flex items-end gap-3 mb-3 pb-3 border-b border-slate-50">
-              <div>
-                <span className="text-3xl font-extrabold text-emerald-600">₹{product.pricePerUnit}</span>
-                <span className="text-slate-450 text-slate-400 text-sm ml-0.5">/ {product.unitType}</span>
+            {/* Rating row */}
+            {product.rating && (
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "14px" }}>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} style={{ width: "18px", height: "18px", color: i < Math.round(product.rating) ? "#F59E0B" : "#E2E8F0", fill: i < Math.round(product.rating) ? "#F59E0B" : "none" }} />
+                  ))}
+                </div>
+                <span style={{ fontWeight: 800, color: "#0F172A", fontSize: "15px" }}>{product.rating}</span>
+                {product.reviewsCount && (
+                  <span style={{ color: "#94A3B8", fontSize: "13px", fontWeight: 600 }}>({product.reviewsCount} reviews)</span>
+                )}
+                {product.farmer?.isVerified && (
+                  <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 700, color: "#16A34A" }}>
+                    <BadgeCheck style={{ width: "15px", height: "15px" }} /> Verified Farmer
+                  </span>
+                )}
               </div>
-              {product.marketPrice && (
-                <div className="text-xs text-slate-500 mb-1.5 font-medium">
-                  <span className="line-through">Retail ₹{product.marketPrice}</span>
-                  <span className="ml-2 text-emerald-600 font-extrabold">
-                    Save ₹{product.marketPrice - product.pricePerUnit}
+            )}
+
+            {/* AI Quality metrics */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+              {[
+                { label: t("aiQuality"), value: `${grade}`, sub: gradeCfg.label, color: gradeCfg.color, bg: gradeCfg.bg },
+                { label: t("freshness"), value: `${product.aiFreshnessScore ?? 95}%`, sub: "AI Score", color: "#0369A1", bg: "#EFF6FF" },
+                { label: t("aiConfidence"), value: `${product.aiConfidenceScore ?? 94}%`, sub: "Confidence", color: "#7C3AED", bg: "#F5F3FF" },
+              ].map((m) => (
+                <div key={m.label} className="pd-card-hover" style={{ background: m.bg, border: `1.5px solid ${m.color}25`, borderRadius: "16px", padding: "14px", textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                  <div style={{ fontSize: "22px", fontWeight: 900, color: m.color }}>{m.value}</div>
+                  <div style={{ fontSize: "10px", fontWeight: 800, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "4px" }}>{m.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── PRICE CARD ── */}
+            <div style={{ ...cardStyle, padding: "24px", background: "linear-gradient(135deg, #F0FDF4 0%, #ffffff 100%)" }}>
+              {/* Price row */}
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "16px", marginBottom: "16px", paddingBottom: "16px", borderBottom: "1.5px solid #F1F5F9" }}>
+                <div>
+                  <span style={{ fontSize: "42px", fontWeight: 900, color: "#16A34A", letterSpacing: "-1px" }}>₹{product.pricePerUnit}</span>
+                  <span style={{ fontSize: "15px", color: "#94A3B8", fontWeight: 600, marginLeft: "4px" }}>/ {product.unitType}</span>
+                </div>
+                <div style={{ marginBottom: "8px" }}>
+                  {product.marketPrice && (
+                    <div>
+                      <span style={{ fontSize: "14px", color: "#94A3B8", textDecoration: "line-through", fontWeight: 600 }}>Retail ₹{product.marketPrice}</span>
+                      {savings && savings > 0 && (
+                        <span style={{ marginLeft: "10px", fontSize: "13px", fontWeight: 800, color: "#EF4444", background: "#FEF2F2", padding: "3px 10px", borderRadius: "99px", border: "1px solid #FECACA" }}>
+                          Save ₹{savings}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* AI Recommended price */}
+              {product.aiRecommendedPrice && (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)", border: "1px solid #DDD6FE", borderRadius: "12px", marginBottom: "16px" }}>
+                  <Sparkles style={{ width: "16px", height: "16px", color: "#7C3AED", flexShrink: 0 }} />
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#7C3AED" }}>
+                    AI Recommended: ₹{product.aiRecommendedPrice}/{product.unitType}
                   </span>
                 </div>
               )}
-            </div>
-            {product.aiRecommendedPrice && (
-              <div className="flex items-center gap-2 text-xs mb-3 text-sky-700 bg-sky-50/50 border-sky-100/50 px-2.5 py-1.5 rounded-xl font-bold">
-                <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                AI Recommended: ₹{product.aiRecommendedPrice}/{product.unitType}
-              </div>
-            )}
 
-            {/* Quantity picker */}
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Quantity:</span>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-200 transition-colors border-0 cursor-pointer">
-                  <Minus className="w-4 h-4 text-slate-600" />
-                </button>
-                <span className="text-slate-800 font-bold font-mono w-12 text-center text-sm">{quantity} {product.unitType}</span>
-                <button onClick={() => setQuantity((q) => Math.min(q + 1, product.quantityAvailable ?? 999))}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-200 transition-colors border-0 cursor-pointer">
-                  <Plus className="w-4 h-4 text-slate-600" />
-                </button>
-              </div>
-              <span className="text-slate-400 text-xs font-medium ml-auto">
-                Total: <span className="text-slate-800 font-extrabold text-sm ml-0.5">₹{(product.pricePerUnit * quantity).toFixed(0)}</span>
-              </span>
-            </div>
-
-            <div className="flex gap-3">
-              <button onClick={() => router.push(`/consumer/marketplace/checkout?productId=${product.id}&quantity=${quantity}`)}
-                id="buy-now-btn"
-                className="flex-1 py-3.5 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 cursor-pointer border-0"
-                style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.3)" }}>
-                <ShoppingCart className="w-4 h-4" />{t("buyNow")}
-              </button>
-              <button onClick={() => wishlistActive ? removeFromWishlist(product.id) : addToWishlist({
-                  id: product.id, title: product.title, pricePerUnit: product.pricePerUnit,
-                  unitType: product.unitType, imageUrl: product.imageUrl, qualityGrade: product.qualityGrade,
-                  farmerName: product.farmer?.fullName, farmerId: product.farmer?.id, category: productCategoryNormalized,
-                })}
-                id="wishlist-btn"
-                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 cursor-pointer"
-                style={{
-                  background: wishlistActive ? "rgba(239,68,68,0.12)" : "rgba(0,0,0,0.03)",
-                  border: `1px solid ${wishlistActive ? "rgba(239,68,68,0.25)" : "rgba(0,0,0,0.06)"}`,
-                }}>
-                <Heart className={`w-5 h-5 ${wishlistActive ? "text-red-500 fill-red-500" : "text-slate-500"}`} />
-              </button>
-            </div>
-
-            {orderError && (
-              <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-650 bg-rose-50 border-rose-100 font-semibold">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />{orderError}
-              </div>
-            )}
-          </div>
-
-          {/* Delivery info */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="premium-card rounded-3xl shadow-sm p-3 flex items-center gap-2.5">
-              <Truck className="w-4.5 h-4.5 text-sky-650 text-sky-600 shrink-0" />
-              <div>
-                <p className="text-slate-805 text-slate-800 text-xs font-bold">{t("freeDelivery")}</p>
-                <p className="text-slate-450 text-slate-400 text-[11px] font-semibold">{t("str_2448HrsFarmToDoor")}</p>
-              </div>
-            </div>
-            <div className="premium-card rounded-3xl shadow-sm p-3 flex items-center gap-2.5">
-              <Shield className="w-4.5 h-4.5 text-emerald-655 text-emerald-600 shrink-0" />
-              <div>
-                <p className="text-slate-805 text-slate-800 text-xs font-bold">Quality Guarantee</p>
-                <p className="text-slate-450 text-slate-400 text-[11px] font-semibold">{t("aiVerifiedQuality")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Bottom sections grid ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Left col: Farmer + Certificates */}
-        <div className="space-y-5">
-          {/* Farmer Profile */}
-          {product.farmer && (
-            <div className="premium-card rounded-3xl shadow-sm p-5">
-              <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
-                <User className="w-4 h-4 text-emerald-600" />
-                {t("farmerProfile")}
-              </h3>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                  style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-                  {product.farmer.fullName?.charAt(0) || "F"}
+              {/* Quantity picker */}
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em" }}>Quantity:</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0", background: "#F1F5F9", borderRadius: "14px", overflow: "hidden", border: "1.5px solid #E2E8F0" }}>
+                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    style={{ width: "44px", height: "44px", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "#DCFCE7")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    <Minus style={{ width: "16px", height: "16px", color: "#0F172A" }} />
+                  </button>
+                  <span style={{ width: "80px", textAlign: "center", fontSize: "15px", fontWeight: 800, color: "#0F172A", fontFamily: "monospace" }}>{quantity} {product.unitType}</span>
+                  <button onClick={() => setQuantity((q) => Math.min(q + 1, product.quantityAvailable ?? 999))}
+                    style={{ width: "44px", height: "44px", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s" }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "#DCFCE7")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    <Plus style={{ width: "16px", height: "16px", color: "#0F172A" }} />
+                  </button>
                 </div>
-                <div>
-                  <p className="text-slate-850 text-slate-800 font-bold text-sm">{product.farmer.fullName}</p>
-                  <div className="flex items-center gap-1 mt-0.5">
+                <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                  <p style={{ fontSize: "11px", color: "#94A3B8", fontWeight: 600, margin: "0 0 2px" }}>Total</p>
+                  <p style={{ fontSize: "22px", fontWeight: 900, color: "#0F172A", margin: 0 }}>₹{totalPrice}</p>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+                <button
+                  id="buy-now-btn"
+                  className="pd-btn-primary"
+                  onClick={() => router.push(`/consumer/marketplace/checkout?productId=${product.id}&quantity=${quantity}`)}
+                  style={{ flex: 1, height: "52px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)", color: "#ffffff", fontWeight: 800, fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", cursor: "pointer", boxShadow: "0 6px 20px rgba(22,163,74,0.28)" }}>
+                  <ShoppingCart style={{ width: "18px", height: "18px" }} />
+                  {t("buyNow")}
+                </button>
+                <button
+                  id="wishlist-btn"
+                  onClick={() => wishlistActive ? removeFromWishlist(product.id) : addToWishlist({
+                    id: product.id, title: product.title, pricePerUnit: product.pricePerUnit,
+                    unitType: product.unitType, imageUrl: product.imageUrl, qualityGrade: product.qualityGrade,
+                    farmerName: product.farmer?.fullName, farmerId: product.farmer?.id, category: productCategoryNormalized,
+                  })}
+                  style={{ width: "52px", height: "52px", borderRadius: "14px", border: `1.5px solid ${wishlistActive ? "#FECACA" : "#E2E8F0"}`, background: wishlistActive ? "#FEF2F2" : "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }}>
+                  <Heart style={{ width: "20px", height: "20px", color: wishlistActive ? "#EF4444" : "#94A3B8", fill: wishlistActive ? "#EF4444" : "none" }} />
+                </button>
+              </div>
+
+              {/* Compare link */}
+              <Link href={`/consumer/compare?id=${productId}`}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", height: "44px", borderRadius: "12px", border: "1.5px solid #DDD6FE", background: "transparent", color: "#7C3AED", fontWeight: 700, fontSize: "14px", textDecoration: "none", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#F5F3FF"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
+                <BarChart2 style={{ width: "16px", height: "16px" }} />
+                {t("compareWithOtherFarmers")}
+              </Link>
+
+              {orderError && (
+                <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "12px", background: "#FEF2F2", border: "1px solid #FECACA", fontSize: "13px", color: "#DC2626", fontWeight: 600 }}>
+                  <AlertCircle style={{ width: "15px", height: "15px", flexShrink: 0 }} />{orderError}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ── BOTTOM SECTIONS ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px", marginBottom: "32px" }}>
+
+          {/* LEFT COL: Farmer + Storage + Certificates */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            {/* Farmer Profile Card */}
+            {product.farmer && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                className="pd-card-hover" style={{ ...cardStyle, padding: "24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px", paddingBottom: "16px", borderBottom: "1.5px solid #F1F5F9" }}>
+                  <div style={{ width: "34px", height: "34px", borderRadius: "10px", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <User style={{ width: "18px", height: "18px", color: "#16A34A" }} />
+                  </div>
+                  <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{t("farmerProfile")}</h3>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+                  {product.farmer.avatarUrl ? (
+                    <img src={product.farmer.avatarUrl} alt={product.farmer.fullName} style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: "2.5px solid #BBF7D0" }} />
+                  ) : (
+                    <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg, #16A34A, #22C55E)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: "22px", flexShrink: 0, border: "2.5px solid #BBF7D0" }}>
+                      {product.farmer.fullName?.charAt(0) || "F"}
+                    </div>
+                  )}
+                  <div>
+                    <p style={{ fontSize: "16px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{product.farmer.fullName}</p>
                     {product.farmer.isVerified && (
-                      <span className="flex items-center gap-1 text-xs text-emerald-600 font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />{t("verified")}
-                      </span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
+                        <BadgeCheck style={{ width: "14px", height: "14px", color: "#16A34A" }} />
+                        <span style={{ fontSize: "12px", fontWeight: 700, color: "#16A34A" }}>{t("verified")}</span>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-              <div className="space-y-2 text-xs text-slate-500 font-medium">
-                {product.farmer.trustScore && (
-                  <div className="flex items-center justify-between">
-                    <span>{t("trustScore")}</span>
-                    <span className="text-amber-700 font-bold">⭐ {product.farmer.trustScore}/5</span>
-                  </div>
-                )}
-                {(product.location || product.farmer.address) && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    {product.location || product.farmer.address}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
-          {/* Certificates */}
-          {product.certificates?.length > 0 && (
-            <div className="premium-card rounded-3xl shadow-sm p-5">
-              <h3 className="text-slate-800 font-extrabold text-sm mb-3 flex items-center gap-2">
-                <Award className="w-4 h-4 text-amber-600" />
-                {t("certificates")}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {product.certificates.map((cert: string, i: number) => (
-                  <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 border-amber-200 text-amber-700">
-                    🏅 {cert}
-                  </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+                  {product.farmer.trustScore && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
+                      <span style={{ color: "#64748B", fontWeight: 600 }}>{t("trustScore")}</span>
+                      <span style={{ fontWeight: 800, color: "#D97706" }}>⭐ {product.farmer.trustScore}/5</span>
+                    </div>
+                  )}
+                  {(product.location || product.farmer.address) && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#64748B", fontWeight: 500 }}>
+                      <MapPin style={{ width: "14px", height: "14px", color: "#94A3B8", flexShrink: 0 }} />
+                      {product.location || product.farmer.address}
+                    </div>
+                  )}
+                  {product.isOrganic && (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 12px", borderRadius: "99px", background: "#DCFCE7", border: "1px solid #86EFAC", fontSize: "12px", fontWeight: 700, color: "#16A34A", width: "fit-content" }}>
+                      <Leaf style={{ width: "13px", height: "13px" }} /> Organic Certified
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <Link href={`/consumer/marketplace`} style={{ flex: 1, height: "38px", borderRadius: "10px", border: "1.5px solid #BBF7D0", background: "transparent", color: "#16A34A", fontWeight: 700, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#F0FDF4"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
+                    View Farmer
+                  </Link>
+                  {product.farmer.phone && (
+                    <a href={`tel:${product.farmer.phone}`} style={{ flex: 1, height: "38px", borderRadius: "10px", border: "1.5px solid #E2E8F0", background: "transparent", color: "#64748B", fontWeight: 700, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", gap: "5px", transition: "all 0.2s" }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "#F8FAFC"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
+                      <Phone style={{ width: "13px", height: "13px" }} /> Contact
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Certificates */}
+            {product.certificates?.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                className="pd-card-hover" style={{ ...cardStyle, padding: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                  <Award style={{ width: "18px", height: "18px", color: "#D97706" }} />
+                  <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{t("certificates")}</h3>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {product.certificates.map((cert: string, i: number) => (
+                    <span key={i} style={{ padding: "5px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: 700, background: "#FFFBEB", border: "1px solid #FDE68A", color: "#D97706" }}>
+                      🏅 {cert}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Storage Guide */}
+            {product.storageCondition && (
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+                className="pd-card-hover" style={{ ...cardStyle, padding: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+                  <Thermometer style={{ width: "18px", height: "18px", color: "#0369A1" }} />
+                  <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>Storage Guide</h3>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {[
+                    { icon: <Thermometer style={{ width: "15px", height: "15px", color: "#0369A1" }} />, text: product.storageTemp, label: "Temperature" },
+                    { icon: <Droplets style={{ width: "15px", height: "15px", color: "#0EA5E9" }} />, text: product.storageCondition, label: "Conditions" },
+                    ...(product.shelfLifeDays ? [{ icon: <Clock style={{ width: "15px", height: "15px", color: "#7C3AED" }} />, text: `${product.shelfLifeDays} ${t("days")}`, label: "Shelf Life" }] : []),
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "#F8FAFC", border: "1px solid #F1F5F9", borderRadius: "12px" }}>
+                      {item.icon}
+                      <div>
+                        <p style={{ fontSize: "10px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>{item.label}</p>
+                        <p style={{ fontSize: "13px", fontWeight: 600, color: "#334155", margin: "2px 0 0" }}>{item.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* MIDDLE COL: Nutrition + Crop Passport */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            {/* Nutrition Facts */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+              className="pd-card-hover" style={{ ...cardStyle, padding: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px", paddingBottom: "14px", borderBottom: "1.5px solid #F1F5F9" }}>
+                <Scale style={{ width: "18px", height: "18px", color: "#16A34A" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>
+                  Nutrition Facts <span style={{ fontSize: "12px", color: "#94A3B8", fontWeight: 500 }}>{t("per100g")}</span>
+                </h3>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                {[
+                  { label: "Calories", value: `${nutrition.calories} kcal`, color: "#EF4444", bg: "#FEF2F2", icon: <Flame style={{ width: "14px", height: "14px", color: "#EF4444" }} /> },
+                  { label: "Protein", value: nutrition.protein, color: "#3B82F6", bg: "#EFF6FF", icon: <Dumbbell style={{ width: "14px", height: "14px", color: "#3B82F6" }} /> },
+                  { label: "Carbs", value: nutrition.carbs, color: "#D97706", bg: "#FFFBEB", icon: <Wheat style={{ width: "14px", height: "14px", color: "#D97706" }} /> },
+                  { label: "Fiber", value: nutrition.fiber, color: "#16A34A", bg: "#F0FDF4", icon: <Leaf style={{ width: "14px", height: "14px", color: "#16A34A" }} /> },
+                  { label: "Fat", value: nutrition.fat, color: "#7C3AED", bg: "#F5F3FF", icon: <Droplets style={{ width: "14px", height: "14px", color: "#7C3AED" }} /> },
+                  { label: "Vitamins", value: nutrition.vitamin, color: "#0D9488", bg: "#F0FDFA", icon: <Apple style={{ width: "14px", height: "14px", color: "#0D9488" }} /> },
+                ].map((n) => (
+                  <div key={n.label} className="pd-card-hover" style={{ background: n.bg, border: `1px solid ${n.color}20`, borderRadius: "14px", padding: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                      {n.icon}
+                      <p style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#94A3B8", margin: 0 }}>{n.label}</p>
+                    </div>
+                    <p style={{ fontSize: "16px", fontWeight: 900, color: n.color, margin: 0 }}>{n.value}</p>
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
 
-          {/* Storage Info */}
-          {product.storageCondition && (
-            <div className="premium-card rounded-3xl shadow-sm p-5">
-              <h3 className="text-slate-800 font-extrabold text-sm mb-3 flex items-center gap-2">
-                <Thermometer className="w-4 h-4 text-blue-600" />
-                Storage Guide
-              </h3>
-              <div className="space-y-2 text-xs text-slate-500 font-semibold">
-                <div className="flex items-start gap-2">
-                  <Thermometer className="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
-                  <span>{product.storageTemp}</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Droplets className="w-3.5 h-3.5 shrink-0 mt-0.5 text-sky-505 text-sky-500" />
-                  <span>{product.storageCondition}</span>
-                </div>
-                {product.shelfLifeDays && (
-                  <div className="flex items-start gap-2">
-                    <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-purple-500" />
-                    <span>Shelf life: {product.shelfLifeDays} {t("days")}</span>
+              <div style={{ marginTop: "14px", padding: "12px 14px", borderRadius: "12px", background: "#F0FDF4", border: "1px solid #BBF7D0", fontSize: "13px", color: "#16A34A", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+                <CheckCircle style={{ width: "16px", height: "16px", flexShrink: 0 }} />
+                {nutrition.benefit}
+              </div>
+            </motion.div>
+
+            {/* Digital Crop Passport */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="pd-card-hover" style={{ ...cardStyle, padding: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px", paddingBottom: "14px", borderBottom: "1.5px solid #F1F5F9" }}>
+                <QrCode style={{ width: "18px", height: "18px", color: "#7C3AED" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{t("digitalCropPassport")}</h3>
+              </div>
+
+              <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                {/* QR Code Visual */}
+                <div style={{ width: "88px", height: "88px", borderRadius: "16px", background: "#F5F3FF", border: "1.5px solid #DDD6FE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "2px", width: "60px", height: "60px" }}>
+                    {qrPattern.map((isPurple, i) => (
+                      <div key={i} style={{ borderRadius: "2px", background: isPurple ? "#7C3AED" : "transparent", opacity: 0.85 }} />
+                    ))}
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Middle col: Nutrition + Traceability */}
-        <div className="space-y-5">
-          {/* Nutrition Facts */}
-          <div className="premium-card rounded-3xl shadow-sm p-5">
-            <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-emerald-600" />
-              Nutrition Facts <span className="text-slate-400 text-xs font-normal capitalize tracking-normal font-sans">{t("per100g")}</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Calories", value: `${nutrition.calories} kcal`, color: "#ef4444" },
-                { label: "Protein", value: nutrition.protein, color: "#3b82f6" },
-                { label: "Carbs", value: nutrition.carbs, color: "#d97706" },
-                { label: "Fiber", value: nutrition.fiber, color: "#10b981" },
-                { label: "Fat", value: nutrition.fat, color: "#8b5cf6" },
-                { label: "Key Vitamins", value: nutrition.vitamin, color: "#0d9488" },
-              ].map((n) => (
-                <div key={n.label} className="rounded-xl p-2.5 bg-slate-50 border-slate-100">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-450 text-slate-400">{n.label}</p>
-                  <p className="text-sm font-extrabold mt-0.5" style={{ color: n.color }}>{n.value}</p>
                 </div>
-              ))}
-            </div>
-            <div className="mt-3 px-3 py-2 rounded-xl text-xs text-emerald-700 bg-emerald-50 border-emerald-100 font-semibold">
-              ✅ Health Benefit: {nutrition.benefit}
-            </div>
-          </div>
 
-          {/* Digital Crop Passport */}
-          <div className="premium-card rounded-3xl shadow-sm p-5">
-            <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-purple-650 text-purple-600" />
-              {t("digitalCropPassport")}
-            </h3>
-            {/* QR Code visual (simulated) */}
-            <div className="flex items-start gap-4">
-              <div className="w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-50 border-slate-150">
-                <div className="grid grid-cols-5 grid-rows-5 gap-0.5 w-14 h-14">
-                  {qrPattern.map((isPurple, i) => (
-                    <div key={i} className="rounded-sm"
-                      style={{ background: isPurple ? "#8b5cf6" : "transparent", opacity: 0.8 }} />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {[
+                    { label: t("cropId"), value: product.id?.substring(0, 8).toUpperCase(), mono: true },
+                    { label: "Traceability", value: product.traceabilityCode || "AGX-2026", mono: true, accent: "#D97706" },
+                    { label: t("harvest"), value: product.harvestDate ? (mounted ? new Date(product.harvestDate).toLocaleDateString("en-IN") : product.harvestDate.substring(0, 10)) : "Recent", mono: false },
+                    { label: "Shelf Life", value: `${product.shelfLifeDays ?? "N/A"} ${t("days")}`, mono: false },
+                  ].map(item => (
+                    <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px" }}>
+                      <span style={{ color: "#94A3B8", fontWeight: 600 }}>{item.label}</span>
+                      <span style={{ fontWeight: 800, color: item.accent || "#0F172A", fontFamily: item.mono ? "monospace" : "inherit", fontSize: item.mono ? "11px" : "12px" }}>{item.value}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-              <div className="flex-1 space-y-1.5 text-xs text-slate-500 font-medium">
-                <div className="flex justify-between">
-                  <span>{t("cropId")}</span>
-                  <span className="text-slate-800 font-bold font-mono">{product.id?.substring(0, 8).toUpperCase()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Traceability</span>
-                  <span className="text-amber-705 text-amber-700 font-mono font-bold text-[10px]">{product.traceabilityCode || "AGX-2026"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t("harvest")}</span>
-                  <span className="text-slate-855 text-slate-800 font-bold">
-                    {product.harvestDate
-                      ? (mounted
-                          ? new Date(product.harvestDate).toLocaleDateString("en-IN")
-                          : product.harvestDate.substring(0, 10))
-                      : "Recent"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Shelf Life</span>
-                  <span className="text-slate-855 text-slate-800 font-bold">{product.shelfLifeDays ?? "N/A"} {t("days")}</span>
-                </div>
+
+              <div style={{ marginTop: "14px", padding: "10px 14px", borderRadius: "12px", background: "#F5F3FF", border: "1px solid #DDD6FE", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Sparkles style={{ width: "14px", height: "14px", color: "#7C3AED", flexShrink: 0 }} />
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#7C3AED" }}>AI Verified — BlockChain Traced</span>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
 
-        {/* Right col: Traceability Timeline */}
-        <div className="space-y-5">
-          {/* Full Traceability Timeline */}
-          <div className="premium-card rounded-3xl shadow-sm p-5">
-            <h3 className="text-slate-800 font-extrabold text-sm mb-4 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-sky-655 text-sky-600" />
-              {t("farmToTableJourney")}
-            </h3>
-            <div>
-              {timeline.map((step, i) => (
-                <TraceabilityStep key={i} step={step} isLast={i === timeline.length - 1} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+          {/* RIGHT COL: Farm-to-Table Timeline */}
+          <div>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="pd-card-hover" style={{ ...cardStyle, padding: "24px", height: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px", paddingBottom: "14px", borderBottom: "1.5px solid #F1F5F9" }}>
+                <Globe style={{ width: "18px", height: "18px", color: "#0369A1" }} />
+                <h3 style={{ fontSize: "15px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{t("farmToTableJourney")}</h3>
+              </div>
 
-      {/* ── AI SHOPPING ASSISTANT ─────────────────────────────────────────────── */}
-      <div className="mt-6">
-        <button id="ai-assistant-toggle"
-          onClick={() => setChatOpen(!chatOpen)}
-          className="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all hover:scale-[1.005] bg-emerald-50 border-emerald-150 border-emerald-100 text-emerald-705 text-emerald-700 cursor-pointer"
-          style={{
-            boxShadow: "0 2px 8px rgba(16,185,129,0.08)",
-          }}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100/70 border-emerald-200">
-              <Bot className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="text-left">
-              <p className="text-slate-800 font-bold text-sm">{t("aiAssistant")}</p>
-              <p className="text-slate-500 text-xs font-medium">{t("askMeAboutFreshnessPriceRecipe")}</p>
-            </div>
-          </div>
-          <Sparkles className="w-5 h-5 text-emerald-600 animate-pulse" />
-        </button>
-
-        <AnimatePresence>
-          {chatOpen && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-              <div className="premium-card rounded-b-3xl rounded-tl-none rounded-tr-none p-4 border-t-0 shadow-md">
-                {/* Quick questions */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {QUICK_QUESTIONS.map((q) => (
-                    <button key={q} onClick={() => sendChat(q)}
-                      className="px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-[1.03] bg-emerald-50 hover:bg-emerald-100 border-emerald-100 text-emerald-700 cursor-pointer">
-                      {q}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Chat messages */}
-                <div className="space-y-3 max-h-64 overflow-y-auto mb-4 pr-1">
-                  {chatMessages.map((msg, i) => <ChatBubble key={i} msg={msg} />)}
-                  {chatLoading && (
-                    <div className="flex gap-2">
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center bg-emerald-50 border-emerald-100">
-                        <Bot className="w-4 h-4 text-emerald-600" />
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {timeline.map((step, i) => (
+                  <div key={i} style={{ display: "flex", gap: "14px" }}>
+                    {/* Left: dot + line */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, width: "36px" }}>
+                      <div style={{
+                        width: "36px", height: "36px", borderRadius: "50%",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "16px", flexShrink: 0,
+                        background: step.done ? "linear-gradient(135deg, #F0FDF4, #DCFCE7)" : "#F8FAFC",
+                        border: `2px solid ${step.done ? "#16A34A" : "#E2E8F0"}`,
+                        boxShadow: step.done ? "0 0 0 4px rgba(22,163,74,0.08)" : "none",
+                        opacity: step.done ? 1 : 0.5,
+                        transition: "all 0.3s",
+                      }}>
+                        {step.icon}
                       </div>
-                      <div className="px-3 py-2 rounded-2xl text-xs bg-emerald-50/20 border-emerald-100/50">
-                        <div className="flex gap-1">
+                      {i < timeline.length - 1 && (
+                        <div style={{ width: "2px", flex: 1, minHeight: "20px", margin: "4px 0", background: step.done ? "linear-gradient(to bottom, #16A34A, #BBF7D0)" : "#E2E8F0" }} />
+                      )}
+                    </div>
+
+                    {/* Right: content */}
+                    <div style={{ paddingBottom: i < timeline.length - 1 ? "16px" : "0", flex: 1 }}>
+                      <p style={{ fontSize: "13px", fontWeight: 800, color: step.done ? "#0F172A" : "#94A3B8", margin: 0 }}>{step.label}</p>
+                      <p style={{ fontSize: "11px", color: "#94A3B8", fontWeight: 500, marginTop: "3px" }}>{step.date}</p>
+                      {step.done && (
+                        <div style={{ marginTop: "4px", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "10px", fontWeight: 700, color: "#16A34A" }}>
+                          <CheckCircle style={{ width: "11px", height: "11px" }} /> Complete
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* ── AI SHOPPING ASSISTANT ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ marginBottom: "32px" }}>
+          {/* Toggle header */}
+          <button
+            id="ai-assistant-toggle"
+            onClick={() => setChatOpen(!chatOpen)}
+            style={{
+              width: "100%", padding: "18px 24px", borderRadius: chatOpen ? "22px 22px 0 0" : "22px",
+              background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)",
+              border: "1.5px solid #BBF7D0",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              cursor: "pointer", transition: "all 0.2s",
+              borderBottomColor: chatOpen ? "transparent" : "#BBF7D0",
+            }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <div style={{ width: "44px", height: "44px", borderRadius: "14px", background: "linear-gradient(135deg, #16A34A, #22C55E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(22,163,74,0.28)" }}>
+                <Bot style={{ width: "22px", height: "22px", color: "#ffffff" }} />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <p style={{ fontSize: "16px", fontWeight: 800, color: "#0F172A", margin: 0 }}>{t("aiAssistant")}</p>
+                <p style={{ fontSize: "13px", color: "#64748B", fontWeight: 500, margin: "2px 0 0" }}>{t("askMeAboutFreshnessPriceRecipe")}</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 800, color: "#16A34A", background: "#DCFCE7", padding: "4px 10px", borderRadius: "99px", border: "1px solid #86EFAC" }}>Powered by Gemini AI</span>
+              <Sparkles style={{ width: "20px", height: "20px", color: "#16A34A" }} />
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {chatOpen && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                <div style={{ background: "#ffffff", border: "1.5px solid #BBF7D0", borderTop: "none", borderRadius: "0 0 22px 22px", padding: "20px 24px 24px" }}>
+                  {/* Quick questions */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "18px" }}>
+                    {QUICK_QUESTIONS.map((q) => (
+                      <button key={q} onClick={() => sendChat(q)}
+                        style={{ padding: "7px 14px", borderRadius: "99px", fontSize: "12px", fontWeight: 700, background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#16A34A", cursor: "pointer", transition: "all 0.15s" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "#DCFCE7"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "#F0FDF4"; }}>
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Chat messages */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "280px", overflowY: "auto", marginBottom: "16px", paddingRight: "4px" }}>
+                    {chatMessages.map((msg, i) => <ChatBubble key={i} msg={msg} />)}
+                    {chatLoading && (
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#DCFCE7", border: "1px solid #86EFAC", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Bot style={{ width: "15px", height: "15px", color: "#16A34A" }} />
+                        </div>
+                        <div style={{ padding: "10px 14px", borderRadius: "16px", borderTopLeftRadius: "4px", background: "#F0FDF4", border: "1px solid #BBF7D0", display: "flex", gap: "5px", alignItems: "center" }}>
                           {[0, 1, 2].map((i) => (
-                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-550 bg-emerald-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                            <div key={i} style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#16A34A", animation: "bounce 1s infinite", animationDelay: `${i * 0.15}s` }} />
                           ))}
                         </div>
                       </div>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
+
+                  {/* Input */}
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && sendChat(chatInput)}
+                      placeholder="Ask about freshness, price, recipes..."
+                      style={{ flex: 1, height: "48px", padding: "0 16px", borderRadius: "14px", border: "1.5px solid #BBF7D0", background: "#F8FAFC", fontSize: "14px", color: "#0F172A", outline: "none", fontFamily: "inherit", transition: "border-color 0.2s" }}
+                      onFocus={e => { e.target.style.borderColor = "#16A34A"; e.target.style.boxShadow = "0 0 0 3px rgba(22,163,74,0.1)"; }}
+                      onBlur={e => { e.target.style.borderColor = "#BBF7D0"; e.target.style.boxShadow = "none"; }}
+                    />
+                    <button
+                      onClick={() => sendChat(chatInput)}
+                      disabled={chatLoading || !chatInput.trim()}
+                      style={{ width: "48px", height: "48px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #16A34A, #22C55E)", display: "flex", alignItems: "center", justifyContent: "center", cursor: chatLoading || !chatInput.trim() ? "not-allowed" : "pointer", opacity: chatLoading || !chatInput.trim() ? 0.5 : 1, transition: "all 0.2s", boxShadow: "0 4px 14px rgba(22,163,74,0.28)" }}>
+                      <Send style={{ width: "18px", height: "18px", color: "#ffffff" }} />
+                    </button>
+                  </div>
                 </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
-                {/* Input */}
-                <div className="flex gap-2">
-                  <input value={chatInput} onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendChat(chatInput)}
-                    placeholder="Ask about freshness, price, recipes..."
-                    className="flex-1 py-2.5 px-4 rounded-xl text-sm bg-slate-50 border-slate-205 text-slate-800 focus:outline-none focus:border-emerald-305 focus:border-emerald-300" />
-                  <button onClick={() => sendChat(chatInput)} disabled={chatLoading || !chatInput.trim()}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-105 disabled:opacity-40 border-0 cursor-pointer"
-                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-                    <Send className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
-
-      {/* ── Similar Products ─────────────────────────────────────────────────── */}
-      <div className="mt-8">
-        <h2 className="text-slate-800 font-extrabold text-lg mb-4">🔗 Compare Similar Products</h2>
-        <Link href={`/consumer/compare?id=${productId}`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-purple-700 bg-purple-50 border-purple-105 border-purple-200 hover:bg-purple-100 transition-all hover:scale-[1.02] no-underline">
-          <BarChart2 className="w-4 h-4" />
-          {t("compareWithOtherFarmers")}
-          <ArrowLeft className="w-4 h-4 rotate-180" />
-        </Link>
-      </div>
-
-
     </div>
   );
 }

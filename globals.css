@@ -1196,23 +1196,23 @@ body.screen-reader-mode *:focus {
 }
 
 /* ============================================================
-   AI ASSISTANT SLIDING PANEL & FLOATING WORKSPACE
+   AI ASSISTANT SLIDING PANEL — PREMIUM LIGHT GREEN THEME
    ============================================================ */
 .ag-ai-panel {
   position: fixed !important;
   top: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  width: clamp(240px, 15vw, 290px) !important;
-  min-width: clamp(240px, 15vw, 290px) !important;
-  max-width: clamp(240px, 15vw, 290px) !important;
+  width: clamp(320px, 28vw, 420px) !important;
+  min-width: clamp(320px, 28vw, 420px) !important;
+  max-width: clamp(320px, 28vw, 420px) !important;
   z-index: 45 !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
   background: #ffffff !important;
-  box-shadow: -4px 0 40px rgba(15, 23, 42, 0.08) !important;
-  border-left: 1px solid var(--border-default) !important;
+  box-shadow: -6px 0 48px rgba(22, 163, 74, 0.08), -2px 0 12px rgba(0,0,0,0.04) !important;
+  border-left: 1.5px solid #DCFCE7 !important;
 }
 
 @media (max-width: 1023px) {
@@ -1224,171 +1224,209 @@ body.screen-reader-mode *:focus {
   }
 }
 
+/* ── Workspace root: clean white ───────────────────────────────── */
 .ag-ai-workspace-root {
-  background-color: #0f172a !important;
-  background: #0f172a !important;
-  color: #f8fafc !important;
+  background: #F8FFF8 !important;
+  color: #0F172A !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
+/* ── Header: soft green gradient ──────────────────────────────── */
 .ag-chat-header {
-  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 20px rgba(22, 163, 74, 0.18) !important;
 }
 
+/* ── Context strip: very light ─────────────────────────────────── */
 .ag-chat-context-strip {
-  background-color: #1e293b !important;
-  background: #1e293b !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #F0FDF4 !important;
+  border-bottom: 1px solid #DCFCE7 !important;
 }
 .ag-chat-context-strip span,
 .ag-chat-context-strip p {
-  color: #cbd5e1 !important;
+  color: #4B5563 !important;
 }
 
+/* ── Messages area: off-white ──────────────────────────────────── */
 .ag-chat-messages-container {
   flex: 1 1 0% !important;
   min-height: 0 !important;
   overflow-y: scroll !important;
   overflow-x: hidden !important;
-  background-color: #0f172a !important;
-  background: #0f172a !important;
+  background: #F8FFF8 !important;
 }
 
-.ag-chat-messages-container h2 { color: #f8fafc !important; }
-.ag-chat-messages-container p,
-.ag-chat-messages-container span { color: #cbd5e1 !important; }
+/* Welcome screen text */
+.ag-chat-messages-container h2 { color: #0F172A !important; }
+.ag-chat-messages-container p  { color: #475569 !important; }
+.ag-chat-messages-container span { color: #475569 !important; }
 
+/* Suggestion buttons in welcome screen */
 .ag-chat-messages-container button {
-  background-color: #1e293b !important;
-  background: #1e293b !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #f8fafc !important;
-  border-radius: 1rem !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  background: #ffffff !important;
+  border: 1.5px solid #DCFCE7 !important;
+  color: #0F172A !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.06) !important;
   transition: all 0.2s ease !important;
+  font-weight: 600 !important;
 }
 .ag-chat-messages-container button:hover {
-  background-color: #26354a !important;
+  background: #F0FDF4 !important;
+  border-color: #22C55E !important;
   transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.12) !important;
 }
 .ag-chat-messages-container button svg {
-  color: #22c55e !important;
+  color: #16A34A !important;
 }
 
+/* ── User message bubble ───────────────────────────────────────── */
 .ag-chat-messages-container div[class*="justify-end"] > div {
-  background: #2563eb !important;
-  color: #f8fafc !important;
-  border-radius: 1.25rem 1.25rem 0.25rem 1.25rem !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+  background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%) !important;
+  color: #ffffff !important;
+  border-radius: 20px 20px 4px 20px !important;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.22) !important;
+  border: none !important;
 }
 .ag-chat-messages-container div[class*="justify-end"] p,
 .ag-chat-messages-container div[class*="justify-end"] span {
-  color: rgba(248, 250, 252, 0.7) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
 }
 
-.ag-chat-messages-container div[class*="justify-start"] > div {
-  background: #1e293b !important;
-  color: #f8fafc !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 1.25rem 1.25rem 1.25rem 0.25rem !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+/* ── AI message bubble ─────────────────────────────────────────── */
+.ag-chat-messages-container div[class*="justify-start"] > div[class*="max-w"] {
+  background: #ffffff !important;
+  color: #1E293B !important;
+  border: 1.5px solid #DCFCE7 !important;
+  border-radius: 4px 20px 20px 20px !important;
+  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.06) !important;
 }
 .ag-chat-messages-container div[class*="justify-start"] p,
 .ag-chat-messages-container div[class*="justify-start"] span {
-  color: #cbd5e1 !important;
+  color: #1E293B !important;
 }
 .ag-chat-messages-container div[class*="justify-start"] div.prose,
 .ag-chat-messages-container div[class*="justify-start"] div.prose strong,
 .ag-chat-messages-container div[class*="justify-start"] div.prose p {
-  color: #f8fafc !important;
+  color: #1E293B !important;
 }
 .ag-chat-messages-container div[class*="justify-start"] div.prose code {
-  background-color: #2d3748 !important;
-  color: #22c55e !important;
+  background: #F0FDF4 !important;
+  color: #16A34A !important;
+  border: 1px solid #BBF7D0 !important;
 }
 
+/* AI avatar circle */
 .ag-chat-messages-container div[class*="justify-start"] > div:first-child {
-  background: linear-gradient(135deg, #2563eb, #06b6d4) !important;
+  background: linear-gradient(135deg, #16A34A, #22C55E) !important;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25) !important;
 }
 
+/* ── Quick suggestions row (during chat) ──────────────────────── */
 .ag-chat-suggestions-row {
-  background-color: #0f172a !important;
-  background: #0f172a !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #ffffff !important;
+  border-top: 1.5px solid #DCFCE7 !important;
+  padding: 8px 12px !important;
 }
 .ag-chat-suggestions-row button {
-  background-color: #1e293b !important;
-  background: #1e293b !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #f8fafc !important;
+  background: #F0FDF4 !important;
+  border: 1.5px solid #BBF7D0 !important;
+  color: #16A34A !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  padding: 6px 14px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: all 0.18s ease !important;
 }
 .ag-chat-suggestions-row button:hover {
-  background-color: #2d3748 !important;
+  background: #DCFCE7 !important;
+  border-color: #22C55E !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.1) !important;
 }
 
+/* ── Input area ────────────────────────────────────────────────── */
 .ag-chat-input-area {
-  background-color: #0f172a !important;
-  background: #0f172a !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #ffffff !important;
+  border-top: 1.5px solid #DCFCE7 !important;
+  padding: 14px 16px 16px !important;
 }
-.ag-chat-input-area p,
-.ag-chat-input-area span { color: #cbd5e1 !important; }
+.ag-chat-input-area p  { color: #64748B !important; }
+.ag-chat-input-area span { color: #64748B !important; }
 
+/* ── Textarea ──────────────────────────────────────────────────── */
 .ag-ai-workspace-root textarea {
-  background-color: #1e293b !important;
-  background: #1e293b !important;
-  color: #f8fafc !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 1rem !important;
+  background: #F8FFF8 !important;
+  color: #0F172A !important;
+  border: 1.5px solid #BBF7D0 !important;
+  border-radius: 18px !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  padding: 12px 16px !important;
+  transition: all 0.2s ease !important;
+  font-family: inherit !important;
 }
 .ag-ai-workspace-root textarea::placeholder {
-  color: #94a3b8 !important;
+  color: #94A3B8 !important;
+  font-weight: 500 !important;
 }
 .ag-ai-workspace-root textarea:focus {
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
+  border-color: #16A34A !important;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12) !important;
+  background: #ffffff !important;
+  outline: none !important;
 }
 
-.ag-ai-workspace-root button[title*="Send"] {
-  background: #2563eb !important;
+/* ── Send button ───────────────────────────────────────────────── */
+.ag-ai-workspace-root button[title*="Send"],
+.ag-ai-workspace-root button[title*="send"] {
+  background: linear-gradient(135deg, #16A34A, #22C55E) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3) !important;
+  transition: all 0.2s ease !important;
 }
-.ag-ai-workspace-root button[title*="Send"]:hover:not(:disabled) {
-  background: #1d4ed8 !important;
+.ag-ai-workspace-root button[title*="Send"]:hover:not(:disabled),
+.ag-ai-workspace-root button[title*="send"]:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.4) !important;
 }
-.ag-ai-workspace-root button[title*="Send"]:disabled {
-  background: #1e293b !important;
-  opacity: 0.5;
+.ag-ai-workspace-root button[title*="Send"]:disabled,
+.ag-ai-workspace-root button[title*="send"]:disabled {
+  background: #E2E8F0 !important;
+  box-shadow: none !important;
+  opacity: 0.7 !important;
 }
 
-/* Chat Messages Scrollbar Override */
+/* ── Scrollbar: light green ────────────────────────────────────── */
 .ag-chat-messages-container {
-  scrollbar-color: #2563eb #1e293b !important;
-  scrollbar-width: auto !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #BBF7D0 #F0FDF4 !important;
 }
 .ag-chat-messages-container::-webkit-scrollbar {
-  width: 8px !important;
+  width: 5px !important;
   display: block !important;
 }
 .ag-chat-messages-container::-webkit-scrollbar-track {
-  background: #1e293b !important;
-  border-radius: 0 8px 8px 0 !important;
+  background: #F0FDF4 !important;
+  border-radius: 999px !important;
 }
 .ag-chat-messages-container::-webkit-scrollbar-thumb {
-  background: #2563eb !important;
-  border-radius: 8px !important;
+  background: #86EFAC !important;
+  border-radius: 999px !important;
   min-height: 40px !important;
-  border: 2px solid #1e293b !important;
 }
 .ag-chat-messages-container::-webkit-scrollbar-thumb:hover {
-  background: #1d4ed8 !important;
+  background: #22C55E !important;
 }
 
-/* Strip card styles from chat workspace inside side panel */
-.ag-ai-panel .rounded-3xl { border-radius: 0px !important; }
-.ag-ai-panel .border-slate-200,
-.ag-ai-panel .border { border: none !important; }
+/* Remove stale overrides from panel container */
 .ag-ai-panel .shadow-xl { box-shadow: none !important; }
 
 /* ============================================================

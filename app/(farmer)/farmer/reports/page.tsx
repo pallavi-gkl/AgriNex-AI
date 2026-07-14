@@ -126,7 +126,7 @@ export default function ReportsPage() {
 
   // ---- KPI cards ----
   const kpiCards = [
-    { icon: IndianRupee, label: "Total Revenue",     val: `Rs.${formatNumber(totalRevenue)}`,           trend: 23.4,  color: "#22C55E", bg: "#F0FDF4", border: "#86EFAC", spark: DEMO_CHART_DATA.map(d => d.personalEarnings) },
+    { icon: IndianRupee, label: "Total Revenue",     val: `₹${formatNumber(totalRevenue)}`,           trend: 23.4,  color: "#22C55E", bg: "#F0FDF4", border: "#86EFAC", spark: DEMO_CHART_DATA.map(d => d.personalEarnings) },
     { icon: Package,     label: "Orders Completed",  val: `${liveOrderCount || 28}`,                    trend: 12.1,  color: "#6366F1", bg: "#EEF2FF", border: "#C7D2FE", spark: DEMO_CHART_DATA.map(d => d.orders) },
     { icon: Leaf,        label: "Active Crops",      val: `${cropNames.length}`,                        trend: 0,     color: "#10B981", bg: "#F0FDF4", border: "#6EE7B7", spark: [2,2,3,3,3,cropNames.length] },
     { icon: Star,        label: "Customer Rating",   val: "4.8",                                        trend: 0.2,   color: "#F59E0B", bg: "#FFFBEB", border: "#FDE68A", spark: [4.5,4.6,4.7,4.7,4.8,4.8] },
@@ -143,8 +143,8 @@ export default function ReportsPage() {
       if (reportId === "financial") {
         const columns = [
           { header: "Month",                       key: "month",            format: "string" as const },
-          { header: "Your Earnings (Rs.)",         key: "personalEarnings", format: "currency" as const },
-          { header: "Mandi Benchmark Avg (Rs.)",   key: "marketAverage",    format: "currency" as const },
+          { header: "Your Earnings (₹)",         key: "personalEarnings", format: "currency" as const },
+          { header: "Mandi Benchmark Avg (₹)",   key: "marketAverage",    format: "currency" as const },
           { header: "Orders Shipped",              key: "orders",           format: "number" as const },
         ];
         const title = "Financial Summary Report";
@@ -165,7 +165,7 @@ export default function ReportsPage() {
           { header: "Order ID",           key: "id",     format: "string" as const },
           { header: "Buyer",              key: "buyer",  format: "string" as const },
           { header: "Crop Product",       key: "crop",   format: "string" as const },
-          { header: "Total Amount (Rs.)", key: "amount", format: "currency" as const },
+          { header: "Total Amount (₹)", key: "amount", format: "currency" as const },
           { header: "Status",             key: "status", format: "string" as const },
           { header: "Date",               key: "date",   format: "string" as const },
         ];
@@ -188,8 +188,8 @@ export default function ReportsPage() {
           { header: "AI Quality Grade",                key: "grade",       format: "string" as const },
           { header: "Current Stock",                   key: "stock",       format: "number" as const },
           { header: "Unit Type",                       key: "unit",        format: "string" as const },
-          { header: "Farmer Price (Rs./unit)",         key: "price",       format: "currency" as const },
-          { header: "AI Recommended Price (Rs./unit)", key: "recommended", format: "currency" as const },
+          { header: "Farmer Price (₹/unit)",         key: "price",       format: "currency" as const },
+          { header: "AI Recommended Price (₹/unit)", key: "recommended", format: "currency" as const },
           { header: "AI Confidence Score",             key: "confidence",  format: "string" as const },
         ];
         const title = reportId === "performance" ? "Farm Performance Report" : "Crop Inventory Report";
@@ -199,7 +199,7 @@ export default function ReportsPage() {
       } else {
         const columns = [
           { header: "Month", key: "month", format: "string" as const },
-          { header: "Earnings (Rs.)", key: "personalEarnings", format: "currency" as const },
+          { header: "Earnings (₹)", key: "personalEarnings", format: "currency" as const },
           { header: "Orders", key: "orders", format: "number" as const },
         ];
         const rtype = REPORT_TYPES.find(r => r.id === reportId);
@@ -222,8 +222,8 @@ export default function ReportsPage() {
     if (format === "print") { window.print(); return; }
     const columns = [
       { header: "Month", key: "month", format: "string" as const },
-      { header: "Your Earnings (Rs.)", key: "personalEarnings", format: "currency" as const },
-      { header: "Market Avg (Rs.)",    key: "marketAverage",    format: "currency" as const },
+      { header: "Your Earnings (₹)", key: "personalEarnings", format: "currency" as const },
+      { header: "Market Avg (₹)",    key: "marketAverage",    format: "currency" as const },
       { header: "Orders",              key: "orders",           format: "number" as const },
     ];
     const title = "Complete Farm Intelligence Report";
@@ -390,7 +390,7 @@ export default function ReportsPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "#F8FAFC" }}>
-                      {["Month", "Personal Earnings (Rs.)", "Market Benchmark (Rs.)", "Performance Variance"].map(h => (
+                      {["Month", "Personal Earnings (₹)", "Market Benchmark (₹)", "Performance Variance"].map(h => (
                         <th key={h} style={{ padding: "10px 14px", fontSize: "11px", color: "#94A3B8", textTransform: "uppercase" }}>{h}</th>
                       ))}
                     </tr>
@@ -399,8 +399,8 @@ export default function ReportsPage() {
                     {DEMO_CHART_DATA.map((d, idx) => (
                       <tr key={d.month} style={{ borderTop: "1px solid #F1F5F9" }}>
                         <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 700 }}>{d.month}</td>
-                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 800, color: "#22C55E" }}>Rs.{formatNumber(d.personalEarnings)}</td>
-                        <td style={{ padding: "12px 14px", fontSize: "13px", color: "#64748B" }}>Rs.{formatNumber(d.marketAverage)}</td>
+                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 800, color: "#22C55E" }}>₹{formatNumber(d.personalEarnings)}</td>
+                        <td style={{ padding: "12px 14px", fontSize: "13px", color: "#64748B" }}>₹{formatNumber(d.marketAverage)}</td>
                         <td style={{ padding: "12px 14px" }}>
                           <Trend val={Math.round(((d.personalEarnings - d.marketAverage)/d.marketAverage)*100)} />
                         </td>
@@ -429,7 +429,7 @@ export default function ReportsPage() {
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span style={{ color: "#94A3B8" }}>Recommended Price</span>
-                        <strong style={{ color: "#22C55E" }}>Rs.{crop.ai_recommended_price}/{crop.unit_type}</strong>
+                        <strong style={{ color: "#22C55E" }}>₹{crop.ai_recommended_price}/{crop.unit_type}</strong>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span style={{ color: "#94A3B8" }}>AI Confidence Score</span>
@@ -460,7 +460,7 @@ export default function ReportsPage() {
                         <td style={{ padding: "12px 14px", fontSize: "12px", fontFamily: "monospace", color: "#6366F1" }}>#{o.id.slice(-6).toUpperCase()}</td>
                         <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 700 }}>{o.consumer.full_name}</td>
                         <td style={{ padding: "12px 14px", fontSize: "12px" }}>{o.order_items[0]?.product?.title}</td>
-                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 800, color: "#22C55E" }}>Rs.{formatNumber(o.total_amount)}</td>
+                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 800, color: "#22C55E" }}>₹{formatNumber(o.total_amount)}</td>
                         <td style={{ padding: "12px 14px" }}><StatusBadge status={o.status} /></td>
                         <td style={{ padding: "12px 14px", fontSize: "11px", color: "#94A3B8" }}>{new Date(o.created_at).toLocaleDateString("en-IN")}</td>
                       </tr>
@@ -792,7 +792,7 @@ export default function ReportsPage() {
                   <td style={{ padding: "12px 14px", fontSize: "12px", fontWeight: 700, color: "#6366F1", fontFamily: "monospace" }}>#{o.id.slice(-6).toUpperCase()}</td>
                   <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 700, color: "#1F2937" }}>{o.consumer.full_name}</td>
                   <td style={{ padding: "12px 14px", fontSize: "12px", color: "#374151" }}>{o.order_items[0]?.product?.title || "-"}</td>
-                  <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 800, color: "#22C55E" }}>Rs.{formatNumber(o.total_amount)}</td>
+                  <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: 800, color: "#22C55E" }}>₹{formatNumber(o.total_amount)}</td>
                   <td style={{ padding: "12px 14px" }}><StatusBadge status={o.status} /></td>
                   <td style={{ padding: "12px 14px", fontSize: "11px", color: "#94A3B8", fontWeight: 600 }}>
                     {new Date(o.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
@@ -844,8 +844,8 @@ export default function ReportsPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
                 {[
                   { label: "Stock",        val: `${crop.current_stock.toLocaleString()} ${crop.unit_type}` },
-                  { label: "Your Price",   val: `Rs.${crop.farmer_price}/${crop.unit_type}` },
-                  { label: "AI Rec Price", val: `Rs.${crop.ai_recommended_price}/${crop.unit_type}` },
+                  { label: "Your Price",   val: `₹${crop.farmer_price}/${crop.unit_type}` },
+                  { label: "AI Rec Price", val: `₹${crop.ai_recommended_price}/${crop.unit_type}` },
                   { label: "AI Confidence", val: `${crop.ai_confidence_score}%` },
                 ].map(s => (
                   <div key={s.label} style={{ background: "#ffffff", borderRadius: "8px", padding: "7px 10px", border: "1px solid #F1F5F9" }}>
