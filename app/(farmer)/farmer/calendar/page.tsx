@@ -290,10 +290,24 @@ export default function CalendarPage() {
   const { location, weather } = useLocationWeather();
   const { crops } = useFarmerInventory();
 
+  // ── System date (computed once on mount; never hardcoded) ──────────────────
+  const TODAY = useMemo(() => new Date(), []);
+  const todayYear  = TODAY.getFullYear();
+  const todayMonth = TODAY.getMonth();   // 0-indexed
+  const todayDay   = TODAY.getDate();
+
+  // TODAY string for the form default  e.g. "2026-07-15"
+  const todayDateString = useMemo(() => {
+    const y = todayYear;
+    const m = String(todayMonth + 1).padStart(2, "0");
+    const d = String(todayDay).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }, [todayYear, todayMonth, todayDay]);
+
   // Basic States
   const [profile, setProfile] = useState<any>(null);
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 6, 12)); // July 12, 2026
-  const [selectedDateNum, setSelectedDateNum] = useState<number>(12);
+  const [currentDate, setCurrentDate] = useState(() => new Date(todayYear, todayMonth, 1));
+  const [selectedDateNum, setSelectedDateNum] = useState<number>(todayDay);
   const [activities, setActivities] = useState<FarmActivity[]>([]);
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" } | null>(null);
   const [userId, setUserId] = useState<string>("default-farmer");
@@ -302,7 +316,7 @@ export default function CalendarPage() {
   const [formName, setFormName] = useState("");
   const [formCrop, setFormCrop] = useState("");
   const [formField, setFormField] = useState("");
-  const [formDate, setFormDate] = useState("2026-07-12");
+  const [formDate, setFormDate] = useState(todayDateString);
   const [formTime, setFormTime] = useState("08:00");
   const [formPriority, setFormPriority] = useState<"urgent" | "high" | "medium" | "low">("medium");
   const [formNotes, setFormNotes] = useState("");
@@ -681,7 +695,7 @@ export default function CalendarPage() {
             <button onClick={handleNextMonth} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", background: "#F9FAFB", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <ChevronRight style={{ width: "16px", height: "16px", color: "#4B5563" }} />
             </button>
-            <button onClick={() => { setCurrentDate(new Date(2026, 6, 12)); setSelectedDateNum(12); }} style={{ height: "32px", padding: "0 12px", borderRadius: "8px", border: "1px solid #D1FAE5", background: "#ECFDF5", color: "#047857", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={() => { setCurrentDate(new Date(todayYear, todayMonth, 1)); setSelectedDateNum(todayDay); }} style={{ height: "32px", padding: "0 12px", borderRadius: "8px", border: "1px solid #D1FAE5", background: "#ECFDF5", color: "#047857", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
               Today
             </button>
           </div>
@@ -821,7 +835,7 @@ export default function CalendarPage() {
                 const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
                 const events = activities.filter((e) => e.date === dateStr);
                 const isSelected = selectedDateNum === dayNum;
-                const isToday = dayNum === 12 && month === 6 && year === 2026; // July 12, 2026 Today
+                const isToday = dayNum === todayDay && month === todayMonth && year === todayYear;
 
                 return (
                   <motion.div

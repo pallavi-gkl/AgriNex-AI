@@ -258,35 +258,46 @@ export default function AnalyticsPage() {
 
       {/* ---- HERO ---- */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
-        style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #1e1b4b 0%, #3730a3 45%, #4f46e5 80%, #6d28d9 100%)", borderRadius: "24px", padding: "36px 40px", marginBottom: "28px", boxShadow: "0 8px 32px rgba(79,70,229,0.28)" }}>
-        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "220px", height: "220px", borderRadius: "50%", background: "rgba(139,92,246,0.18)", filter: "blur(40px)" }} />
-        <div style={{ position: "absolute", bottom: "-30px", left: "35%", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(99,102,241,0.15)", filter: "blur(40px)" }} />
+        style={{
+          position: "relative", overflow: "hidden",
+          background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 50%, #BBF7D0 100%)",
+          borderRadius: "24px", padding: "36px 40px", marginBottom: "28px",
+          border: "2px solid #22C55E",
+          boxShadow: "0 8px 32px rgba(34,197,94,0.12), 0 2px 8px rgba(0,0,0,0.04)",
+        }}>
+        {/* Soft decorative blobs */}
+        <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "220px", height: "220px", borderRadius: "50%", background: "rgba(34,197,94,0.10)", filter: "blur(50px)" }} />
+        <div style={{ position: "absolute", bottom: "-30px", left: "35%", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(16,185,129,0.08)", filter: "blur(40px)" }} />
         <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", gap: "8px", marginBottom: "18px", flexWrap: "wrap" }}>
-            {[`Farmer: ${farmerName}`, `Location: ${locationLabel}`, `Crops: ${cropNames.length} active`, "AI-Powered"].map(pill => (
-              <span key={pill} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "99px", padding: "5px 14px", fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{pill}</span>
+            {[`👨‍🌾 Farmer: ${farmerName}`, `📍 Location: ${locationLabel}`, `🌿 Crops: ${cropNames.length} active`, "🤖 AI-Powered"].map(pill => (
+              <span key={pill} style={{ background: "rgba(255,255,255,0.75)", border: "1px solid #86EFAC", borderRadius: "99px", padding: "5px 14px", fontSize: "12px", fontWeight: 600, color: "#16A34A" }}>{pill}</span>
             ))}
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "20px" }}>
             <div>
-              <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#ffffff", margin: "0 0 10px", letterSpacing: "-0.5px" }}>
-                AI Farm Intelligence Center
+              <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#14532D", margin: "0 0 10px", letterSpacing: "-0.5px" }}>
+                📊 AI Farm Intelligence Center
               </h1>
-              <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: 0, lineHeight: 1.65, maxWidth: "520px" }}>
-                Advanced business analytics powered by AI using your complete farm activity -- inventory, orders, irrigation, logistics, marketplace and AI diagnostics.
+              <p style={{ fontSize: "14px", color: "#334155", margin: 0, lineHeight: 1.65, maxWidth: "520px" }}>
+                Advanced business analytics powered by AI using your complete farm activity — inventory, orders, irrigation, logistics, marketplace and AI diagnostics.
               </p>
               <div style={{ display: "flex", gap: "10px", marginTop: "18px", flexWrap: "wrap" }}>
                 {["AI Insights", "Real-time Tracking", "Executive Summary", "Live Updates"].map(tag => (
-                  <span key={tag} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "99px", padding: "4px 14px", fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>{tag}</span>
+                  <span key={tag} style={{ background: "rgba(255,255,255,0.8)", border: "1px solid #86EFAC", borderRadius: "99px", padding: "4px 14px", fontSize: "11px", fontWeight: 700, color: "#16A34A" }}>{tag}</span>
                 ))}
               </div>
             </div>
-            <div style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "18px", padding: "20px 24px", minWidth: "190px", textAlign: "center" }}>
-              <p style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", margin: "0 0 6px", letterSpacing: "0.08em" }}>Farm Health Score</p>
-              <p style={{ fontSize: "42px", fontWeight: 900, color: "#ffffff", margin: "0 0 4px", lineHeight: 1 }}>{farmHealth}%</p>
-              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", margin: 0 }}>AI Confidence: 96%</p>
+            <div style={{
+              background: "rgba(255,255,255,0.82)", border: "1px solid #86EFAC",
+              borderRadius: "18px", padding: "20px 24px", minWidth: "190px", textAlign: "center",
+              boxShadow: "0 2px 12px rgba(34,197,94,0.10)",
+            }}>
+              <p style={{ fontSize: "10px", fontWeight: 700, color: "#16A34A", textTransform: "uppercase", margin: "0 0 6px", letterSpacing: "0.08em" }}>Farm Health Score</p>
+              <p style={{ fontSize: "42px", fontWeight: 900, color: "#14532D", margin: "0 0 4px", lineHeight: 1 }}>{farmHealth}%</p>
+              <p style={{ fontSize: "12px", color: "#475569", margin: 0 }}>AI Confidence: 96%</p>
               <div style={{ marginTop: "10px" }}>
-                <span style={{ fontSize: "11px", background: "rgba(34,197,94,0.3)", color: "#86EFAC", padding: "3px 10px", borderRadius: "99px", fontWeight: 700 }}>Healthy</span>
+                <span style={{ fontSize: "11px", background: "#DCFCE7", color: "#16A34A", padding: "3px 10px", borderRadius: "99px", fontWeight: 700, border: "1px solid #86EFAC" }}>Healthy</span>
               </div>
             </div>
           </div>
